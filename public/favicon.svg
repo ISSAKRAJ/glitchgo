@@ -1,0 +1,23 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f97316" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+
+  <!-- Glowing Border effect -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#borderGrad)" />
+  <!-- Inner Background -->
+  <rect x="6" y="6" width="52" height="52" rx="12" fill="#0f1115" />
+
+  <!-- Text G G -->
+  <!-- First G (White) -->
+  <text x="23" y="44" font-family="Arial, system-ui, sans-serif" font-size="28" font-weight="900" text-anchor="middle" fill="#ffffff">G</text>
+  <!-- Second G (Orange/Amber gradient) -->
+  <text x="43" y="44" font-family="Arial, system-ui, sans-serif" font-size="28" font-weight="900" text-anchor="middle" fill="url(#textGrad)">G</text>
+</svg>
