@@ -32,8 +32,8 @@ export default function Footer() {
           <a href="mailto:teamglitchgo@gmail.com" className="hover:text-white transition-colors flex items-center gap-1 sm:border-r border-white/10 sm:pr-6">
             <Mail size={14} /> teamglitchgo@gmail.com
           </a>
-          <a href="#" className="hover:text-white transition-colors">Privacy</a>
-          <a href="#" className="hover:text-white transition-colors pr-20 md:pr-0">Terms</a>
+          <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+          <Link to="/terms" className="hover:text-white transition-colors pr-20 md:pr-0">Terms</Link>
         </div>
       </div>
     </footer>

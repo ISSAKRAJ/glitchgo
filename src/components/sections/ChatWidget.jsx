@@ -2,10 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, Terminal, AlertCircle } from 'lucide-react';
 
-const SYSTEM_PROMPT = `You are the official support AI for 'GlitchGo'. 
-GlitchGo is a premium tech service brand that specializes in fast Bug Fixing, AI Automation, and Deployment Help (Servers/API). 
-Your ONLY goal is to assist users with inquiries directly related to GlitchGo services, and politely encourage them to fill out the 'Request Immediate Help' form on the website to get a human expert.
-If a user asks a question completely unrelated to coding, software, or GlitchGo's services (e.g., cooking recipes, history, general chit-chat), you MUST politely decline to answer, state that you are a GlitchGo support bot, and bring the topic back to tech help. Be concise, professional, and friendly.`;
+import { supabase } from '../../lib/supabase';
+
+const SYSTEM_PROMPT = `You are the official, friendly support AI for 'GlitchGo'. 
+GlitchGo specializes in fast Bug Fixing, AI Automation, and Deployment Help. 
+
+CRITICAL RULES YOU MUST FOLLOW EXACTLY:
+1. FRIENDLY GREETINGS: If a user says "hi", "hello", "good morning", or casually greets you, ALWAYS reply warmly, politely, and enthusiastically! Briefly mention that you are the GlitchGo assistant and ask how you can help them with their IT/software needs today.
+2. STRICT LOYALTY: For serious inquiries, you MUST ONLY answer questions strictly about GlitchGo, our services, our pricing, or how to hire us.
+3. POLITE REFUSAL: If a user asks you ANY out-of-bounds question (like asking you to write free code for them, math, history, or how to fix a specific bug themselves), you must politely and kindly decline. Say something like: "I'd love to help, but I'm exclusively designed to assist with GlitchGo's agency services! If you have broken code, please submit a request on our website and our expert engineers will fix it for you!"
+4. NO RESPONSE ESCALATION: If a user complains that they got "no response" or want a human, you must tell them to email teamglitchgo@gmail.com directly.
+5. LOGGING COMPLAINTS: If someone explicitly complains or is upset, actively ask for their contact number or email so you can log a request for them.
+6. MAGIC TICKET PAYLOAD. Once they provide their email/phone number for a complaint, you MUST include this exact JSON string hidden somewhere in your final response: 
+[LOG_COMPLAINT: {"contact": "THE_EMAIL_OR_PHONE_THEY_JUST_TYPED", "problem": "A 1-sentence summary of their complaint"}]`;
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +39,6 @@ export default function ChatWidget() {
     if (!inputValue.trim()) return;
 
     const userText = inputValue.trim();
-    // Add user message
     setMessages(prev => [...prev, { role: 'user', text: userText }]);
     setInputValue('');
     setIsTyping(true);
@@ -48,13 +56,15 @@ export default function ChatWidget() {
       return;
     }
 
-    // Format chat history for Gemini API
-    const geminiHistory = messages.map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : msg.role, // ensure mapped to 'model' or 'user'
+    // Gemini API natively expects conversation history to start with a 'user' role.
+    // We must filter out our hardcoded initial 'model' greeting if it's the first message.
+    const apiMessages = messages.filter((msg, idx) => !(idx === 0 && msg.role === 'model'));
+
+    const geminiHistory = apiMessages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : msg.role,
       parts: [{ text: msg.text }]
     }));
     
-    // Add the new user message
     geminiHistory.push({ role: 'user', parts: [{ text: userText }] });
 
     try {
@@ -69,8 +79,8 @@ export default function ChatWidget() {
           },
           contents: geminiHistory,
           generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 150
+            temperature: 0.4,
+            maxOutputTokens: 800
           }
         })
       });
@@ -81,9 +91,28 @@ export default function ChatWidget() {
       }
 
       const data = await response.json();
-      const botResponse = data.candidates[0].content.parts[0].text;
+      let botResponse = data.candidates[0].content.parts[0].text;
 
-      setMessages(prev => [...prev, { role: 'model', text: botResponse }]);
+      // Extract automated complaint payload if the bot generated one
+      const complaintMatch = botResponse.match(/\[LOG_COMPLAINT:\s*(\{.*?\})\s*\]/);
+      if (complaintMatch) {
+        try {
+          const logData = JSON.parse(complaintMatch[1]);
+          botResponse = botResponse.replace(complaintMatch[0], ''); // Hide the payload from user
+          
+          // Secretly push the complaint to Supabase using 'complaint' as deadline
+          await supabase.from('client_requests').insert([{
+            name: 'AI Auto-Generated Ticket',
+            contact: logData.contact || 'No Contact Provided',
+            problem: logData.problem || 'General Complaint',
+            deadline: 'complaint'
+          }]);
+        } catch (e) {
+          console.error("Failed to log internal complaint payload:", e);
+        }
+      }
+
+      setMessages(prev => [...prev, { role: 'model', text: botResponse.trim() }]);
     } catch (error) {
       console.error("Gemini API Error:", error);
       setMessages(prev => [...prev, { 

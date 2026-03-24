@@ -109,6 +109,14 @@ export default function ClientForm() {
       }
 
       setStatus('success');
+      
+      // Telegram Handoff Configuration
+      const tgUsername = import.meta.env.VITE_TELEGRAM_USERNAME;
+      if (tgUsername) {
+        const textMessage = encodeURIComponent(`Hi GlitchGo! I just submitted an urgent ticket on your website.\n\n*Name:* ${formData.name}\n*Problem:* ${formData.problem}\n\nCan we discuss the exact price and the initial UPI deposit?`);
+        window.open(`https://t.me/${tgUsername.replace('@', '')}?text=${textMessage}`, '_blank');
+      }
+
       setFormData({ name: '', contact: '', problem: '', deadline: 'urgent', budget: '', referralCode: '' });
       setFile(null);
       
