@@ -212,7 +212,7 @@ export default function ClientForm() {
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Budget (Optional)</label>
                 <Input 
-                  placeholder="₹1000, ₹5000+" 
+                  placeholder="$50, $100+" 
                   type="text"
                   value={formData.budget}
                   onChange={(e) => setFormData({...formData, budget: e.target.value})}
