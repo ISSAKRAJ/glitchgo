@@ -66,22 +66,71 @@ export default function Dashboard() {
     fetchLeads();
   }, [isLoggedIn, role, employeeCode]);
 
-  // Mark as Delivered
-  const handleMarkDelivered = async (id, currentStatus) => {
-    if (currentStatus === 'delivered') return; // Cannot undo
+  // Status Update
+  const handleStatusChange = async (id, newStatus) => {
     try {
       const { error } = await supabase
         .from('client_requests')
-        .update({ status: 'delivered' })
+        .update({ status: newStatus })
         .eq('id', id);
         
       if (error) throw error;
       
-      setLeads(leads.map(lead => lead.id === id ? { ...lead, status: 'delivered' } : lead));
-      setConfirmingId(null);
+      setLeads(leads.map(lead => lead.id === id ? { ...lead, status: newStatus } : lead));
     } catch (err) {
       console.error(err);
-      setError('Failed to update status. Did you run the SQL command to add the "status" column?');
+      setError('Failed to update status. Please make sure the "status" column exists in Supabase Database.');
+    }
+  };
+
+  // Payment Link Save
+  const handleSavePaymentLink = async (id, link) => {
+    try {
+      const { error } = await supabase
+        .from('client_requests')
+        .update({ payment_link: link })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      setLeads(leads.map(lead => lead.id === id ? { ...lead, payment_link: link } : lead));
+    } catch (err) {
+      console.error(err);
+      setError('Failed to save payment link. You must run the SQL to add the "payment_link" column.');
+    }
+  };
+
+  // Quote Save
+  const handleSaveQuote = async (id, quote) => {
+    try {
+      const { error } = await supabase
+        .from('client_requests')
+        .update({ quoted_price: quote })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      setLeads(leads.map(lead => lead.id === id ? { ...lead, quoted_price: quote } : lead));
+    } catch (err) {
+      console.error(err);
+      setError('Failed to save quote. You must run the SQL to add the "quoted_price" column.');
+    }
+  };
+
+  // Delivery Link Save
+  const handleSaveDeliveryLink = async (id, link) => {
+    try {
+      const { error } = await supabase
+        .from('client_requests')
+        .update({ delivery_link: link })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      setLeads(leads.map(lead => lead.id === id ? { ...lead, delivery_link: link } : lead));
+    } catch (err) {
+      console.error(err);
+      setError('Failed to save delivery link. You must run the SQL to add the "delivery_link" column.');
     }
   };
 
@@ -195,6 +244,7 @@ export default function Dashboard() {
                   <th className="px-6 py-4 font-medium"><div className="flex items-center gap-2"><Users size={16} /> Client</div></th>
                   <th className="px-6 py-4 font-medium min-w-[200px]">Problem</th>
                   <th className="px-6 py-4 font-medium"><div className="flex items-center gap-2"><Briefcase size={16} /> Details</div></th>
+                  {role === 'admin' && <th className="px-6 py-4 font-medium text-emerald-400">Billing & Delivery</th>}
                   {role === 'admin' && <th className="px-6 py-4 font-medium text-brand-orange">Referral</th>}
                   <th className="px-6 py-4 font-medium text-right">Status</th>
                 </tr>
@@ -244,41 +294,46 @@ export default function Dashboard() {
                         )}
                       </td>
                       {role === 'admin' && (
+                        <td className="px-6 py-4 space-y-2">
+                          <input 
+                            type="url"
+                            placeholder="Stripe URL..."
+                            defaultValue={lead.payment_link || ''}
+                            onBlur={(e) => handleSavePaymentLink(lead.id, e.target.value)}
+                            className="bg-dark-surface border border-white/10 rounded px-2 py-1.5 text-xs w-full min-w-[200px] focus:w-full transition-all text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 block"
+                          />
+                          <input 
+                            type="text"
+                            placeholder="Quote (e.g. $500)"
+                            defaultValue={lead.quoted_price || ''}
+                            onBlur={(e) => handleSaveQuote(lead.id, e.target.value)}
+                            className="bg-dark-surface border border-white/10 rounded px-2 py-1.5 text-xs w-full min-w-[200px] focus:w-full transition-all text-emerald-400 font-bold placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 block"
+                          />
+                          <input 
+                            type="url"
+                            placeholder="Delivery URL (Github/Drive)"
+                            defaultValue={lead.delivery_link || ''}
+                            onBlur={(e) => handleSaveDeliveryLink(lead.id, e.target.value)}
+                            className="bg-brand-blue/5 border border-brand-blue/20 rounded px-2 py-1.5 text-xs w-full min-w-[200px] focus:w-full transition-all text-brand-blue font-mono placeholder-brand-blue/50 focus:outline-none focus:border-brand-blue/50 block"
+                          />
+                        </td>
+                      )}
+                      {role === 'admin' && (
                         <td className="px-6 py-4 font-mono text-brand-orange text-xs">
                           {lead.referral_code || '---'}
                         </td>
                       )}
-                      <td className="px-6 py-4 text-right">
-                        {lead.status === 'delivered' ? (
-                          <div className="inline-flex items-center justify-end gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border bg-emerald-500/10 text-emerald-400 border-emerald-500/30 cursor-default opacity-80">
-                            <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                            Delivered
-                          </div>
-                        ) : confirmingId === lead.id ? (
-                          <div className="flex items-center justify-end gap-2 animate-in fade-in zoom-in duration-200">
-                            <span className="text-xs text-gray-400 mr-1">Sure?</span>
-                            <button
-                              onClick={() => setConfirmingId(null)}
-                              className="px-3 py-1.5 rounded-full text-xs font-semibold border bg-white/5 text-gray-300 border-white/20 hover:bg-white/10 transition-colors"
-                            >
-                              No
-                            </button>
-                            <button
-                              onClick={() => handleMarkDelivered(lead.id, lead.status)}
-                              className="px-3 py-1.5 rounded-full text-xs font-semibold border bg-brand-orange/20 text-brand-orange border-brand-orange/50 hover:bg-brand-orange hover:text-white transition-all shadow-[0_0_10px_rgba(249,115,22,0.3)]"
-                            >
-                              Yes, Deliver
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setConfirmingId(lead.id)}
-                            className="inline-flex items-center justify-end gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border bg-white/5 text-gray-300 border-white/20 hover:border-brand-blue/50 hover:bg-brand-blue/10 hover:text-white cursor-pointer transition-all"
-                          >
-                            <div className="w-2 h-2 rounded-full bg-gray-400" />
-                            Mark Delivered
-                          </button>
-                        )}
+                      <td className="px-6 py-4 text-right overflow-visible">
+                        <select
+                          value={lead.status || 'Received'}
+                          onChange={(e) => handleStatusChange(lead.id, e.target.value)}
+                          className="bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-brand-blue cursor-pointer hover:bg-white/10 transition-colors"
+                        >
+                          <option value="Received">📥 Received</option>
+                          <option value="Estimating">🔍 Estimating</option>
+                          <option value="In Progress">⚙️ In Progress</option>
+                          <option value="Completed">✅ Completed</option>
+                        </select>
                       </td>
                     </tr>
                   ))

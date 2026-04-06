@@ -21,9 +21,11 @@ export default function Navbar() {
           </div>
         </div>
         
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
-          <a href="#services" className="hover:text-white transition-colors">Services</a>
-          <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
+        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
+          <a href="/#services" className="hover:text-brand-blue transition-colors">Services</a>
+          <a href="/#how-it-works" className="hover:text-brand-blue transition-colors">How it Works</a>
+          <a href="/status" className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-orange hover:opacity-80 transition-opacity ml-2">Track Ticket ✨</a>
+
           <Button size="sm" onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}>
             Get Help Now
           </Button>

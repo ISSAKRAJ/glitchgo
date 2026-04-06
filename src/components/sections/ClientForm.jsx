@@ -13,7 +13,8 @@ export default function ClientForm() {
     problem: '',
     deadline: 'urgent',
     budget: '',
-    referralCode: ''
+    referralCode: '',
+    botcheck: '' // Honeypot field for spam bots
   });
   const [errors, setErrors] = useState({});
   const [file, setFile] = useState(null); // File tracking state
@@ -22,9 +23,22 @@ export default function ClientForm() {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.contact.trim()) newErrors.contact = 'Email or Phone is required';
-    if (!formData.problem.trim()) newErrors.problem = 'Please describe your problem';
+    // Strict Email / Phone Regex (Must be a valid email format OR a valid 10+ digit phone number)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\+?[\d\s-]{10,}$/;
+    
+    if (!formData.name.trim() || formData.name.length < 2) newErrors.name = 'Please enter your full real name';
+    if (!formData.contact.trim()) {
+      newErrors.contact = 'Email or Phone is required';
+    } else if (!emailRegex.test(formData.contact) && !phoneRegex.test(formData.contact)) {
+      newErrors.contact = 'Please enter a valid email address or phone number';
+    }
+    
+    // Strict Length Validation to prevent single-word spam
+    if (!formData.problem.trim() || formData.problem.trim().length < 20) {
+      newErrors.problem = 'Please provide more details (at least 20 characters) so we can help you properly';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -36,6 +50,14 @@ export default function ClientForm() {
     
     setStatus('submitting');
     
+    // HONEYPOT: If a bot filled out the hidden field, silently reject them
+    if (formData.botcheck) {
+      console.log('Spam bot detected and blocked.');
+      setStatus('success'); // Pretend it worked to trick the bot
+      setTimeout(() => setStatus('idle'), 5000);
+      return;
+    }
+
     try {
       // Basic check for placeholder configuration
       if (import.meta.env.VITE_SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || !import.meta.env.VITE_SUPABASE_URL) {
@@ -159,6 +181,16 @@ export default function ClientForm() {
           </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Honeypot Field (Hidden from humans, bots will fill it) */}
+            <input 
+              type="checkbox" 
+              name="botcheck" 
+              className="hidden" 
+              style={{ display: 'none' }}
+              checked={!!formData.botcheck}
+              onChange={(e) => setFormData({...formData, botcheck: e.target.checked})}
+            />
+
             {status === 'error' && (
               <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg text-sm text-center">
                 {serverError}
