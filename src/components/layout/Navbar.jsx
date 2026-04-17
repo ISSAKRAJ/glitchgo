@@ -35,6 +35,7 @@ export default function Navbar() {
             Get Help Now
           </Button>
         </div>
+        </div>
       </div>
     </motion.nav>
   );
