@@ -5,7 +5,7 @@ import Button from '../ui/Button';
 
 export default function Hero() {
   return (
-    <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
+    <section className="relative pt-40 pb-20 md:pt-56 md:pb-32 overflow-hidden">
       {/* Background glowing effects */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-brand-blue/20 rounded-full blur-[120px] -z-10 pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-brand-orange/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
@@ -15,10 +15,10 @@ export default function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-brand-blue text-sm mb-8"
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-brand-orange font-medium text-sm mb-8"
         >
           <Code2 size={16} />
-          <span>Fast Tech Fix & AI Automation</span>
+          <span>Hi, I'm Issak Raj. Full-Stack Developer in Kakinada.</span>
         </motion.div>
 
         <motion.h1 
@@ -27,8 +27,8 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight"
         >
-          Fix Your Code Fast. <br className="hidden md:block" />
-          <span className="text-gradient">Before Your Deadline.</span>
+          I Fix Your Code Fast. <br className="hidden md:block" />
+          <span className="text-gradient">No Fluff. No Excuses.</span>
         </motion.h1>
 
         <motion.p 
@@ -37,8 +37,7 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10"
         >
-          Bug fixing, API issues, and AI automation solutions delivered quickly. 
-          Stop stressing over broken code—we've got you covered.
+          Urgent bug fixes, total project rescues, and AI automation built overnight. Stop stressing over broken apps and let me handle the heavy lifting.
         </motion.p>
 
         <motion.div 
