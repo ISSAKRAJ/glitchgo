@@ -120,14 +120,26 @@ export default function ClientForm() {
           message: `Problem: ${formData.problem}\nDeadline: ${formData.deadline}\nBudget: ${formData.budget || 'N/A'}\nReferral Code: ${formData.referralCode || 'None'}`
         };
 
-        await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(emailPayload)
-        });
+        try {
+          const res = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(emailPayload)
+          });
+          const resData = await res.json();
+          if (!res.ok || !resData.success) {
+            console.error("Web3Forms submission failed:", resData.message || "Unknown error");
+          } else {
+            console.log("Web3Forms email notification sent successfully.");
+          }
+        } catch (fetchErr) {
+          console.error("Failed to connect to Web3Forms API:", fetchErr);
+        }
+      } else {
+        console.warn("Web3Forms Access Key is missing or default. Email notification skipped.");
       }
 
       setStatus('success');

@@ -41,6 +41,7 @@ export default function Status() {
         setTickets(data);
       }
     } catch (err) {
+      console.error('Error fetching ticket status:', err);
       setError('Database connection error. Please try again later.');
     } finally {
       setLoading(false);

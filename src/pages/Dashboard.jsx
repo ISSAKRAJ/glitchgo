@@ -14,7 +14,6 @@ export default function Dashboard() {
   const [leads, setLeads] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [confirmingId, setConfirmingId] = useState(null);
 
   // Handle Login
   const handleLogin = (e) => {
