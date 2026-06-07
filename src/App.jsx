@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Status from './pages/Status';
-import LeaveReview from './pages/LeaveReview';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 
@@ -15,7 +14,6 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/status" element={<Status />} />
-          <Route path="/leave-review" element={<LeaveReview />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
         </Routes>
