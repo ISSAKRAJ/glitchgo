@@ -1,0 +1,15 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  env: {
+    VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+    VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY,
+    VITE_ADMIN_PASSWORD: process.env.VITE_ADMIN_PASSWORD,
+    VITE_WEB3FORMS_ACCESS_KEY: process.env.VITE_WEB3FORMS_ACCESS_KEY,
+    VITE_GEMINI_API_KEY: process.env.VITE_GEMINI_API_KEY,
+    VITE_TELEGRAM_USERNAME: process.env.VITE_TELEGRAM_USERNAME,
+    NEXT_PUBLIC_SLACK_CLIENT_ID: process.env.SLACK_CLIENT_ID,
+  }
+};
+
+export default nextConfig;

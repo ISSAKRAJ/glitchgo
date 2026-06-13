@@ -11,10 +11,21 @@ export default function Navbar() {
       transition={{ duration: 0.5 }}
       className="fixed top-0 left-0 right-0 z-50 flex flex-col"
     >
-      <div className="w-full bg-brand-blue py-2 px-4 shadow-[0_0_20px_rgba(59,130,246,0.4)]">
-        <p className="text-center text-white font-extrabold text-sm md:text-base tracking-wide">
-          Message me instantly on Telegram: <a href="https://t.me/glitchgo123" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-brand-orange transition-colors">@glitchgo123</a>
-        </p>
+      <div className="w-full bg-[#0d0e12] border-b border-white/5 py-2.5 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)] select-none">
+        <div className="animate-marquee whitespace-nowrap flex items-center text-xs font-semibold uppercase tracking-wider text-gray-300">
+          {Array(4).fill(null).map((_, i) => (
+            <span key={i} className="inline-flex items-center gap-8 mx-4">
+              <span className="text-brand-orange font-extrabold flex items-center gap-1">🔥 NEW LAUNCH:</span>
+              <span>CHECK OUT OUR NEW PRODUCT <a href="/adminzero-product" className="text-brand-blue underline hover:text-white transition-colors font-extrabold">ADMINZERO BOT</a> BELOW</span>
+              <span className="text-gray-600">|</span>
+              <span className="text-brand-blue font-extrabold">⚡ SECURE CHATOPS:</span>
+              <span>QUERY POSTGRES DIRECTLY FROM SLACK</span>
+              <span className="text-gray-600">|</span>
+              <span>CHAT SUPPORT: <a href="https://t.me/glitchgo123" target="_blank" rel="noopener noreferrer" className="text-brand-orange underline hover:text-white transition-colors font-extrabold">@GLITCHGO123</a></span>
+              <span className="text-gray-500 font-normal">★</span>
+            </span>
+          ))}
+        </div>
       </div>
       <div className="glass border-b-0 border-white/5 w-full">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -29,6 +40,8 @@ export default function Navbar() {
         
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
           <a href="/#services" className="hover:text-brand-blue transition-colors">Services</a>
+          <a href="/adminzero-product" className="hover:text-brand-blue transition-colors">AdminZero Bot</a>
+          <a href="/adminzero" className="hover:text-brand-blue transition-colors">Config Portal</a>
           <a href="/status" className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-orange hover:opacity-80 transition-opacity ml-2">Track Ticket ✨</a>
 
           <Button size="sm" onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}>

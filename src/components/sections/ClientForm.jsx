@@ -60,7 +60,7 @@ export default function ClientForm() {
 
     try {
       // Basic check for placeholder configuration
-      if (import.meta.env.VITE_SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || !import.meta.env.VITE_SUPABASE_URL) {
+      if (process.env.VITE_SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || !process.env.VITE_SUPABASE_URL) {
         throw new Error("Supabase is not configured! Please set up your .env.local file with real database keys.");
       }
 
@@ -109,7 +109,7 @@ export default function ClientForm() {
       if (error) throw error;
 
       // Send Email Notification via Web3Forms
-      const web3FormsKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+      const web3FormsKey = process.env.VITE_WEB3FORMS_ACCESS_KEY;
       if (web3FormsKey && web3FormsKey !== 'YOUR_WEB3FORMS_KEY_HERE') {
         const emailPayload = {
           access_key: web3FormsKey,
@@ -145,7 +145,7 @@ export default function ClientForm() {
       setStatus('success');
       
       // Telegram Handoff Configuration
-      const tgUsername = import.meta.env.VITE_TELEGRAM_USERNAME;
+      const tgUsername = process.env.VITE_TELEGRAM_USERNAME;
       if (tgUsername) {
         const textMessage = encodeURIComponent(`Hi GlitchGo! I just submitted an urgent ticket on your website.\n\n*Name:* ${formData.name}\n*Problem:* ${formData.problem}\n\nCan we discuss the exact price and the initial UPI deposit?`);
         window.open(`https://t.me/${tgUsername.replace('@', '')}?text=${textMessage}`, '_blank');

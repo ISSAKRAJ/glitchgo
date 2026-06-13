@@ -5,6 +5,7 @@ import Hero from '../components/sections/Hero';
 import Trust from '../components/sections/Trust';
 import Services from '../components/sections/Services';
 import HowItWorks from '../components/sections/HowItWorks';
+import AdminZeroPromo from '../components/sections/AdminZeroPromo';
 import ClientForm from '../components/sections/ClientForm';
 import FinalCta from '../components/sections/FinalCta';
 import ChatWidget from '../components/sections/ChatWidget';
@@ -18,6 +19,7 @@ export default function Landing() {
         <Trust />
         <Services />
         <HowItWorks />
+        <AdminZeroPromo />
         <ClientForm />
         <FinalCta />
       </main>

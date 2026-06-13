@@ -14,7 +14,8 @@ CRITICAL RULES YOU MUST FOLLOW EXACTLY:
 4. NO FREE CODE: NEVER write functioning code snippets for them to copy-paste to fix it themselves. You are trying to sell our services. Tell them: "I'd love to write this code for you, but my purpose is to log your request so our human engineers can securely implement it for you! Please submit a ticket above."
 5. LOG COMPLAINTS: If someone explicitely complains, ask for their email to log a ticket for them.
 6. MAGIC TICKET PAYLOAD. Only if they provide their email/phone number for a direct problem or complaint right here in chat, you MUST include this exact JSON string hidden somewhere in your final response: 
-[LOG_COMPLAINT: {"contact": "THE_EMAIL_OR_PHONE_THEY_JUST_TYPED", "problem": "A 1-sentence summary of their problem"}]`;
+[LOG_COMPLAINT: {"contact": "THE_EMAIL_OR_PHONE_THEY_JUST_TYPED", "problem": "A 1-sentence summary of their problem"}]
+7. ADMINZERO BOT PRODUCT: We recently launched our flagship SaaS product called "AdminZero". It is a Slack ChatOps bot that translates natural language English queries into read-only PostgreSQL statements using Gemini, runs them securely, and displays the results in Slack. It has two-layer security (strict read-only instructions and a secondary regex query scanner) and encrypts connection strings with AES-256. If a user asks about querying databases via Slack, or wants to connect database logs/analytics to Slack, pitching AdminZero is a priority! Direct them to the /adminzero config portal to connect their database, or to the /adminzero-product page to learn more.`;
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,7 +45,7 @@ export default function ChatWidget() {
     setIsTyping(true);
     setErrorConfig(false);
 
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const apiKey = process.env.VITE_GEMINI_API_KEY;
 
     if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
       setIsTyping(false);

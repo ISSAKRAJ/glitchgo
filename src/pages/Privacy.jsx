@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Shield, ChevronLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 export default function Privacy() {
   useEffect(() => window.scrollTo({ top: 0, behavior: 'instant' }), []);
@@ -8,7 +8,7 @@ export default function Privacy() {
   return (
     <div className="min-h-screen bg-dark-bg text-gray-300 py-12 px-6">
       <div className="max-w-3xl mx-auto">
-        <Link to="/" className="inline-flex items-center gap-2 text-brand-orange hover:text-orange-400 mb-8 transition-colors">
+        <Link href="/" className="inline-flex items-center gap-2 text-brand-orange hover:text-orange-400 mb-8 transition-colors">
           <ChevronLeft size={20} /> Back to Home
         </Link>
         <div className="glass p-8 md:p-12 rounded-3xl border border-white/10 relative overflow-hidden">
