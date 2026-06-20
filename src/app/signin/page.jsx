@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Database, Mail, Lock, ShieldCheck, LogIn, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ShieldCheck } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -11,22 +11,28 @@ import { supabase } from '../../lib/supabase';
 
 export default function SigninPage() {
   const router = useRouter();
+  
+  // Parse redirection URL from browser window safely on client side
+  const next = typeof window !== 'undefined' 
+    ? new URLSearchParams(window.location.search).get('next') || '/' 
+    : '/';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // If already logged in, redirect directly to dashboard
+  // If already logged in, redirect directly to requested page
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push('/adminzero');
+        router.push(next);
       }
     };
     checkUser();
-  }, [router]);
+  }, [router, next]);
 
   const handleSignin = async (e) => {
     e.preventDefault();
@@ -49,9 +55,8 @@ export default function SigninPage() {
         setError(signInError.message);
       } else {
         setSuccess('Login successful! Redirecting...');
-        // Wait a brief moment for user to see success message
         setTimeout(() => {
-          router.push('/adminzero');
+          router.push(next);
         }, 1000);
       }
     } catch (err) {
@@ -68,7 +73,7 @@ export default function SigninPage() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/adminzero` : undefined
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}${next}` : undefined
         }
       });
       if (oauthError) throw oauthError;
@@ -95,8 +100,8 @@ export default function SigninPage() {
               </div>
             </div>
           </Link>
-          <h2 className="text-xl font-bold tracking-tight mt-4 text-white font-outfit">Sign in to your account</h2>
-          <p className="text-sm text-gray-400">Access your Slack & database configurations.</p>
+          <h2 className="text-xl font-bold tracking-tight mt-4 text-white font-outfit">Sign in to GlitchGo</h2>
+          <p className="text-sm text-gray-400">Manage your active services, track debugging tickets, and configure products.</p>
         </div>
 
         {/* Form Card */}
@@ -118,68 +123,75 @@ export default function SigninPage() {
           <div className="flex flex-col gap-4">
             <Button
               type="button"
-              onClick={handleGoogleSignin}
               variant="secondary"
-              className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl"
+              className="w-full flex items-center justify-center gap-3 py-3 relative group"
+              onClick={handleGoogleSignin}
               disabled={isLoading}
             >
-              <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
-                <path d="M12.24 10.285V13.4h6.887C18.2 15.614 15.645 18 12.24 18c-3.86 0-7-3.14-7-7s3.14-7 7-7c1.7 0 3.3.6 4.5 1.7l2.42-2.42C17.385 1.63 14.93 1 12.24 1 6.58 1 2 5.58 2 11.24s4.58 10.24 10.24 10.24c5.9 0 9.8-4.14 9.8-9.98 0-.67-.06-1.3-.18-1.92h-9.62z"/>
+              <svg className="w-4 h-4 fill-current group-hover:text-white transition-colors" viewBox="0 0 24 24">
+                <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.435-2.883-6.435-6.435s2.88-6.435 6.435-6.435c1.638 0 3.136.612 4.28 1.62l3.05-3.05C19.23 2.38 15.93 1 12.24 1 5.92 1 1 5.92 1 12s4.92 11 11.24 11c6.53 0 11.24-4.59 11.24-11.24 0-.785-.09-1.54-.25-2.285H12.24z"/>
               </svg>
-              Continue with Google
+              <span>Continue with Google</span>
             </Button>
-
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-white/5"></div>
-              <span className="flex-shrink mx-4 text-gray-500 text-xs font-bold uppercase tracking-wider">or</span>
-              <div className="flex-grow border-t border-white/5"></div>
-            </div>
-          </div>
-
-          <form onSubmit={handleSignin} className="space-y-6">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                <Mail size={12} /> Email Address
-              </label>
-              <Input
-                type="email"
-                placeholder="you@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex justify-between items-center">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <Lock size={12} /> Password
-                </label>
+            
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/5"></div>
               </div>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isLoading}
-              />
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-dark-surface px-2 text-gray-500">Or with email password</span>
+              </div>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full flex items-center justify-center gap-2 py-3.5"
-              isLoading={isLoading}
-            >
-              <LogIn size={18} />
-              <span>Sign In</span>
-            </Button>
-          </form>
+            <form onSubmit={handleSignin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-500 pointer-events-none">
+                    <Mail size={16} />
+                  </span>
+                  <Input
+                    type="email"
+                    placeholder="you@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Password</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-500 pointer-events-none">
+                    <Lock size={16} />
+                  </span>
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Button type="submit" className="w-full py-3 flex items-center justify-center gap-2" isLoading={isLoading && !success}>
+                  <span>Sign In</span>
+                </Button>
+              </div>
+            </form>
+          </div>
 
           <div className="mt-8 text-center text-sm text-gray-400 border-t border-white/5 pt-6 font-outfit">
             Don't have an account yet?{' '}
-            <Link href="/signup" className="font-semibold text-brand-blue hover:underline transition-all hover:text-blue-400">
+            <Link 
+              href={next !== '/' ? `/signup?next=${encodeURIComponent(next)}` : "/signup"} 
+              className="font-semibold text-brand-blue hover:underline transition-all hover:text-blue-400"
+            >
               Sign Up
             </Link>
           </div>

@@ -189,7 +189,7 @@ export default function AdminZeroPage() {
       }
 
       if (!session) {
-        router.push('/signin');
+        router.push('/signin?next=/adminzero');
         return;
       }
       
