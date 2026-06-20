@@ -17,6 +17,50 @@ export default function Status() {
   const [loading, setLoading] = useState(false);
   const [tickets, setTickets] = useState(null);
   const [error, setError] = useState('');
+  const [user, setUser] = useState(null);
+
+  const fetchTicketsForEmail = async (userEmail) => {
+    if (!userEmail) return;
+    setLoading(true);
+    setError('');
+    try {
+      const { data, error } = await supabase
+        .from('client_requests')
+        .select('*')
+        .eq('contact', userEmail.trim())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTickets(data || []);
+    } catch (err) {
+      console.error('Error fetching ticket status:', err);
+      setError('Database connection error. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+        fetchTicketsForEmail(session.user.email);
+      }
+    };
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setUser(session.user);
+        fetchTicketsForEmail(session.user.email);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -48,6 +92,12 @@ export default function Status() {
     }
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setTickets(null);
+  };
+
   const getStepIndex = (status) => {
     const s = status ? status.toLowerCase() : 'received';
     if (s.includes('complet') || s.includes('deliver')) return 3;
@@ -64,34 +114,62 @@ export default function Status() {
         </button>
 
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Track Your Ticket</h1>
-          <p className="text-gray-400">Enter your email or phone number below to check the live status of your GlitchGo service request.</p>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-outfit">Track Your Ticket</h1>
+          <p className="text-gray-400">
+            {user 
+              ? `Logged in as ${user.email}. We have loaded your active service tickets below.`
+              : 'Enter your email or phone number below to check the live status of your GlitchGo service request.'
+            }
+          </p>
         </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass p-8 rounded-3xl border border-white/5"
-        >
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input 
-                placeholder="john@example.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+        {user ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass p-6 rounded-3xl border border-brand-blue/20 bg-brand-blue/5 flex flex-col sm:flex-row items-center justify-between gap-4"
+          >
+            <div className="text-left">
+              <span className="text-xs uppercase tracking-wider text-brand-blue font-bold">Authenticated Client Account</span>
+              <div className="text-white font-semibold text-sm mt-0.5">{user.email}</div>
             </div>
-            <Button type="submit" isLoading={loading} className="whitespace-nowrap">
-              Check Status
-            </Button>
-          </form>
+            <button 
+              onClick={handleSignOut}
+              className="text-xs bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer"
+            >
+              Sign Out Account
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass p-8 rounded-3xl border border-white/5"
+          >
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Input 
+                  placeholder="john@example.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <Button type="submit" isLoading={loading} className="whitespace-nowrap">
+                Check Status
+              </Button>
+            </form>
 
-          {error && (
-            <div className="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm text-center">
-              {error}
+            <div className="mt-4 text-center text-xs text-gray-500">
+              💡 <a href="/signin" className="text-brand-blue hover:underline">Sign In / Sign Up</a> to automatically load and manage your tickets.
             </div>
-          )}
-        </motion.div>
+
+            {error && (
+              <div className="mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm text-center font-medium">
+                {error}
+              </div>
+            )}
+          </motion.div>
+        )}
 
         <AnimatePresence>
           {tickets && tickets.length > 0 && (

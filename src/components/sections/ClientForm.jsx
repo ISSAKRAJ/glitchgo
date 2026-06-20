@@ -21,6 +21,38 @@ export default function ClientForm() {
   const [status, setStatus] = useState('idle'); // idle, uploading_file, submitting, success, error
   const [serverError, setServerError] = useState('');
 
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+        setFormData(prev => ({
+          ...prev,
+          name: session.user.user_metadata?.full_name || prev.name || '',
+          contact: session.user.email || prev.contact || ''
+        }));
+      }
+    };
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setUser(session.user);
+        setFormData(prev => ({
+          ...prev,
+          name: session.user.user_metadata?.full_name || prev.name || '',
+          contact: session.user.email || prev.contact || ''
+        }));
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   useEffect(() => {
     const handleSelectService = (e) => {
       const { title, price, billingCycle } = e.detail;
@@ -238,6 +270,8 @@ export default function ClientForm() {
                   value={formData.contact}
                   onChange={(e) => setFormData({...formData, contact: e.target.value})}
                   error={errors.contact}
+                  readOnly={!!user && !!user.email}
+                  className={user ? 'bg-dark-bg/50 border-white/5 opacity-80 select-none cursor-not-allowed' : ''}
                 />
               </div>
             </div>

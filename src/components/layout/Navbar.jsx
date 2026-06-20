@@ -1,9 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Terminal } from 'lucide-react';
 import Button from '../ui/Button';
+import { supabase } from '../../lib/supabase';
 
 export default function Navbar() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+      }
+    };
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    window.location.href = '/';
+  };
+
   return (
     <motion.nav 
       initial={{ y: -100, opacity: 0 }}
@@ -47,8 +76,22 @@ export default function Navbar() {
           <a href="/status" className="hover:text-brand-blue transition-colors font-semibold">Track Ticket</a>
           <a href="/adminzero" className="hover:text-brand-blue transition-colors">Config Portal</a>
           <span className="text-gray-600">|</span>
-          <a href="/signin" className="hover:text-brand-blue transition-colors">Sign In</a>
-          <a href="/signup" className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-amber-500 hover:opacity-80 transition-opacity font-extrabold uppercase tracking-wide">Sign Up</a>
+          {user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-brand-blue font-mono max-w-[150px] truncate select-none">{user.email}</span>
+              <button 
+                onClick={handleSignOut}
+                className="hover:text-brand-orange text-xs uppercase tracking-wider font-extrabold transition-colors cursor-pointer"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <>
+              <a href="/signin" className="hover:text-brand-blue transition-colors">Sign In</a>
+              <a href="/signup" className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-amber-500 hover:opacity-80 transition-opacity font-extrabold uppercase tracking-wide">Sign Up</a>
+            </>
+          )}
 
           <Button size="sm" onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}>
             Get Help Now
