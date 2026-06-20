@@ -77,11 +77,12 @@ export default function PortalPage() {
 
     // Listen to global auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state change in Portal:", event, session ? "session exists" : "no session");
       if (session) {
         setUser(session.user);
         setUserToken(session.access_token);
         setIsAuthLoading(false);
-      } else {
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setUserToken(null);
         setIsAuthLoading(false);
