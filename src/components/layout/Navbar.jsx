@@ -74,7 +74,11 @@ export default function Navbar() {
           <a href="/adminzero-product" className="hover:text-brand-blue transition-colors">AdminZero Bot</a>
           <a href="/guide" className="hover:text-brand-blue transition-colors font-semibold">Guide</a>
           <a href="/status" className="hover:text-brand-blue transition-colors font-semibold">Track Ticket</a>
-          <a href="/adminzero" className="hover:text-brand-blue transition-colors">Config Portal</a>
+          {user ? (
+            <a href="/portal" className="hover:text-brand-blue transition-colors font-bold text-brand-blue">My Portal</a>
+          ) : (
+            <a href="/signin?next=/adminzero" className="hover:text-brand-blue transition-colors">Config Portal</a>
+          )}
           <span className="text-gray-600">|</span>
           {user ? (
             <div className="flex items-center gap-4">

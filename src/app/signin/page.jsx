@@ -14,8 +14,8 @@ export default function SigninPage() {
   
   // Parse redirection URL from browser window safely on client side
   const next = typeof window !== 'undefined' 
-    ? new URLSearchParams(window.location.search).get('next') || '/' 
-    : '/';
+    ? new URLSearchParams(window.location.search).get('next') || '/portal' 
+    : '/portal';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
