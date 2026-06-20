@@ -165,8 +165,29 @@ export default function AdminZeroPage() {
   useEffect(() => {
     const checkSession = async () => {
       setIsAuthLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
+      let { data: { session } } = await supabase.auth.getSession();
       
+      // Prevent race conditions on Google OAuth callbacks
+      const hasHash = typeof window !== 'undefined' && (
+        window.location.hash.includes('access_token=') || 
+        window.location.hash.includes('id_token=') || 
+        window.location.hash.includes('error=') ||
+        window.location.search.includes('code=')
+      );
+
+      if (!session && hasHash) {
+        console.log("OAuth token detected in URL. Waiting for Supabase to parse...");
+        // Poll for session up to 2.5 seconds (25 attempts * 100ms)
+        for (let i = 0; i < 25; i++) {
+          await new Promise(r => setTimeout(r, 100));
+          const { data: { session: activeSession } } = await supabase.auth.getSession();
+          if (activeSession) {
+            session = activeSession;
+            break;
+          }
+        }
+      }
+
       if (!session) {
         router.push('/signin');
         return;
