@@ -15,7 +15,57 @@ CRITICAL RULES YOU MUST FOLLOW EXACTLY:
 5. LOG COMPLAINTS: If someone explicitely complains, ask for their email to log a ticket for them.
 6. MAGIC TICKET PAYLOAD. Only if they provide their email/phone number for a direct problem or complaint right here in chat, you MUST include this exact JSON string hidden somewhere in your final response: 
 [LOG_COMPLAINT: {"contact": "THE_EMAIL_OR_PHONE_THEY_JUST_TYPED", "problem": "A 1-sentence summary of their problem"}]
-7. ADMINZERO BOT PRODUCT: We recently launched our flagship SaaS product called "AdminZero". It is a Slack ChatOps bot that translates natural language English queries into read-only PostgreSQL statements using Gemini, runs them securely, and displays the results in Slack. It has two-layer security (strict read-only instructions and a secondary regex query scanner) and encrypts connection strings with AES-256. If a user asks about querying databases via Slack, or wants to connect database logs/analytics to Slack, pitching AdminZero is a priority! Direct them to the /adminzero config portal to connect their database, or to the /adminzero-product page to learn more.`;
+7. ADMINZERO BOT PRODUCT: We recently launched our flagship SaaS product called "AdminZero". It is a Slack ChatOps bot that translates natural language English queries into read-only PostgreSQL statements using Gemini, runs them securely, and displays the results in Slack. It has two-layer security (strict read-only instructions and a secondary regex query scanner) and encrypts connection strings with AES-256. If a user asks about querying databases via Slack, or wants to connect database logs/analytics to Slack, pitching AdminZero is a priority! Direct them to the /adminzero config portal to connect their database, or to the /adminzero-product page to learn more.
+8. STRUCTURED RESPONSES: Always structure your response in a highly readable, professional, and segmented way. Use headers starting with ### for sections, bullet points starting with * or - for lists, and space out your paragraphs using newlines. Avoid writing long, single paragraphs or raw walls of text. Make the response look premium and easy to scan.
+9. GLITCHGO A-TO-Z: Answer questions about GlitchGo services comprehensively (A to Z) including emergency debugging, legacy code rescues, AI integrations, and database operations.`;
+
+// Lightweight inline markdown & paragraph parser to format AI responses beautifully in the chat widget
+function parseInlineMarkdown(text) {
+  if (!text) return "";
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-extrabold text-white">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
+function formatMessageText(text) {
+  if (!text) return "";
+  const lines = text.split('\n');
+  return lines.map((line, idx) => {
+    const cleanLine = line.trim();
+    if (!cleanLine) {
+      return <div key={idx} className="h-2" />;
+    }
+
+    if (cleanLine.startsWith('* ') || cleanLine.startsWith('- ')) {
+      const content = cleanLine.substring(2);
+      return (
+        <ul key={idx} className="list-disc pl-5 my-1.5 text-gray-300">
+          <li className="leading-relaxed">{parseInlineMarkdown(content)}</li>
+        </ul>
+      );
+    }
+
+    if (cleanLine.startsWith('### ')) {
+      return <h4 key={idx} className="text-xs font-extrabold text-brand-orange uppercase tracking-wider mt-4 mb-1.5">{parseInlineMarkdown(cleanLine.substring(4))}</h4>;
+    }
+    if (cleanLine.startsWith('## ')) {
+      return <h3 key={idx} className="text-sm font-extrabold text-white mt-4 mb-2">{parseInlineMarkdown(cleanLine.substring(3))}</h3>;
+    }
+    if (cleanLine.startsWith('# ')) {
+      return <h2 key={idx} className="text-base font-black text-white mt-4 mb-2.5">{parseInlineMarkdown(cleanLine.substring(2))}</h2>;
+    }
+
+    return (
+      <p key={idx} className="mb-2 leading-relaxed text-gray-300">
+        {parseInlineMarkdown(line)}
+      </p>
+    );
+  });
+}
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -180,13 +230,13 @@ export default function ChatWidget() {
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div 
-                    className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${
+                    className={`max-w-[85%] p-3.5 rounded-2xl text-sm ${
                       msg.role === 'user' 
                         ? 'bg-brand-blue text-white rounded-tr-none' 
-                        : 'bg-white/5 text-gray-200 border border-white/5 rounded-tl-none'
+                        : 'bg-white/5 text-gray-200 border border-white/5 rounded-tl-none shadow-md'
                     }`}
                   >
-                    {msg.text}
+                    {msg.role === 'user' ? msg.text : formatMessageText(msg.text)}
                   </div>
                 </div>
               ))}

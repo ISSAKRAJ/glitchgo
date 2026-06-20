@@ -43,8 +43,11 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
           <a href="/#services" className="hover:text-brand-blue transition-colors">Services</a>
           <a href="/adminzero-product" className="hover:text-brand-blue transition-colors">AdminZero Bot</a>
+          <a href="/status" className="hover:text-brand-blue transition-colors font-semibold">Track Ticket</a>
           <a href="/adminzero" className="hover:text-brand-blue transition-colors">Config Portal</a>
-          <a href="/status" className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-orange hover:opacity-80 transition-opacity ml-2">Track Ticket ✨</a>
+          <span className="text-gray-600">|</span>
+          <a href="/signin" className="hover:text-brand-blue transition-colors">Sign In</a>
+          <a href="/signup" className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-amber-500 hover:opacity-80 transition-opacity font-extrabold uppercase tracking-wide">Sign Up</a>
 
           <Button size="sm" onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}>
             Get Help Now
