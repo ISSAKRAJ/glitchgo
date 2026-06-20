@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, Paperclip } from 'lucide-react';
 import Input from '../ui/Input';
@@ -20,6 +20,22 @@ export default function ClientForm() {
   const [file, setFile] = useState(null); // File tracking state
   const [status, setStatus] = useState('idle'); // idle, uploading_file, submitting, success, error
   const [serverError, setServerError] = useState('');
+
+  useEffect(() => {
+    const handleSelectService = (e) => {
+      const { title, price } = e.detail;
+      setFormData(prev => ({
+        ...prev,
+        problem: `I would like to book the "${title}" service.\n\nHere are my project details: `,
+        budget: price
+      }));
+      setTimeout(() => {
+        document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    };
+    window.addEventListener('select-service', handleSelectService);
+    return () => window.removeEventListener('select-service', handleSelectService);
+  }, []);
 
   const validate = () => {
     const newErrors = {};
