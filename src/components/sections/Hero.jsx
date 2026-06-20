@@ -18,7 +18,7 @@ export default function Hero() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-brand-orange font-medium text-sm mb-8"
         >
           <Code2 size={16} />
-          <span>Hi, I'm Issak Raj. Full-Stack Developer in Kakinada.</span>
+          <span>GlitchGo - Professional code rescues & AI workflow automations.</span>
         </motion.div>
 
         <motion.h1 

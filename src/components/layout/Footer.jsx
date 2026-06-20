@@ -23,9 +23,12 @@ export default function Footer() {
         </div>
         
         {/* Middle: Copyright */}
-        <p className="text-gray-500 text-sm hidden lg:block">
-          &copy; {new Date().getFullYear()} GlitchGo. Solving tech problems fast.
-        </p>
+        <div className="text-gray-500 text-xs hidden lg:block space-y-1">
+          <p>&copy; {new Date().getFullYear()} GlitchGo. Solving tech problems fast.</p>
+          <p className="text-brand-orange/80 font-bold text-[9px] uppercase tracking-wider">
+            🇮🇳 Govt of India MSME Registered Micro Enterprise (UDYAM-AP-17-0080333)
+          </p>
+        </div>
         
         {/* Right Side: Links */}
         <div className="flex flex-wrap justify-center lg:justify-end gap-4 md:gap-6 text-sm text-gray-400 items-center pb-8 sm:pb-0 z-10 relative">

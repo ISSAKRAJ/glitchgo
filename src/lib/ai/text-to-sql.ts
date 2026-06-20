@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { Client } from 'pg';
-import { getWorkspaceToken, getConnection } from '../db/supabase-workspaces';
+import { getWorkspaceToken, getConnection, getWorkspace, incrementWorkspaceQueryCount } from '../db/supabase-workspaces';
 import { decrypt } from '../encryption/aes';
 
 const SYSTEM_PROMPT = `You are an expert PostgreSQL database engineer and a strict read-only SQL generator. 
@@ -38,11 +38,11 @@ export function isQuerySafe(sql: string): boolean {
   return true;
 }
 
-// Post response back to Slack using a dynamic workspace token
-export async function postToSlack(channel: string, text: string, token: string, threadTs?: string) {
+// Post response back to Slack using a dynamic workspace token and returns ts
+export async function postToSlack(channel: string, text: string, token: string, threadTs?: string): Promise<string | null> {
   if (!token) {
     console.error('No Slack token provided to postToSlack.');
-    return;
+    return null;
   }
   
   try {
@@ -60,12 +60,66 @@ export async function postToSlack(channel: string, text: string, token: string, 
     });
     
     const data = await res.json();
-    if (!data.ok) {
+    if (data.ok) {
+      return data.ts;
+    } else {
       console.error('Error posting response to Slack:', data.error);
+      return null;
     }
   } catch (err) {
     console.error('Network error posting response to Slack:', err);
+    return null;
   }
+}
+
+// Update an existing Slack message in place
+export async function updateSlackMessage(channel: string, ts: string, text: string, token: string): Promise<boolean> {
+  if (!token || !ts) return false;
+  
+  try {
+    const res = await fetch('https://slack.com/api/chat.update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        channel,
+        ts,
+        text
+      })
+    });
+    
+    const data = await res.json();
+    if (data.ok) {
+      return true;
+    } else {
+      console.error('Error updating Slack message:', data.error);
+      return false;
+    }
+  } catch (err) {
+    console.error('Network error updating Slack message:', err);
+    return false;
+  }
+}
+
+// Helper to automatically append LIMIT 100 to optimize database query runtime
+export function applyAutoLimit(sql: string): string {
+  let cleanSql = sql.trim();
+  const endsWithSemicolon = cleanSql.endsWith(';');
+  if (endsWithSemicolon) {
+    cleanSql = cleanSql.slice(0, -1).trim();
+  }
+  
+  // If there's no LIMIT clause in the query, append LIMIT 100
+  if (!/\bLIMIT\b/i.test(cleanSql)) {
+    cleanSql = `${cleanSql} LIMIT 100`;
+  }
+  
+  if (endsWithSemicolon) {
+    cleanSql = `${cleanSql};`;
+  }
+  return cleanSql;
 }
 
 // Convert DB rows to a clean monospace Markdown table for Slack
@@ -130,6 +184,29 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     console.error(`Cannot process message: Slack bot token is missing for team ID: ${teamId}`);
     return;
   }
+
+  // 1b. Retrieve workspace usage/quota details from Supabase
+  let workspace: any = null;
+  if (teamId) {
+    try {
+      workspace = await getWorkspace(teamId);
+    } catch (dbErr) {
+      console.error('Error fetching workspace quota details:', dbErr);
+    }
+  }
+
+  const queryCount = workspace?.query_count ?? 0;
+  const maxQueries = workspace?.max_queries ?? 30; // Default Free limit is 30 queries
+
+  if (queryCount >= maxQueries) {
+    console.warn(`Quota exhausted for Slack Team ${teamId}: ${queryCount}/${maxQueries}`);
+    await postToSlack(
+      channel,
+      `🚨 USAGE LIMIT REACHED: Your workspace has exhausted its monthly query quota for the Free Tier. Upgrade your plan at glitchgo.tech/adminzero.`,
+      token
+    );
+    return;
+  }
   
   if (!cleanText) {
     console.log('Clean text is empty. Posting greeting to Slack...');
@@ -137,6 +214,7 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     return;
   }
   
+  let messageTs: string | null = null;
   try {
     // 2. Retrieve connection mapping from Supabase
     console.log('Searching connection for channel ID in Supabase...');
@@ -151,15 +229,20 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     const { client_name, encrypted_pg_url, schema_hint } = conn;
     console.log(`Supabase query finished. Mapped connection name: "${client_name}"`);
     
-    // Send a typing/processing update to Slack
+    // Send a typing/processing update to Slack and save ts
     console.log('Posting translation start notice to Slack...');
-    await postToSlack(channel, `🔍 _Translating query for database: "${client_name}"..._`, token);
+    messageTs = await postToSlack(channel, `🔍 _Translating query for database: "${client_name}"..._`, token);
 
     // 3. Initialize Gemini API client
     const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
       console.error('Gemini API key is not configured.');
-      await postToSlack(channel, `❌ Gemini API key is not configured on the server.`, token);
+      const errNoApiKey = `❌ Gemini API key is not configured on the server.`;
+      if (messageTs) {
+        await updateSlackMessage(channel, messageTs, errNoApiKey, token);
+      } else {
+        await postToSlack(channel, errNoApiKey, token);
+      }
       return;
     }
     
@@ -183,21 +266,40 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     // 5. Handle Gemini refusal
     if (resultSql.includes('SECURITY ALERT') || resultSql.includes('requires database modification')) {
       console.warn('Gemini safety refusal triggered.');
-      await postToSlack(channel, `⚠️ **Security Alert**: This action requires database modification. AdminZero is restricted to read-only queries.`, token);
+      const securityAlert = `⚠️ **Security Alert**: This action requires database modification. AdminZero is restricted to read-only queries.`;
+      if (messageTs) {
+        await updateSlackMessage(channel, messageTs, securityAlert, token);
+      } else {
+        await postToSlack(channel, securityAlert, token);
+      }
       return;
     }
     
+    // Apply Auto-Limit (LIMIT 100) before scanner and execution
+    const finalSql = applyAutoLimit(resultSql);
+    console.log(`Final SQL query after auto-limit check:\n${finalSql}`);
+
     // 6. Run Secondary Security Scanner Check
     console.log('Running secondary safety scanner...');
-    if (!isQuerySafe(resultSql)) {
-      console.warn('Secondary safety scanner blocked the query:', resultSql);
-      await postToSlack(channel, `⚠️ **Security Alert**: The generated query was blocked by local safety protocols.\nGenerated Query: \`${resultSql}\``, token);
+    if (!isQuerySafe(finalSql)) {
+      console.warn('Secondary safety scanner blocked the query:', finalSql);
+      const blockedMsg = `⚠️ **Security Alert**: The generated query was blocked by local safety protocols.\nGenerated Query: \`${finalSql}\``;
+      if (messageTs) {
+        await updateSlackMessage(channel, messageTs, blockedMsg, token);
+      } else {
+        await postToSlack(channel, blockedMsg, token);
+      }
       return;
     }
     
-    // Send execution state update
+    // Send execution state update by editing the message
     console.log('Generated SQL is safe. Posting execution start to Slack...');
-    await postToSlack(channel, `⚙️ _Executing generated query:_\n\`\`\`sql\n${resultSql}\n\`\`\``, token);
+    const executionMsg = `⚙️ _Executing generated query:_\n\`\`\`sql\n${finalSql}\n\`\`\``;
+    if (messageTs) {
+      await updateSlackMessage(channel, messageTs, executionMsg, token);
+    } else {
+      messageTs = await postToSlack(channel, executionMsg, token);
+    }
 
     // 7. Decrypt connection URL and run query on PostgreSQL
     console.log('Decrypting database connection string...');
@@ -214,19 +316,40 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     
     try {
       const queryRes = await pgClient.query({
-        text: resultSql
+        text: finalSql
       });
       
       const rows = queryRes.rows;
       console.log(`Query completed successfully. Returned ${rows.length} rows.`);
       const formattedResults = formatSlackResults(rows);
       
-      console.log('Posting results table to Slack...');
-      await postToSlack(channel, `✅ **Query Results:**\n${formattedResults}`, token);
-      console.log('Posted results to Slack successfully!');
+      console.log('Updating results table in Slack...');
+      const successMsg = `✅ **Query Results:**\n${formattedResults}\n\n_Executed SQL:_\n\`\`\`sql\n${finalSql}\n\`\`\``;
+      if (messageTs) {
+        await updateSlackMessage(channel, messageTs, successMsg, token);
+      } else {
+        await postToSlack(channel, successMsg, token);
+      }
+      console.log('Updated message in Slack successfully!');
+
+      // Atomically increment query count in Supabase since execution succeeded
+      if (teamId) {
+        try {
+          await incrementWorkspaceQueryCount(teamId);
+          console.log(`Atomically incremented query count for Slack Team: ${teamId}`);
+        } catch (incErr) {
+          console.error('Error incrementing workspace query count:', incErr);
+        }
+      }
+
     } catch (queryErr: any) {
       console.error('PostgreSQL execution error:', queryErr);
-      await postToSlack(channel, `❌ **Database Query Error:**\n\`\`\`\n${queryErr.message}\n\`\`\``, token);
+      const queryErrorMsg = `❌ **Database Query Error:**\n\`\`\`\n${queryErr.message}\n\`\`\`\n\n_Attempted SQL:_\n\`\`\`sql\n${finalSql}\n\`\`\``;
+      if (messageTs) {
+        await updateSlackMessage(channel, messageTs, queryErrorMsg, token);
+      } else {
+        await postToSlack(channel, queryErrorMsg, token);
+      }
     } finally {
       await pgClient.end();
       console.log('Closed PostgreSQL connection.');
@@ -234,6 +357,11 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     
   } catch (err: any) {
     console.error('Error in handleSlackMessage:', err);
-    await postToSlack(channel, `❌ **Internal Error:** ${err.message}`, token);
+    const internalErrorMsg = `❌ **Internal Error:** ${err.message}`;
+    if (messageTs) {
+      await updateSlackMessage(channel, messageTs, internalErrorMsg, token);
+    } else {
+      await postToSlack(channel, internalErrorMsg, token);
+    }
   }
 }

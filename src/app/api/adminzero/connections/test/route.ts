@@ -2,12 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Client } from 'pg';
 import { getConnection } from '../../../../../lib/db/supabase-workspaces';
 import { decrypt } from '../../../../../lib/encryption/aes';
+import { supabase } from '../../../../../lib/supabase';
+
+// Helper to authenticate request using Bearer token
+async function getUserIdFromRequest(req: NextRequest): Promise<string | null> {
+  try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) return null;
+    const token = authHeader.replace('Bearer ', '').trim();
+    if (!token) return null;
+    
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) return null;
+    return user.id;
+  } catch (err) {
+    console.error('Error authenticating user in test API route:', err);
+    return null;
+  }
+}
 
 /**
  * POST /api/adminzero/connections/test
  * Tests database connection given either a connection ID (already saved in SQLite) or a raw pg_url.
  */
 export async function POST(req: NextRequest) {
+  const userId = await getUserIdFromRequest(req);
+  if (!userId) {
+    return NextResponse.json({ success: false, error: 'Unauthorized: Invalid or missing token' }, { status: 401 });
+  }
+
   let client: Client | null = null;
   try {
     const body = await req.json();
@@ -20,6 +43,11 @@ export async function POST(req: NextRequest) {
       
       if (!conn) {
         return NextResponse.json({ success: false, error: 'Connection ID not found' }, { status: 404 });
+      }
+
+      // SECURE BLOCK: Validate ownership
+      if (conn.user_id && conn.user_id !== userId) {
+        return NextResponse.json({ success: false, error: 'Forbidden: You do not own this connection mapping' }, { status: 403 });
       }
       
       const encryptedUrl = conn.encrypted_pg_url;

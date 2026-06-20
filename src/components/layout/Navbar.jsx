@@ -21,7 +21,9 @@ export default function Navbar() {
               <span className="text-brand-blue font-extrabold">⚡ SECURE CHATOPS:</span>
               <span>QUERY POSTGRES DIRECTLY FROM SLACK</span>
               <span className="text-gray-600">|</span>
-              <span>CHAT SUPPORT: <a href="https://t.me/glitchgo123" target="_blank" rel="noopener noreferrer" className="text-brand-orange underline hover:text-white transition-colors font-extrabold">@GLITCHGO123</a></span>
+              <span>🇮🇳 GOVT REGISTERED MSME: UDYAM-AP-17-0080333</span>
+              <span className="text-gray-600">|</span>
+              <span>SUPPORT: <a href="mailto:teamglitchgo@gmail.com" className="text-brand-orange underline hover:text-white transition-colors font-extrabold">TEAMGLITCHGO@GMAIL.COM</a></span>
               <span className="text-gray-500 font-normal">★</span>
             </span>
           ))}

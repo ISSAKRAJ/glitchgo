@@ -273,6 +273,18 @@ export default function Dashboard() {
                       <td className="px-6 py-4">
                         <div className="font-semibold text-white">{lead.name}</div>
                         <div className="text-xs text-brand-blue">{lead.contact}</div>
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              const payUrl = `${window.location.origin}/pay/${lead.id}`;
+                              navigator.clipboard.writeText(payUrl);
+                              alert("Copied payment link to clipboard:\n" + payUrl);
+                            }}
+                            className="inline-flex items-center gap-1 text-[10px] text-brand-orange bg-brand-orange/10 hover:bg-brand-orange/20 border border-brand-orange/20 px-2 py-0.5 rounded transition-colors font-medium cursor-pointer"
+                          >
+                            🔗 Copy Pay Link
+                          </button>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-normal">
                         <p className="line-clamp-2 text-sm">{lead.problem}</p>
@@ -294,16 +306,23 @@ export default function Dashboard() {
                       </td>
                       {role === 'admin' && (
                         <td className="px-6 py-4 space-y-2">
-                          <input 
-                            type="url"
-                            placeholder="Stripe URL..."
-                            defaultValue={lead.payment_link || ''}
-                            onBlur={(e) => handleSavePaymentLink(lead.id, e.target.value)}
-                            className="bg-dark-surface border border-white/10 rounded px-2 py-1.5 text-xs w-full min-w-[200px] focus:w-full transition-all text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 block"
-                          />
+                          <div className="flex items-center gap-1.5">
+                            <input 
+                              type="text"
+                              placeholder="UTR / Ref No..."
+                              defaultValue={lead.payment_link || ''}
+                              onBlur={(e) => handleSavePaymentLink(lead.id, e.target.value)}
+                              className="bg-dark-surface border border-white/10 rounded px-2 py-1.5 text-xs w-full min-w-[200px] focus:w-full transition-all text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 block font-mono"
+                            />
+                            {lead.payment_link && (
+                              <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider">
+                                UTR SUBMITTED
+                              </span>
+                            )}
+                          </div>
                           <input 
                             type="text"
-                            placeholder="Quote (e.g. $500)"
+                            placeholder="Quote (e.g. ₹1,500)"
                             defaultValue={lead.quoted_price || ''}
                             onBlur={(e) => handleSaveQuote(lead.id, e.target.value)}
                             className="bg-dark-surface border border-white/10 rounded px-2 py-1.5 text-xs w-full min-w-[200px] focus:w-full transition-all text-emerald-400 font-bold placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 block"
@@ -331,6 +350,7 @@ export default function Dashboard() {
                           <option value="Received">📥 Received</option>
                           <option value="Estimating">🔍 Estimating</option>
                           <option value="In Progress">⚙️ In Progress</option>
+                          <option value="Paid">💳 Paid</option>
                           <option value="Completed">✅ Completed</option>
                         </select>
                       </td>

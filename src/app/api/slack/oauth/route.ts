@@ -65,6 +65,7 @@ export async function GET(req: NextRequest) {
 
     const teamId = data.team?.id;
     const botAccessToken = data.access_token;
+    const state = searchParams.get('state');
 
     if (!teamId || !botAccessToken) {
       console.error('Slack OAuth response is missing team ID or bot access token:', data);
@@ -73,8 +74,8 @@ export async function GET(req: NextRequest) {
 
     console.log(`OAuth exchange successful! Team: ${data.team.name} (${teamId})`);
 
-    // Save the workspace details securely in Supabase
-    await saveWorkspace(teamId, botAccessToken);
+    // Save the workspace details securely in Supabase, linking to user_id if passed in state
+    await saveWorkspace(teamId, botAccessToken, state || undefined);
 
     console.log(`Workspace details saved successfully for team ${teamId}.`);
 

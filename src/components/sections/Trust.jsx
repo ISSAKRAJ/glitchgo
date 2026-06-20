@@ -9,9 +9,9 @@ const trustItems = [
     desc: "Solutions precisely when you need them."
   },
   {
-    icon: <GraduationCap size={24} className="text-brand-blue" />,
-    text: "Student-friendly pricing",
-    desc: "Premium help that fits your budget."
+    icon: <img src="/msme-logo.png" alt="MSME Logo" className="h-7 w-auto object-contain" />,
+    text: "Government Registered MSME",
+    desc: "Certified Micro Enterprise under the Ministry of MSME, Govt of India (UDYAM-AP-17-0080333)."
   },
   {
     icon: <CheckCircle2 size={24} className="text-emerald-500" />,
