@@ -238,7 +238,7 @@ export default function AdminZeroProductPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           
           {/* Starter Plan */}
           <Card className="bg-white/[0.02] border-white/5 p-8 text-left flex flex-col justify-between relative overflow-hidden group">
@@ -248,7 +248,7 @@ export default function AdminZeroProductPage() {
                 <p className="text-xs text-gray-500 mt-1">Perfect for testing and small teams</p>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-white tracking-tight">₹0</span>
+                <span className="text-4xl font-extrabold text-white tracking-tight font-mono">₹0</span>
                 <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">/ month</span>
               </div>
               <ul className="space-y-3.5 text-sm text-gray-400 border-t border-white/5 pt-6">
@@ -262,7 +262,7 @@ export default function AdminZeroProductPage() {
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={16} className="text-brand-blue" />
-                  <span>Standard Gemini AI Translation</span>
+                  <span>100 AI Queries / month</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={16} className="text-brand-blue" />
@@ -282,6 +282,47 @@ export default function AdminZeroProductPage() {
           </Card>
 
           {/* Pro Plan */}
+          <Card className="bg-white/[0.02] border-white/5 p-8 text-left flex flex-col justify-between relative overflow-hidden group">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-bold text-white">Pro Plan</h3>
+                <p className="text-xs text-brand-orange mt-1">For production scale and team control</p>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-extrabold text-white tracking-tight font-mono">₹999</span>
+                <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">/ month</span>
+              </div>
+              <ul className="space-y-3.5 text-sm text-gray-400 border-t border-white/5 pt-6">
+                <li className="flex items-center gap-2.5">
+                  <Check size={16} className="text-brand-orange" />
+                  <span>10 Mapped Slack Channels</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check size={16} className="text-brand-orange" />
+                  <span>10 Database Connections</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check size={16} className="text-brand-orange" />
+                  <span>1,000 AI Queries / month</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check size={16} className="text-brand-orange" />
+                  <span>Priority Email Support</span>
+                </li>
+              </ul>
+            </div>
+            <div className="pt-8 w-full">
+              <Button
+                variant="secondary"
+                onClick={() => window.location.href = '/adminzero'}
+                className="w-full flex justify-center py-3"
+              >
+                Go Pro Now
+              </Button>
+            </div>
+          </Card>
+
+          {/* Business Plan */}
           <Card className="bg-white/[0.03] border-brand-blue/30 p-8 text-left flex flex-col justify-between relative overflow-hidden group shadow-lg shadow-brand-blue/5">
             <div className="absolute top-0 right-0 bg-brand-blue text-white font-extrabold text-[9px] uppercase tracking-widest py-1 px-4 rounded-bl-xl">
               RECOMMENDED
@@ -289,11 +330,11 @@ export default function AdminZeroProductPage() {
             
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-bold text-white">Pro Plan</h3>
-                <p className="text-xs text-brand-blue mt-1">For production scale and team control</p>
+                <h3 className="text-xl font-bold text-white">Business Plan</h3>
+                <p className="text-xs text-brand-blue mt-1">For full enterprise autonomy & SLA</p>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-extrabold text-white tracking-tight">₹999</span>
+                <span className="text-4xl font-extrabold text-white tracking-tight font-mono">₹3,999</span>
                 <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">/ month</span>
               </div>
               <ul className="space-y-3.5 text-sm text-gray-300 border-t border-white/5 pt-6">
@@ -307,11 +348,15 @@ export default function AdminZeroProductPage() {
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={16} className="text-brand-blue" />
-                  <span>Custom Schema hints & columns config</span>
+                  <span>Unlimited Queries (Max 1M/mo)</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <Check size={16} className="text-brand-blue" />
-                  <span>Priority API execution & support</span>
+                  <span>Custom Schema Column Hints</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <Check size={16} className="text-brand-blue" />
+                  <span>Dedicated Slack Setup Support</span>
                 </li>
               </ul>
             </div>
@@ -321,7 +366,7 @@ export default function AdminZeroProductPage() {
                 onClick={() => window.location.href = '/adminzero'}
                 className="w-full flex justify-center py-3"
               >
-                Go Pro Now
+                Go Business Now
               </Button>
             </div>
           </Card>

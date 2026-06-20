@@ -20,7 +20,7 @@ export default function Terms() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Terms of Service</h1>
-              <p className="text-gray-500 mt-1">Last Updated: March 2026</p>
+              <p className="text-gray-500 mt-1">Last Updated: June 2026</p>
             </div>
           </div>
 
@@ -31,22 +31,32 @@ export default function Terms() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">2. Payments & Deposits</h2>
-              <p>Depending on the urgency and size of the request, an upfront, non-refundable diagnostic deposit may be required before work commences. Once the total invoice is issued via Razorpay, Stripe, or standard UPI transfer, final deliverables (source code, server logins) will only be passed to the client upon full clearance of funds.</p>
+              <h2 className="text-xl font-semibold text-white mb-3">2. Subscription Billing & Retainer Tiers</h2>
+              <p>For monthly retainer packages (Starter, Pro, and Enterprise CTO), services are billed on a recurring monthly cycle. You will receive an invoice at the start of each billing period. Subscription cycles continue on a month-to-month basis and can be canceled at any time in your dashboard or by emailing our support team. Cancelled subscriptions remain active until the end of the current billing cycle; no partial refunds are provided.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">3. Delivery & Revisions</h2>
-              <p>We guarantee to deliver solutions according to the agreed-upon timeline (e.g., 24 hours for urgent requests). Clients have a 3-day grace period post-delivery to report any missing requirements or breaking changes related strictly to the original scope, which will be patched free of charge.</p>
+              <h2 className="text-xl font-semibold text-white mb-3">3. Payments & Deposits</h2>
+              <p>Depending on the urgency and size of a one-time request, an upfront, non-refundable diagnostic deposit may be required before work commences. Once the total invoice is issued via our payment checkout, final deliverables (source code, server logins) will be passed to the client upon full clearance of funds (via verified UPI reference or credit card processing).</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">4. Limitation of Liability</h2>
+              <h2 className="text-xl font-semibold text-white mb-3">4. Delivery, Revisions & 7-Day Retention Limit</h2>
+              <p>We guarantee to deliver solutions according to the agreed-upon timeline (e.g., 24 hours for urgent requests). Clients have a 3-day grace period post-delivery to report any missing requirements or breaking changes related strictly to the original scope, which will be patched free of charge. For security, all delivered code assets are permanently deleted from our servers exactly 7 days after completion.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-white mb-3">5. Legal & Registration Identity</h2>
+              <p>GlitchGo is a registered Micro Enterprise under the Ministry of Micro, Small and Medium Enterprises (MSME), Government of India, holding registration number <strong>UDYAM-AP-17-0080333</strong>. All business operations, contract negotiations, and financial settlements are legally bound by applicable Indian trade laws.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-white mb-3">6. Limitation of Liability</h2>
               <p>While GlitchGo experts employ enterprise security practices, we are not liable for any secondary server outages, data loss, or downstream revenue impacts caused by pre-existing critical bugs in the client's architecture. Clients must ensure database backups are made before granting us admin access.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">5. Intellectual Property</h2>
+              <h2 className="text-xl font-semibold text-white mb-3">7. Intellectual Property</h2>
               <p>Upon full payment, all custom code, automation scripts, and deployment architectures developed by our team for a specific project become the sole intellectual property of the client. GlitchGo retains no ownership over the final delivered product.</p>
             </section>
           </div>

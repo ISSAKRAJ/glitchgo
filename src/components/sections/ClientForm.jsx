@@ -23,10 +23,13 @@ export default function ClientForm() {
 
   useEffect(() => {
     const handleSelectService = (e) => {
-      const { title, price } = e.detail;
+      const { title, price, billingCycle } = e.detail;
+      const isMonthly = billingCycle === 'monthly';
       setFormData(prev => ({
         ...prev,
-        problem: `I would like to book the "${title}" service.\n\nHere are my project details: `,
+        problem: isMonthly
+          ? `I would like to subscribe to the "${title}" (${price} Monthly Retainer).\n\nHere are our company & project details: `
+          : `I would like to book the "${title}" service.\n\nHere are my project details: `,
         budget: price
       }));
       setTimeout(() => {

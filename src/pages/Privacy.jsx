@@ -20,7 +20,7 @@ export default function Privacy() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-white">Privacy Policy</h1>
-              <p className="text-gray-500 mt-1">Last Updated: March 2026</p>
+              <p className="text-gray-500 mt-1">Last Updated: June 2026</p>
             </div>
           </div>
 
@@ -31,22 +31,27 @@ export default function Privacy() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">2. How We Use Your Data</h2>
-              <p>Your data is used strictly for fulfilling your requested tech services. We use your contact information to provide quotes, update you on project progress, and manage invoicing. Uploaded files, server logs, and code snippets are maintained confidentially and deleted upon request once a project is delivered.</p>
+              <h2 className="text-xl font-semibold text-white mb-3">2. Database Credentials & AES-256 Encryption</h2>
+              <p>For our database config product, AdminZero, your connection URLs and password credentials are securely encrypted on the server utilizing industrial AES-256 cipher keys before they are ingested into our local SQLite databases. Plaintext passwords or connection keys are never written to logs, never exposed in client sessions, and are processed strictly in secure memory contexts during query translation execution.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">3. Data Security & Storage</h2>
-              <p>We use enterprise-grade cloud databases (Supabase) to encrypt and secure your data. Our employees are bound by strict Non-Disclosure Agreements (NDAs) ensuring your intellectual property and source code remain completely private during the bug fixing process.</p>
+              <h2 className="text-xl font-semibold text-white mb-3">3. AI UPI Verification Processing</h2>
+              <p>To automate payment validation, our checkout system scans payment receipt screenshots. Uploaded receipt images are temporarily held in secure server memory, processed via Gemini AI Vision models for financial auditing (to verify recipient UPI ID, status, and extract the 12-digit transaction ID), and are not stored permanently. We do not retain these screenshots after verification is completed.</p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-white mb-3">4. AI Interaction Data</h2>
-              <p>Conversations with the GlitchGo AI Assistant are temporarily logged to improve bot accuracy and escalate urgent complaints to human agents. By using the chatbot, you consent to these logs being reviewed by our support team.</p>
+              <p>Conversations with the GlitchGo AI Assistant are temporarily logged to improve bot accuracy and escalate queries to human agents. By using the chatbot, you consent to these logs being analyzed to resolve technical queries.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">5. Contact Us</h2>
+              <h2 className="text-xl font-semibold text-white mb-3">5. Data Retention & Backups</h2>
+              <p>We do not store customer code permanently. All completed codebase rescues, ZIP file deliverables, and patches are automatically purged from our secure servers exactly 7 days after ticket completion. Please download backup assets immediately upon delivery notification.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-white mb-3">6. Contact Us</h2>
               <p>If you have any questions regarding this privacy policy or wish to request the deletion of your codebase from our servers, please contact us immediately at <a href="mailto:teamglitchgo@gmail.com" className="text-brand-blue hover:underline">teamglitchgo@gmail.com</a>.</p>
             </section>
           </div>

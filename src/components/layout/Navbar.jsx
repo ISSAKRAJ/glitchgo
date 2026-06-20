@@ -43,6 +43,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
           <a href="/#services" className="hover:text-brand-blue transition-colors">Services</a>
           <a href="/adminzero-product" className="hover:text-brand-blue transition-colors">AdminZero Bot</a>
+          <a href="/guide" className="hover:text-brand-blue transition-colors font-semibold">Guide</a>
           <a href="/status" className="hover:text-brand-blue transition-colors font-semibold">Track Ticket</a>
           <a href="/adminzero" className="hover:text-brand-blue transition-colors">Config Portal</a>
           <span className="text-gray-600">|</span>
