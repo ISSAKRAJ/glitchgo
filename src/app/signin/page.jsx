@@ -28,7 +28,10 @@ export default function SigninPage() {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push(next);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          router.push(next);
+        }
       }
     };
     checkUser();

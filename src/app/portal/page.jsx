@@ -58,8 +58,16 @@ export default function PortalPage() {
         router.push('/signin?next=/portal');
         return;
       }
+
+      // Verify user validity on the protected route using getUser()
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error("User validation failed:", userError);
+        router.push('/signin?next=/portal');
+        return;
+      }
       
-      setUser(session.user);
+      setUser(user);
       setUserToken(session.access_token);
       setIsAuthLoading(false);
 
