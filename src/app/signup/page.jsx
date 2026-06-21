@@ -46,18 +46,34 @@ export default function SignupPage() {
 
     setIsLoading(true);
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const canonicalOrigin = typeof window !== 'undefined'
+        ? (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? window.location.origin
+            : 'https://www.glitchgo.tech')
+        : 'https://www.glitchgo.tech';
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${canonicalOrigin}/auth/callback?next=${encodeURIComponent(next)}`
+        }
       });
 
       if (signUpError) {
         setError(signUpError.message);
       } else {
-        setSuccess('Account created successfully! Check your email to confirm registration, or try signing in.');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
+        if (data?.session) {
+          setSuccess('Account created successfully! Redirecting to your portal...');
+          setTimeout(() => {
+            router.push(next);
+          }, 1000);
+        } else {
+          setSuccess('Account created successfully! Please check your email to confirm registration, then sign in.');
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
+        }
       }
     } catch (err) {
       setError(err.message || 'An unexpected error occurred.');
