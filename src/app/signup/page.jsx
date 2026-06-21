@@ -70,12 +70,16 @@ export default function SignupPage() {
     setError('');
     setIsLoading(true);
     try {
+      const canonicalOrigin = typeof window !== 'undefined'
+        ? (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? window.location.origin
+            : 'https://www.glitchgo.tech')
+        : 'https://www.glitchgo.tech';
+
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: typeof window !== 'undefined' 
-            ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` 
-            : undefined
+          redirectTo: `${canonicalOrigin}/auth/callback?next=${encodeURIComponent(next)}`
         }
       });
       if (oauthError) throw oauthError;

@@ -33,14 +33,11 @@ export async function GET(request) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      const forwardedHost = request.headers.get('x-forwarded-host'); // Original hostname before reverse proxy
-      const isLocalEnv = process.env.NODE_ENV === 'development';
+      const isLocalEnv = process.env.NODE_ENV === 'development' || origin.includes('localhost') || origin.includes('127.0.0.1');
       if (isLocalEnv) {
         return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
       } else {
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`https://www.glitchgo.tech${next}`);
       }
     } else {
       console.error('Error exchanging code for session:', error);

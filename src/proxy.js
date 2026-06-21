@@ -2,6 +2,15 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
 export async function proxy(request) {
+  const url = request.nextUrl.clone();
+  const host = request.headers.get('host') || '';
+  const isLocalEnv = process.env.NODE_ENV === 'development' || host.includes('localhost') || host.includes('127.0.0.1');
+
+  // Enforce canonical www domain redirect in production
+  if (!isLocalEnv && host === 'glitchgo.tech') {
+    return NextResponse.redirect(`https://www.glitchgo.tech${url.pathname}${url.search}`, 301);
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -29,8 +38,6 @@ export async function proxy(request) {
 
   // Refresh token and retrieve user
   const { data: { user } } = await supabase.auth.getUser();
-
-  const url = request.nextUrl.clone();
 
   // 1. Protect the portal route
   if (url.pathname.startsWith('/portal')) {
