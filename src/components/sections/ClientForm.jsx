@@ -111,7 +111,8 @@ export default function ClientForm() {
 
     try {
       // Basic check for placeholder configuration
-      if (process.env.VITE_SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || !process.env.VITE_SUPABASE_URL) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      if (supabaseUrl === 'YOUR_SUPABASE_URL_HERE' || !supabaseUrl) {
         throw new Error("Supabase is not configured! Please set up your .env.local file with real database keys.");
       }
 
@@ -160,7 +161,7 @@ export default function ClientForm() {
       if (error) throw error;
 
       // Send Email Notification via Web3Forms
-      const web3FormsKey = process.env.VITE_WEB3FORMS_ACCESS_KEY;
+      const web3FormsKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || process.env.VITE_WEB3FORMS_ACCESS_KEY;
       if (web3FormsKey && web3FormsKey !== 'YOUR_WEB3FORMS_KEY_HERE') {
         const emailPayload = {
           access_key: web3FormsKey,

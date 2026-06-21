@@ -20,7 +20,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (!accessCode.trim()) return;
 
-    const masterPassword = process.env.VITE_ADMIN_PASSWORD || 'glitchgo_admin';
+    const masterPassword = process.env.ADMIN_PASSWORD || process.env.NEXT_PUBLIC_ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD || 'glitchgo_admin';
     
     if (accessCode === masterPassword) {
       setRole('admin');

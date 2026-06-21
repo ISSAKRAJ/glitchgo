@@ -122,7 +122,7 @@ export default function OrderTab({ user, supabase, onOrderSuccess }) {
       if (insertErr) throw insertErr;
 
       // Send email alert via Web3Forms
-      const web3FormsKey = process.env.VITE_WEB3FORMS_ACCESS_KEY;
+      const web3FormsKey = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || process.env.VITE_WEB3FORMS_ACCESS_KEY;
       if (web3FormsKey && web3FormsKey !== 'YOUR_WEB3FORMS_KEY_HERE') {
         try {
           await fetch('https://api.web3forms.com/submit', {
