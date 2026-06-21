@@ -27,7 +27,7 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight"
         >
-          I Fix Your Code Fast. <br className="hidden md:block" />
+          We Fix Your Code Fast. <br className="hidden md:block" />
           <span className="text-gradient">No Fluff. No Excuses.</span>
         </motion.h1>
 
@@ -37,7 +37,7 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10"
         >
-          Urgent bug fixes, total project rescues, and AI automation built overnight. Stop stressing over broken apps and let me handle the heavy lifting.
+          Urgent bug fixes, total project rescues, and AI automation built overnight. Stop stressing over broken apps and let us handle the heavy lifting.
         </motion.p>
 
         <motion.div 
