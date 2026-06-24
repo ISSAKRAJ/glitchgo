@@ -67,7 +67,7 @@ export default function GuidePage() {
                     activeTab === 'glitchgo' ? 'text-white' : 'text-gray-500 hover:text-gray-300'
                   }`}
                 >
-                  🚀 GlitchGo Services
+                  💼 Enterprise AI
                 </button>
                 <button
                   onClick={() => setActiveTab('adminzero')}
@@ -83,8 +83,8 @@ export default function GuidePage() {
               <div
                 className="absolute top-1.5 bottom-1.5 left-1.5 bg-brand-blue rounded-xl shadow-lg shadow-brand-blue/20 transition-all duration-300"
                 style={{
-                  width: activeTab === 'glitchgo' ? '146px' : '204px',
-                  transform: activeTab === 'glitchgo' ? 'translateX(0)' : 'translateX(154px)'
+                  width: activeTab === 'glitchgo' ? '154px' : '204px',
+                  transform: activeTab === 'glitchgo' ? 'translateX(0)' : 'translateX(162px)'
                 }}
               />
             </motion.div>
@@ -101,32 +101,33 @@ export default function GuidePage() {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3 font-outfit">
                   <span className="w-8 h-8 rounded-lg bg-brand-orange/10 border border-brand-orange/20 text-brand-orange flex items-center justify-center text-sm font-bold font-mono">1</span>
-                  Select a Service & Submit Details
+                  Select a Custom Solution & Submit Details
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4 text-gray-400 text-sm leading-relaxed">
                     <p>
-                      GlitchGo provides rapid tech execution on demand. On the homepage, choose between:
+                      GlitchGo provides high-ticket Custom Enterprise AI Implementations. On the homepage, choose between:
                     </p>
                     <ul className="list-disc pl-5 space-y-2">
-                      <li><strong>One-Time Fixes</strong>: Flat-rate patches for urgent bugs, legacy rescue projects, or one-off AI integrations.</li>
-                      <li><strong>Monthly Retainers</strong>: Dedicated monthly developer support (Starter, Pro, and Enterprise CTO packages) to keep your project active and scale features.</li>
+                      <li><strong>Enterprise System Refactoring & Scale</strong>: Complete codebase audits, security upgrades, database optimizations, and legacy system refactoring.</li>
+                      <li><strong>Custom AI Agent & Pipeline Development</strong>: Bespoke multi-agent orchestration, private enterprise LLM pipelines, and Slack ChatOps integration.</li>
                     </ul>
                     <p>
-                      Click <strong>Order & Book Service</strong> on any card to automatically pre-fill the technical request intake form. Add details, attach files (screenshots, database schemas, or PDFs), and click <strong>Submit Request</strong>.
+                      Click <strong>Request Custom Proposal</strong> on any service card to pre-fill the Enterprise Demo form. Fill out your Name, Work Email, and Company Size, and our solutions team will analyze your requirements.
                     </p>
                   </div>
                   <Card className="bg-white/[0.01] border-white/5 p-6 flex flex-col justify-center">
                     <h3 className="font-bold text-white mb-2 flex items-center gap-2 text-xs uppercase tracking-wider text-brand-orange">
-                      <AlertCircle size={14} /> Intake Guardrails
+                      <AlertCircle size={14} /> Demo Form Guardrails
                     </h3>
                     <p className="text-xs text-gray-400 leading-relaxed mb-4">
-                      Our secure intake form processes data through a honeypot filter to block automation spam and runs validations ensuring technical descriptions are sufficiently detailed to start analyzing the issue immediately.
+                      Our secure intake form validates contact info, verifying work domain emails and ensuring company size selections are captured. Spam-bot filters are run dynamically.
                     </p>
                     <div className="border border-white/10 rounded-lg p-3 bg-dark-bg font-mono text-[10px] text-brand-orange-light">
                       * Name: John Doe<br />
-                      * Email/Phone: john@example.com<br />
-                      * Details: at least 20 characters explaining the environment, framework, and exact error message.
+                      * Work Email: john@company.com<br />
+                      * Company Size: 11 - 50 Employees<br />
+                      * Notes: Custom database integration specs
                     </div>
                   </Card>
                 </div>
@@ -136,7 +137,7 @@ export default function GuidePage() {
               <div className="space-y-6 border-t border-white/5 pt-12">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3 font-outfit">
                   <span className="w-8 h-8 rounded-lg bg-brand-orange/10 border border-brand-orange/20 text-brand-orange flex items-center justify-center text-sm font-bold font-mono">2</span>
-                  Payment Checkout & Verification
+                  Milestone Invoice Verification
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <Card className="bg-white/[0.01] border-white/5 p-6 flex flex-col justify-center">
@@ -147,16 +148,16 @@ export default function GuidePage() {
                       <h4 className="font-bold text-white text-sm">Scan QR or Manual UTR</h4>
                     </div>
                     <p className="text-xs text-gray-400 leading-relaxed">
-                      Payments are processed seamlessly using instant UPI. Once our engineering team analyzes your submission and quotes a price, your ticket link unlocks the checkout page. Scan the dynamic QR code using Google Pay, PhonePe, Paytm, or BHIM.
+                      Payments and invoices are processed securely. Once our solutions engineering team approves the proposal and defines milestones, invoice checkouts are unlocked in your portal. Scan dynamic QR codes to pay via instant UPI.
                     </p>
                   </Card>
                   <div className="space-y-4 text-gray-400 text-sm leading-relaxed">
                     <p>
-                      After completing the transaction, submit proof to unlock code assets. We offer two verification options:
+                      After completing a milestone transaction, submit proof to unlock portal credentials and source code:
                     </p>
                     <ul className="list-disc pl-5 space-y-2">
-                      <li><strong>AI Receipt Scan</strong>: Upload a screenshot of your payment receipt. Our built-in Gemini Vision model scans the transaction in real time to verify recipient, status, and extract the 12-digit transaction ID.</li>
-                      <li><strong>Manual UTR</strong>: Manually enter the 12-digit UPI Transaction Reference Number (UTR) from your payment confirmation.</li>
+                      <li><strong>AI Receipt Scan</strong>: Upload a screenshot of your milestone receipt. Gemini scans the transaction details in real time to verify UPI reference IDs.</li>
+                      <li><strong>Manual UTR</strong>: Manually enter the 12-digit transaction ID from your bank confirmation page to verify payment instantly.</li>
                     </ul>
                     <p className="text-xs text-gray-500 italic">
                       Note: To prevent duplication fraud, the database rejects already-used UTR references.
@@ -169,19 +170,19 @@ export default function GuidePage() {
               <div className="space-y-6 border-t border-white/5 pt-12">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3 font-outfit">
                   <span className="w-8 h-8 rounded-lg bg-brand-orange/10 border border-brand-orange/20 text-brand-orange flex items-center justify-center text-sm font-bold font-mono">3</span>
-                  Track Work & Download Code Assets
+                  Track Milestones & Sign Off Builds
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4 text-gray-400 text-sm leading-relaxed">
                     <p>
-                      Keep track of your ticket live using the **Ticket Tracker**. Status updates move from <em>Received</em> to <em>Paid</em>, then <em>Under Work</em>, and finally <em>Completed</em>.
+                      Keep track of your custom implementations live in the Portal dashboard. Milestones transition from Proposal to Active development, QA, and Delivery.
                     </p>
                     <p>
-                      Once completed, a secure **Download Code Assets** button appears. You can download the full zip bundle, patch files, or configuration assets immediately.
+                      Once a milestone is complete, a secure download button appears. You can download configuration files, codebase patches, or secure deployment builds.
                     </p>
                     <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-xs text-red-400">
-                      <strong>⚠️ AUTOMATED DATA DELETION NOTICE:</strong><br />
-                      To ensure client privacy and code confidentiality, we do not store customer repository files permanently. Deliveries are scheduled for permanent server purging exactly 7 days after completion. Download backups immediately.
+                      <strong>⚠️ AUTOMATED DATA PURGE NOTICE:</strong><br />
+                      To ensure client privacy and strict enterprise database compliance, we purge custom repository builds from our systems exactly 7 days after milestone sign-off. Download backups immediately.
                     </div>
                   </div>
                   <Card className="bg-white/[0.01] border-white/5 p-6 flex flex-col justify-between">
@@ -190,7 +191,7 @@ export default function GuidePage() {
                         <Shield size={14} /> Confidentiality & NDAs
                       </h4>
                       <p className="text-xs text-gray-400 leading-relaxed mb-4">
-                        All codebase rescues and fixes are conducted under absolute privacy. Our code sandboxes are isolated, ensuring client configurations, environment keys, and databases are never leaked.
+                        All codebase refactoring and custom implementations are conducted under strict privacy. Our execution environments are isolated, ensuring client configurations and schema mappings are never leaked.
                       </p>
                     </div>
                     <div className="border border-white/10 rounded-lg p-3 bg-dark-bg flex items-center justify-between text-xs font-mono">
