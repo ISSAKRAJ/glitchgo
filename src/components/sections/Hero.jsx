@@ -18,26 +18,26 @@ export default function Hero() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-brand-orange font-medium text-sm mb-8"
         >
           <Code2 size={16} />
-          <span>GlitchGo - Professional code rescues & AI workflow automations.</span>
+          <span>AdminZero by GlitchGo - The Smart Enterprise Hub is live.</span>
         </motion.div>
 
         <motion.h1 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight"
+          className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight"
         >
-          We Fix Your Code Fast. <br className="hidden md:block" />
-          <span className="text-gradient">No Fluff. No Excuses.</span>
+          Stop Interrupting Your Engineers. <br className="hidden md:block" />
+          <span className="text-gradient">Get Live Database Answers in Slack.</span>
         </motion.h1>
 
         <motion.p 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10"
+          className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed"
         >
-          Urgent bug fixes, total project rescues, and AI automation built overnight. Stop stressing over broken apps and let us handle the heavy lifting.
+          AdminZero is the secure ChatOps data layer for modern startups. Translate plain English into read-only PostgreSQL instantly. No code required.
         </motion.p>
 
         <motion.div 
@@ -46,12 +46,12 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <Button size="lg" className="w-full sm:w-auto group" onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}>
-            Get Help Now
+          <Button size="lg" className="w-full sm:w-auto group" onClick={() => window.location.href = '/portal'}>
+            Add to Slack (Free Beta)
             <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
-          <Button variant="secondary" size="lg" className="w-full sm:w-auto" onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}>
-            Explore Services
+          <Button variant="secondary" size="lg" className="w-full sm:w-auto" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
+            How it Works
           </Button>
         </motion.div>
       </div>

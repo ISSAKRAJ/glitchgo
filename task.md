@@ -1,0 +1,9 @@
+- `[x]` Update scrolling marquee / top alert banner in `Navbar.jsx`
+- `[x]` Reorder components in `Landing.jsx` (move `AdminZeroPromo` below `Hero`)
+- `[x]` Rewrite Hero section in `Hero.jsx` (headlines, descriptions, and CTA buttons)
+- `[x]` Rebrand Trust points in `Trust.jsx` to enterprise SaaS values
+- `[x]` Rebrand How It Works steps in `HowItWorks.jsx` to AdminZero setup flow
+- `[x]` Rebrand Services section in `Services.jsx` to Custom Enterprise AI Implementations (remove toggle, remove bug fix card)
+- `[x]` Replace intake form in `ClientForm.jsx` with Enterprise Demo Form
+- `[x]` Rewrite Final CTA in `FinalCta.jsx` to focus on AdminZero & Slack
+- `[x]` Verify local build compiles successfully

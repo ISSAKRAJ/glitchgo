@@ -4,18 +4,18 @@ import { motion } from 'framer-motion';
 const steps = [
   {
     number: "01",
-    title: "Submit your problem",
-    desc: "Tell us what's broken or what you need built. Be as specific as possible."
+    title: "Connect Your Database",
+    desc: "Securely link your read-only PostgreSQL credentials in our configuration portal in 30 seconds."
   },
   {
     number: "02",
-    title: "We analyze quickly",
-    desc: "Our experts review the code or architecture and formulate an action plan."
+    title: "Install Slack App",
+    desc: "Add the AdminZero bot to your Slack workspace with a simple secure one-click OAuth flow."
   },
   {
     number: "03",
-    title: "Get solution fast",
-    desc: "We implement the fix or feature and deliver it verified and working."
+    title: "Query in Plain English",
+    desc: "Ask questions in your Slack channels and receive secure, instant visual data tables."
   }
 ];
 
@@ -30,19 +30,19 @@ export default function HowItWorks() {
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-bold mb-6"
+            className="text-3xl md:text-5xl font-bold mb-6 font-outfit tracking-tight"
           >
-            Simple Process.<br />
-            <span className="text-brand-blue">Rapid Results.</span>
+            Simple 3-Step Setup.<br />
+            <span className="text-brand-blue">Instant Slack ChatOps.</span>
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-gray-400 text-lg mb-8"
+            className="text-gray-400 text-lg mb-8 leading-relaxed"
           >
-            We cut the red tape. Just tell us the issue, and we immediately start working on the fix. No endless meetings, just code.
+            Get up and running in minutes. Connect your PostgreSQL database, invite the Slack bot, and start querying instantly with natural language.
           </motion.p>
         </div>
 

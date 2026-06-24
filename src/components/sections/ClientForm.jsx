@@ -10,9 +10,9 @@ export default function ClientForm() {
   const [formData, setFormData] = useState({
     name: '',
     contact: '',
-    problem: '',
-    deadline: 'urgent',
-    budget: '',
+    problem: '', // Will store notes/details
+    deadline: 'enterprise_demo',
+    budget: '', // Will store company size
     referralCode: '',
     botcheck: '' // Honeypot field for spam bots
   });
@@ -55,14 +55,10 @@ export default function ClientForm() {
 
   useEffect(() => {
     const handleSelectService = (e) => {
-      const { title, price, billingCycle } = e.detail;
-      const isMonthly = billingCycle === 'monthly';
+      const { title } = e.detail;
       setFormData(prev => ({
         ...prev,
-        problem: isMonthly
-          ? `I would like to subscribe to the "${title}" (${price} Monthly Retainer).\n\nHere are our company & project details: `
-          : `I would like to book the "${title}" service.\n\nHere are my project details: `,
-        budget: price
+        problem: `Interested in custom implementation for: "${title}".`
       }));
       setTimeout(() => {
         document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -74,20 +70,18 @@ export default function ClientForm() {
 
   const validate = () => {
     const newErrors = {};
-    // Strict Email / Phone Regex (Must be a valid email format OR a valid 10+ digit phone number)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\+?[\d\s-]{10,}$/;
     
-    if (!formData.name.trim() || formData.name.length < 2) newErrors.name = 'Please enter your full real name';
-    if (!formData.contact.trim()) {
-      newErrors.contact = 'Email or Phone is required';
-    } else if (!emailRegex.test(formData.contact) && !phoneRegex.test(formData.contact)) {
-      newErrors.contact = 'Please enter a valid email address or phone number';
+    if (!formData.name.trim() || formData.name.length < 2) {
+      newErrors.name = 'Please enter your full name';
     }
-    
-    // Strict Length Validation to prevent single-word spam
-    if (!formData.problem.trim() || formData.problem.trim().length < 20) {
-      newErrors.problem = 'Please provide more details (at least 20 characters) so we can help you properly';
+    if (!formData.contact.trim()) {
+      newErrors.contact = 'Work email is required';
+    } else if (!emailRegex.test(formData.contact)) {
+      newErrors.contact = 'Please enter a valid work email address';
+    }
+    if (!formData.budget) {
+      newErrors.budget = 'Please select your company size';
     }
     
     setErrors(newErrors);
@@ -110,10 +104,9 @@ export default function ClientForm() {
     }
 
     try {
-      // Basic check for placeholder configuration
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
       if (supabaseUrl === 'YOUR_SUPABASE_URL_HERE' || !supabaseUrl) {
-        throw new Error("Supabase is not configured! Please set up your .env.local file with real database keys.");
+        throw new Error("Supabase is not configured! Please set up your environment variables.");
       }
 
       // Handle File Upload to Supabase Storage if attached
@@ -121,7 +114,6 @@ export default function ClientForm() {
       if (file) {
         setStatus('uploading_file');
         
-        // Generate unique filename
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
         const filePath = `${formData.name.replace(/[^a-zA-Z0-9]/g, '')}_${fileName}`;
@@ -131,7 +123,7 @@ export default function ClientForm() {
           .upload(filePath, file);
 
         if (uploadError) {
-          throw new Error("File Upload Failed. Please check if you created a public 'client_files' bucket in your Supabase Storage.");
+          throw new Error("File Upload Failed. Please check your Supabase Storage configurations.");
         }
         
         const { data: { publicUrl } } = supabase.storage
@@ -143,18 +135,20 @@ export default function ClientForm() {
 
       setStatus('submitting');
 
-      // Insert to Supabase
+      // Insert to Supabase (Mapping Company Size to budget, and formatting problem description)
+      const formattedProblem = `Company Size: ${formData.budget}\nNotes: ${formData.problem || 'No extra notes provided.'}`;
+      
       const { error } = await supabase
         .from('client_requests')
         .insert([
           { 
             name: formData.name, 
             contact: formData.contact, 
-            problem: formData.problem, 
-            deadline: formData.deadline, 
+            problem: formattedProblem, 
+            deadline: 'enterprise_demo', 
             budget: formData.budget,
             referral_code: formData.referralCode.trim().toUpperCase(),
-            file_url: fileUrl // Link to the uploaded file
+            file_url: fileUrl
           }
         ]);
 
@@ -165,11 +159,11 @@ export default function ClientForm() {
       if (web3FormsKey && web3FormsKey !== 'YOUR_WEB3FORMS_KEY_HERE') {
         const emailPayload = {
           access_key: web3FormsKey,
-          subject: `New Lead: ${formData.name} - GlitchGo`,
-          from_name: "GlitchGo Intake",
+          subject: `New Enterprise Demo Lead: ${formData.name}`,
+          from_name: "AdminZero Enterprise Intake",
           name: formData.name,
           email: formData.contact,
-          message: `Problem: ${formData.problem}\nDeadline: ${formData.deadline}\nBudget: ${formData.budget || 'N/A'}\nReferral Code: ${formData.referralCode || 'None'}`
+          message: `Company Size: ${formData.budget}\nNotes/Requirements: ${formData.problem || 'None'}\nReferral Code: ${formData.referralCode || 'None'}`
         };
 
         try {
@@ -196,10 +190,9 @@ export default function ClientForm() {
 
       setStatus('success');
 
-      setFormData({ name: '', contact: '', problem: '', deadline: 'urgent', budget: '', referralCode: '' });
+      setFormData({ name: '', contact: '', problem: '', deadline: 'enterprise_demo', budget: '', referralCode: '' });
       setFile(null);
       
-      // Reset after 5 seconds
       setTimeout(() => setStatus('idle'), 5000);
     } catch (err) {
       console.error(err);
@@ -210,17 +203,28 @@ export default function ClientForm() {
 
   return (
     <section id="contact-form" className="py-24 bg-dark-surface border-y border-white/5 relative">
-      <div className="max-w-4xl mx-auto px-6">
+      {/* Glow ambient background elements */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-brand-blue/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="max-w-4xl mx-auto px-6 relative z-10">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-5xl font-bold mb-4">Request Immediate Help</h2>
-          <p className="text-gray-400">Fill out the details below and an expert will get back to you in minutes.</p>
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold uppercase tracking-widest text-brand-orange mb-4"
+          >
+            🛡️ Secure Solution Design
+          </motion.div>
+          <h2 className="text-3xl md:text-5xl font-black font-outfit tracking-tight mb-4 text-white">Request an Enterprise Demo</h2>
+          <p className="text-gray-400 max-w-xl mx-auto text-base md:text-lg">Get in touch with our solutions engineering team for a customized implementation of the Smart Enterprise Hub.</p>
         </div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="glass rounded-2xl p-8 md:p-12 relative overflow-hidden"
+          className="glass rounded-3xl p-8 md:p-12 relative overflow-hidden border border-white/5 bg-dark-surface/40 backdrop-blur-md"
         >
           <AnimatePresence>
             {status === 'success' && (
@@ -228,17 +232,17 @@ export default function ClientForm() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-dark-card/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6 text-center"
+                className="absolute inset-0 bg-dark-card/95 backdrop-blur-sm z-10 flex flex-col items-center justify-center p-6 text-center"
               >
                 <CheckCircle2 size={64} className="text-emerald-500 mb-4" />
                 <h3 className="text-2xl font-bold text-white mb-2">Request Received!</h3>
-                <p className="text-gray-300">We received your request. We'll contact you soon.</p>
+                <p className="text-gray-300 max-w-md">Our enterprise solutions team will review your database architecture needs and get back to you within 24 hours.</p>
               </motion.div>
             )}
           </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Honeypot Field (Hidden from humans, bots will fill it) */}
+            {/* Honeypot Field */}
             <input 
               type="checkbox" 
               name="botcheck" 
@@ -256,7 +260,7 @@ export default function ClientForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Name *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Full Name *</label>
                 <Input 
                   placeholder="John Doe" 
                   value={formData.name}
@@ -265,9 +269,10 @@ export default function ClientForm() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Email or Phone *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Work Email *</label>
                 <Input 
-                  placeholder="john@example.com / +1234..." 
+                  placeholder="john@company.com" 
+                  type="email"
                   value={formData.contact}
                   onChange={(e) => setFormData({...formData, contact: e.target.value})}
                   error={errors.contact}
@@ -277,42 +282,30 @@ export default function ClientForm() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Problem Description *</label>
-              <Textarea 
-                placeholder="Describe the bug, issue, or feature you need built..." 
-                value={formData.problem}
-                onChange={(e) => setFormData({...formData, problem: e.target.value})}
-                error={errors.problem}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Deadline *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Company Size *</label>
                 <select 
-                  className="w-full bg-dark-surface border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-blue"
-                  value={formData.deadline}
-                  onChange={(e) => setFormData({...formData, deadline: e.target.value})}
-                >
-                  <option value="urgent">🔥 Urgent (ASAP)</option>
-                  <option value="24h">⏱️ Within 24 Hours</option>
-                  <option value="2-3days">📅 2–3 Days</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Budget (Optional)</label>
-                <Input 
-                  placeholder="$50, $100+" 
-                  type="text"
+                  className={`w-full bg-dark-bg border rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-brand-blue/50 ${
+                    errors.budget ? 'border-red-500' : 'border-white/10'
+                  }`}
                   value={formData.budget}
                   onChange={(e) => setFormData({...formData, budget: e.target.value})}
-                />
+                >
+                  <option value="">Select Company Size...</option>
+                  <option value="1-10">🚀 1 - 10 Employees</option>
+                  <option value="11-50">⚡ 11 - 50 Employees</option>
+                  <option value="51-250">🏢 51 - 250 Employees</option>
+                  <option value="250+">👑 250+ Employees</option>
+                </select>
+                {errors.budget && (
+                  <p className="mt-1 text-xs text-red-500">{errors.budget}</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Referral Code</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Referral Code (Optional)</label>
                 <Input 
-                  placeholder="e.g. JOHN2026" 
+                  placeholder="e.g. PARTNER2026" 
                   type="text"
                   value={formData.referralCode}
                   onChange={(e) => setFormData({...formData, referralCode: e.target.value})}
@@ -320,15 +313,25 @@ export default function ClientForm() {
               </div>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6 border-dashed hover:border-brand-blue/50 transition-colors">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Requirements & Database Notes (Optional)</label>
+              <Textarea 
+                placeholder="Tell us about your tech stack, security compliance requirements, or custom integrations you need built..." 
+                value={formData.problem}
+                onChange={(e) => setFormData({...formData, problem: e.target.value})}
+                error={errors.problem}
+              />
+            </div>
+
+            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 md:p-6 border-dashed hover:border-brand-blue/30 transition-colors">
               <label className="flex items-center gap-3 cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-brand-blue/20 flex items-center justify-center flex-shrink-0 text-brand-blue">
-                  <Paperclip size={20} />
+                <div className="w-10 h-10 rounded-xl bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center flex-shrink-0 text-brand-blue">
+                  <Paperclip size={18} />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-white mb-0.5">Attach a file (Optional)</p>
+                  <p className="text-sm font-semibold text-white mb-0.5">Attach Architecture Diagram or RFP (Optional)</p>
                   <p className="text-xs text-gray-500 line-clamp-1">
-                    {file ? file.name : "Upload images, screenshots, or documents max 2MB."}
+                    {file ? file.name : "Upload architectural details, screenshots, or documents max 2MB."}
                   </p>
                 </div>
                 <input 
@@ -362,10 +365,10 @@ export default function ClientForm() {
                 className="w-full" 
                 isLoading={status === 'submitting' || status === 'uploading_file'}
               >
-                {status === 'uploading_file' ? 'Uploading Attachment...' : 'Submit Request'}
+                {status === 'uploading_file' ? 'Uploading Attachment...' : 'Request Enterprise Demo'}
               </Button>
-              <p className="text-center text-xs text-gray-500 mt-4 flex items-center justify-center gap-1">
-                <AlertCircle size={14} /> 100% Secure & Confidential
+              <p className="text-center text-xs text-gray-500 mt-4 flex items-center justify-center gap-1.5 font-medium tracking-wide">
+                🛡️ AES-256 encrypted endpoints. All client data and requests are kept confidential.
               </p>
             </div>
           </form>

@@ -16,10 +16,10 @@ export default function Landing() {
       <Navbar />
       <main className="flex-1 w-full flex flex-col pt-20">
         <Hero />
+        <AdminZeroPromo />
         <Trust />
         <Services />
         <HowItWorks />
-        <AdminZeroPromo />
         <ClientForm />
         <FinalCta />
       </main>

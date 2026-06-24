@@ -14,16 +14,21 @@ export default function FinalCta() {
           viewport={{ once: true }}
           className="glass rounded-3xl p-12 border border-brand-blue/20 shadow-[0_0_50px_rgba(59,130,246,0.15)] bg-dark-surface/80"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white tracking-tight">
-            🚨 Deadline near? <br className="hidden sm:block" />
-            <span className="text-brand-orange">Get help now.</span>
+          <h2 className="text-4xl md:text-5xl font-black mb-6 text-white tracking-tight font-outfit">
+            Ready to Supercharge <br className="hidden sm:block" />
+            Your <span className="text-brand-orange">ChatOps?</span>
           </h2>
-          <p className="text-gray-300 text-lg mb-8 max-w-xl mx-auto">
-            Don't let a stubborn bug or deployment issue ruin your launch. Let our experts handle it right away.
+          <p className="text-gray-300 text-lg mb-8 max-w-xl mx-auto leading-relaxed">
+            Connect your PostgreSQL databases to Slack in 30 seconds. Enable your entire organization to query data safely using natural language.
           </p>
-          <Button size="lg" className="w-full sm:w-auto shadow-[0_0_20px_rgba(249,115,22,0.4)] bg-brand-orange hover:bg-orange-600 border-none" onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}>
-            Submit Your Problem
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button size="lg" className="w-full sm:w-auto shadow-[0_0_20px_rgba(249,115,22,0.3)] bg-brand-orange hover:bg-orange-600 border-none" onClick={() => window.location.href = '/portal'}>
+              Add to Slack (Free Beta)
+            </Button>
+            <Button variant="secondary" size="lg" className="w-full sm:w-auto" onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}>
+              Request Enterprise Demo
+            </Button>
+          </div>
         </motion.div>
       </div>
     </section>

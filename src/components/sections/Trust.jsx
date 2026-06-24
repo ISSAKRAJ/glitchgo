@@ -5,8 +5,8 @@ import { Zap, GraduationCap, CheckCircle2 } from 'lucide-react';
 const trustItems = [
   {
     icon: <Zap size={24} className="text-brand-orange" />,
-    text: "Fast Delivery",
-    desc: "Solutions precisely when you need them."
+    text: "Dual-Layer Security",
+    desc: "Strict read-only constraints backed by secondary local regex validation."
   },
   {
     icon: <img src="/msme-logo.png" alt="MSME Logo" className="h-7 w-auto object-contain" />,
@@ -15,8 +15,8 @@ const trustItems = [
   },
   {
     icon: <CheckCircle2 size={24} className="text-emerald-500" />,
-    text: "Real problem solving",
-    desc: "Guaranteed fixes or your money back."
+    text: "Enterprise SLA",
+    desc: "Production-grade reliability, guaranteed data privacy, and premium uptime."
   }
 ];
 
