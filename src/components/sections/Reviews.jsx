@@ -118,6 +118,17 @@ export default function Reviews() {
     );
   };
 
+  const formatReviewDate = (dateVal) => {
+    if (!dateVal) return 'Recently';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return 'Recently';
+    return d.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   return (
     <section id="reviews" className="relative py-24 bg-[#0a0a0f] overflow-hidden">
       {/* Background Gradients */}
@@ -155,11 +166,7 @@ export default function Reviews() {
               <div className="flex items-center justify-between mb-4">
                 {renderStars(rev.rating)}
                 <span className="text-xs text-slate-500">
-                  {new Date(rev.date).toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                  })}
+                  {formatReviewDate(rev.date)}
                 </span>
               </div>
               
