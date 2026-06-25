@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Terminal, Shield, Play } from 'lucide-react';
+import React from 'react';
+import { Terminal, Shield } from 'lucide-react';
 
 const JEST_LINES = [
   { text: 'PASS  src/__tests__/adminzero-pipeline.test.ts', color: 'text-emerald-400 font-semibold' },
@@ -28,40 +28,6 @@ const JEST_LINES = [
 ];
 
 export default function SecurityTerminal() {
-  const [visibleLines, setVisibleLines] = useState(JEST_LINES);
-  const [isRunning, setIsRunning] = useState(false);
-  const [typedCommand, setTypedCommand] = useState('npm run test');
-  const terminalBodyRef = useRef(null);
-  const timeoutRef = useRef(null);
-
-  const startTestRunner = () => {
-    if (isRunning) return;
-    setIsRunning(true);
-    setVisibleLines([]);
-    setTypedCommand('');
-
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setTypedCommand('npm run test');
-      setVisibleLines(JEST_LINES);
-      setIsRunning(false);
-    }, 800);
-  };
-
-  // Clean up timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
-  // Auto-scroll inside terminal window container only (avoid hijacking page scroll)
-  useEffect(() => {
-    if (terminalBodyRef.current) {
-      terminalBodyRef.current.scrollTop = terminalBodyRef.current.scrollHeight;
-    }
-  }, [visibleLines, typedCommand]);
-
   return (
     <section className="relative py-24 bg-[#08080c] overflow-hidden">
       {/* Background radial glowing effects */}
@@ -94,50 +60,35 @@ export default function SecurityTerminal() {
               <span className="w-3 h-3 rounded-full bg-amber-500 inline-block" />
               <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block" />
             </div>
-            <div className="text-slate-500 text-xs font-medium flex items-center gap-1.5">
+            <div className="text-slate-500 text-xs font-medium flex items-center gap-1.5 mx-auto">
               <Terminal size={12} /> bash — adminzero-pipeline.test.ts
-            </div>
-            <div>
-              <button
-                onClick={startTestRunner}
-                disabled={isRunning}
-                className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-emerald-400 hover:text-emerald-300 disabled:text-slate-600 transition-colors cursor-pointer"
-              >
-                <Play size={10} fill="currentColor" /> Rerun Test
-              </button>
             </div>
           </div>
 
           {/* Terminal Output Body */}
-          <div ref={terminalBodyRef} className="p-6 font-mono text-xs md:text-sm leading-relaxed text-slate-300 h-96 overflow-y-auto bg-[#050508] max-h-[450px]">
+          <div className="p-6 font-mono text-xs md:text-sm leading-relaxed text-slate-300 h-96 overflow-y-auto bg-[#050508] max-h-[450px]">
             <div className="mb-2">
               <span className="text-indigo-400">guest@adminzero</span>
               <span className="text-white">:</span>
               <span className="text-emerald-400">~#</span>{' '}
-              <span className="text-white">{typedCommand}</span>
-              {typedCommand.length < 12 && (
-                <span className="w-2 h-4 bg-slate-400 inline-block animate-pulse align-middle ml-1" />
-              )}
+              <span className="text-white">npm run test</span>
             </div>
 
             {/* Render log lines */}
             <div className="space-y-1.5">
-              {visibleLines.map((line, idx) => (
+              {JEST_LINES.map((line, idx) => (
                 <div key={idx} className={line.color}>
                   {line.text}
                 </div>
               ))}
             </div>
 
-            {/* Current prompt typing anchor */}
-            {visibleLines.length === JEST_LINES.length && !isRunning && (
-              <div className="mt-4 animate-fade-in duration-200">
-                <span className="text-indigo-400">guest@adminzero</span>
-                <span className="text-white">:</span>
-                <span className="text-emerald-400">~#</span>{' '}
-                <span className="w-2 h-4 bg-emerald-400 inline-block animate-pulse align-middle ml-1" />
-              </div>
-            )}
+            <div className="mt-4">
+              <span className="text-indigo-400">guest@adminzero</span>
+              <span className="text-white">:</span>
+              <span className="text-emerald-400">~#</span>{' '}
+              <span className="w-2 h-4 bg-emerald-400 inline-block animate-pulse align-middle ml-1" />
+            </div>
           </div>
         </div>
 

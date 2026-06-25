@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, Cpu, Sparkles, Database, Code } from 'lucide-react';
+import { ShieldAlert, Cpu, Sparkles } from 'lucide-react';
 
 export default function Architecture() {
   return (
@@ -12,7 +12,7 @@ export default function Architecture() {
         
         {/* Section Header */}
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-xs font-semibold tracking-wider uppercase mb-4 animate-pulse">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-xs font-semibold tracking-wider uppercase mb-4">
             <Cpu size={12} /> System Design
           </div>
           <h2 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-none mb-4">
