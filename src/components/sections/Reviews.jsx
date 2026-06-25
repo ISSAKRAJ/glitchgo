@@ -66,7 +66,11 @@ export default function Reviews() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setReviews(parsed);
+        if (Array.isArray(parsed)) {
+          setReviews(parsed);
+        } else {
+          setReviews(INITIAL_REVIEWS);
+        }
       } catch (e) {
         setReviews(INITIAL_REVIEWS);
       }

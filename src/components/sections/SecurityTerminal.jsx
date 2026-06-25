@@ -31,10 +31,15 @@ export default function SecurityTerminal() {
   const [visibleLines, setVisibleLines] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [typedCommand, setTypedCommand] = useState('');
-  const terminalEndRef = useRef(null);
+  const terminalBodyRef = useRef(null);
+  const typeIntervalRef = useRef(null);
+  const logIntervalRef = useRef(null);
 
   const startTestRunner = () => {
-    if (isRunning) return;
+    // Clear any existing intervals
+    if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
+    if (logIntervalRef.current) clearInterval(logIntervalRef.current);
+
     setIsRunning(true);
     setVisibleLines([]);
     setTypedCommand('');
@@ -42,21 +47,21 @@ export default function SecurityTerminal() {
     // Simulate command typing
     const command = 'npm run test';
     let i = 0;
-    const typeInterval = setInterval(() => {
+    typeIntervalRef.current = setInterval(() => {
       if (i < command.length) {
         setTypedCommand(prev => prev + command[i]);
         i++;
       } else {
-        clearInterval(typeInterval);
+        if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
         
         // Command typed, now reveal logs line-by-line
         let lineIdx = 0;
-        const logInterval = setInterval(() => {
+        logIntervalRef.current = setInterval(() => {
           if (lineIdx < JEST_LINES.length) {
             setVisibleLines(prev => [...prev, JEST_LINES[lineIdx]]);
             lineIdx++;
           } else {
-            clearInterval(logInterval);
+            if (logIntervalRef.current) clearInterval(logIntervalRef.current);
             setIsRunning(false);
           }
         }, 150);
@@ -67,12 +72,16 @@ export default function SecurityTerminal() {
   // Run automatically on first viewport mount
   useEffect(() => {
     startTestRunner();
+    return () => {
+      if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
+      if (logIntervalRef.current) clearInterval(logIntervalRef.current);
+    };
   }, []);
 
-  // Auto-scroll inside terminal window
+  // Auto-scroll inside terminal window container only (avoid hijacking page scroll)
   useEffect(() => {
-    if (terminalEndRef.current) {
-      terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (terminalBodyRef.current) {
+      terminalBodyRef.current.scrollTop = terminalBodyRef.current.scrollHeight;
     }
   }, [visibleLines, typedCommand]);
 
@@ -123,7 +132,7 @@ export default function SecurityTerminal() {
           </div>
 
           {/* Terminal Output Body */}
-          <div className="p-6 font-mono text-xs md:text-sm leading-relaxed text-slate-300 h-96 overflow-y-auto bg-[#050508] max-h-[450px]">
+          <div ref={terminalBodyRef} className="p-6 font-mono text-xs md:text-sm leading-relaxed text-slate-300 h-96 overflow-y-auto bg-[#050508] max-h-[450px]">
             <div className="mb-2">
               <span className="text-indigo-400">guest@adminzero</span>
               <span className="text-white">:</span>
@@ -152,8 +161,6 @@ export default function SecurityTerminal() {
                 <span className="w-2 h-4 bg-emerald-400 inline-block animate-pulse align-middle ml-1" />
               </div>
             )}
-            
-            <div ref={terminalEndRef} />
           </div>
         </div>
 
