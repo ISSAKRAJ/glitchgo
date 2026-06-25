@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'GlitchGo - Professional Code Rescues & AI Automations',
-  description: 'Emergency code debugging, legacy codebase rescues, and custom AI pipeline integrations.',
+  title: 'AdminZero by GlitchGo - Secure Slack ChatOps for Databases',
+  description: 'AdminZero is the secure ChatOps data layer for modern startups. Translate plain English into read-only PostgreSQL instantly inside Slack. No code required.',
 };
 
 export default function RootLayout({ children }) {

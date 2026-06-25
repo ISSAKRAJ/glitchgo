@@ -6,4 +6,6 @@
 - `[x]` Rebrand Services section in `Services.jsx` to Custom Enterprise AI Implementations (remove toggle, remove bug fix card)
 - `[x]` Replace intake form in `ClientForm.jsx` with Enterprise Demo Form
 - `[x]` Rewrite Final CTA in `FinalCta.jsx` to focus on AdminZero & Slack
+- `[x]` Update AI Assistant instructions in `ChatWidget.jsx` to pitch AdminZero & Enterprise solutions
+- `[x]` Rebrand service documentation steps in `/guide` (`guide/page.jsx`) to describe custom enterprise milestones
 - `[x]` Verify local build compiles successfully
