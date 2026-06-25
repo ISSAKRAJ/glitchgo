@@ -28,53 +28,32 @@ const JEST_LINES = [
 ];
 
 export default function SecurityTerminal() {
-  const [visibleLines, setVisibleLines] = useState([]);
+  const [visibleLines, setVisibleLines] = useState(JEST_LINES);
   const [isRunning, setIsRunning] = useState(false);
-  const [typedCommand, setTypedCommand] = useState('');
-  const [runTrigger, setRunTrigger] = useState(0);
+  const [typedCommand, setTypedCommand] = useState('npm run test');
   const terminalBodyRef = useRef(null);
+  const timeoutRef = useRef(null);
 
   const startTestRunner = () => {
     if (isRunning) return;
-    setRunTrigger(prev => prev + 1);
-  };
-
-  useEffect(() => {
     setIsRunning(true);
     setVisibleLines([]);
     setTypedCommand('');
 
-    let typeInterval = null;
-    let logInterval = null;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setTypedCommand('npm run test');
+      setVisibleLines(JEST_LINES);
+      setIsRunning(false);
+    }, 800);
+  };
 
-    const command = 'npm run test';
-    let i = 0;
-    typeInterval = setInterval(() => {
-      if (i < command.length) {
-        setTypedCommand(prev => prev + command[i]);
-        i++;
-      } else {
-        clearInterval(typeInterval);
-        
-        // Command typed, now reveal logs line-by-line
-        let lineIdx = 0;
-        logInterval = setInterval(() => {
-          if (lineIdx < JEST_LINES.length) {
-            setVisibleLines(prev => [...prev, JEST_LINES[lineIdx]]);
-            lineIdx++;
-          } else {
-            clearInterval(logInterval);
-            setIsRunning(false);
-          }
-        }, 150);
-      }
-    }, 60);
-
+  // Clean up timeouts on unmount
+  useEffect(() => {
     return () => {
-      if (typeInterval) clearInterval(typeInterval);
-      if (logInterval) clearInterval(logInterval);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [runTrigger]);
+  }, []);
 
   // Auto-scroll inside terminal window container only (avoid hijacking page scroll)
   useEffect(() => {
