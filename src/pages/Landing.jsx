@@ -6,6 +6,7 @@ import Trust from '../components/sections/Trust';
 import Services from '../components/sections/Services';
 import HowItWorks from '../components/sections/HowItWorks';
 import AdminZeroPromo from '../components/sections/AdminZeroPromo';
+import Reviews from '../components/sections/Reviews';
 import ClientForm from '../components/sections/ClientForm';
 import FinalCta from '../components/sections/FinalCta';
 import ChatWidget from '../components/sections/ChatWidget';
@@ -17,6 +18,7 @@ export default function Landing() {
       <main className="flex-1 w-full flex flex-col pt-20">
         <Hero />
         <AdminZeroPromo />
+        <Reviews />
         <Trust />
         <Services />
         <HowItWorks />

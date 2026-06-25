@@ -627,7 +627,7 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
             elements: [
               {
                 type: 'mrkdwn',
-                text: `_Executed SQL:_\n\`\`\`sql\n${activeSql}\n\`\`\``
+                text: `_Executed SQL:_\n\`\`\`sql\n${activeSql}\n\`\`\`\n\n⭐ *Enjoying AdminZero?* <https://glitchgo.tech#reviews|Leave us a review!>`
               }
             ]
           },
