@@ -1,11 +1,5 @@
-- `[x]` Update scrolling marquee / top alert banner in `Navbar.jsx`
-- `[x]` Reorder components in `Landing.jsx` (move `AdminZeroPromo` below `Hero`)
-- `[x]` Rewrite Hero section in `Hero.jsx` (headlines, descriptions, and CTA buttons)
-- `[x]` Rebrand Trust points in `Trust.jsx` to enterprise SaaS values
-- `[x]` Rebrand How It Works steps in `HowItWorks.jsx` to AdminZero setup flow
-- `[x]` Rebrand Services section in `Services.jsx` to Custom Enterprise AI Implementations (remove toggle, remove bug fix card)
-- `[x]` Replace intake form in `ClientForm.jsx` with Enterprise Demo Form
-- `[x]` Rewrite Final CTA in `FinalCta.jsx` to focus on AdminZero & Slack
-- `[x]` Update AI Assistant instructions in `ChatWidget.jsx` to pitch AdminZero & Enterprise solutions
-- `[x]` Rebrand service documentation steps in `/guide` (`guide/page.jsx`) to describe custom enterprise milestones
-- `[x]` Verify local build compiles successfully
+- `[ ]` Implement `generateSQLWithDeepSeek` helper in `text-to-sql.ts`
+- `[ ]` Implement `escalateToGeminiPro` helper in `text-to-sql.ts`
+- `[ ]` Implement `executeQuery` database helper in `text-to-sql.ts`
+- `[ ]` Restructure `handleSlackMessage` in `text-to-sql.ts` with Fast-Fail fallback flow
+- `[ ]` Verify local build compiles successfully
