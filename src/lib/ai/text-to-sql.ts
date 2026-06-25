@@ -179,6 +179,7 @@ async function executeQuery(pgUrl: string, sql: string): Promise<any[]> {
   const pgClient = new Client({
     connectionString: pgUrl,
     connectionTimeoutMillis: 10000,
+    statement_timeout: 5000, // Enforce 5s timeout on database queries to prevent Cartesian join DoS
     ssl: { rejectUnauthorized: false }
   });
   try {
@@ -239,6 +240,16 @@ export function validateSQLWithAST(sql: string): void {
       const colName = String(node.name).toLowerCase();
       if (blacklistColumns.some(blacklisted => colName.includes(blacklisted))) {
         throw new Error(`Unauthorized SQL access: column '${node.name}' is blacklisted.`);
+      }
+    }
+
+    // Deep check any identifier or name properties to prevent inference side-channel leaks
+    if (node.name && typeof node.name === 'string') {
+      const nameLower = node.name.toLowerCase();
+      if (blacklistColumns.some(blacklisted => nameLower.includes(blacklisted))) {
+        if (node.type !== 'table') {
+          throw new Error(`Unauthorized SQL access: identifier/property '${node.name}' contains a blacklisted column name.`);
+        }
       }
     }
 
@@ -387,22 +398,22 @@ INSTRUCTIONS:
  * Route raw query results to a synthesis function powered by Gemini 2.5 Flash.
  * Interprets database rows and formats into conversational mrkdwn with text-bar visualizations (PowerBI mode).
  */
-async function synthesizeResults(query: string, rows: any[]): Promise<string> {
+async function synthesizeResults(query: string, rows: any[], systemNote?: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error('Gemini API key is not configured for synthesis.');
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  // Send maximum 50 rows to synthesis to prevent token overflows
-  const rawDataJson = JSON.stringify(rows.slice(0, 50));
+  // Send maximum 100 rows to synthesis to prevent token overflows (capping payload overflow)
+  const rawDataJson = JSON.stringify(rows.slice(0, 100));
 
   const synthesisPrompt = `You are an elite Lead Data Analyst.
 You have successfully executed a database query to answer a user's question.
 
 User Question: "${query}"
 
-Raw Database Rows Returned:
+${systemNote ? `${systemNote}\n\n` : ''}Raw Database Rows Returned:
 ${rawDataJson}
 
 Your job is to synthesize these raw rows into a concise, professional response.
@@ -611,7 +622,15 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     if (executeSuccess) {
       try {
         console.log('Executing Conversational Synthesis with Gemini 2.5 Flash...');
-        const synthesizedText = await synthesizeResults(cleanText, rows);
+        
+        // Data truncation guard (Payload Overflow Protection)
+        const safeRows = rows.slice(0, 100);
+        let systemNote = '';
+        if (rows.length > 100) {
+          systemNote = '[System Note: The data payload exceeded safe limits and was truncated to the first 100 records for performance and safety.]';
+        }
+        
+        const synthesizedText = await synthesizeResults(cleanText, safeRows, systemNote);
         
         // Construct Slack Block Kit blocks containing interactive insight sharing button
         const slackBlocks = [

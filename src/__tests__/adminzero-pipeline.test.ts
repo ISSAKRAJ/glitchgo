@@ -250,6 +250,121 @@ describe('AdminZero Advanced Backend Event Processor - Testing Suite', () => {
       // Verify query count incremented
       expect(dbMock.incrementWorkspaceQueryCount).toHaveBeenCalledWith(mockTeamId);
     });
+
+    test('Integration: Should gracefully handle statement timeouts when a query takes too long', async () => {
+      // Mock fetch responses:
+      // - 1st: Slack placeholder
+      // - 2nd: DeepSeek API (returns SQL that will timeout)
+      // - 3rd: Slack executing notice
+      // - 4th: Slack escalate notice
+      // - 5th: Slack repaired query executing notice
+      // - 6th: Slack final failure message
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ ok: true, ts: 'placeholder-ts' })
+        }) // Slack placeholder
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            choices: [{ message: { content: 'SELECT * FROM complex_joins;' } }]
+          })
+        }) // DeepSeek
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ ok: true })
+        }) // Slack executing notice
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ ok: true })
+        }) // Slack escalate notice
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ ok: true })
+        }) // Slack repaired query executing notice
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ ok: true })
+        }); // Slack final failure message
+
+      // Mock PG queries: both fail with timeout error
+      const pgClientMock = new Client();
+      (pgClientMock.query as jest.Mock)
+        .mockRejectedValueOnce(new Error('canceling statement due to statement timeout'))
+        .mockRejectedValueOnce(new Error('canceling statement due to statement timeout'));
+
+      // Mock Gemini repair call (return same SQL)
+      const aiInstance = new GoogleGenAI({ apiKey: 'key' });
+      (aiInstance.models.generateContent as jest.Mock).mockResolvedValueOnce({
+        text: 'SELECT * FROM complex_joins;'
+      });
+
+      // Run orchestrator
+      await handleSlackMessage(mockChannel, 'Get giant Cartesian join', mockUserId, mockTeamId);
+
+      // Verify that final failure message was sent to Slack
+      expect(mockFetch).toHaveBeenLastCalledWith(
+        'https://slack.com/api/chat.update',
+        expect.objectContaining({
+          body: expect.stringContaining('encountered an issue with that complex query')
+        })
+      );
+    });
+
+    test('Integration: Should truncate row arrays to a maximum of 100 entries before passing to synthesis', async () => {
+      // Mock fetch responses:
+      // - 1st: Slack placeholder
+      // - 2nd: DeepSeek API (valid SQL)
+      // - 3rd: Slack executing notice
+      // - 4th: Slack final update
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ ok: true, ts: 'placeholder-ts' })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            choices: [{ message: { content: 'SELECT * FROM large_table;' } }]
+          })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ ok: true })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ ok: true })
+        });
+
+      // Mock PG query returning 150 rows
+      const pgClientMock = new Client();
+      const mockRows = Array.from({ length: 150 }, (_, i) => ({ id: i, value: `row-${i}` }));
+      (pgClientMock.query as jest.Mock).mockResolvedValueOnce({ rows: mockRows });
+
+      // Mock Gemini calls
+      const aiInstance = new GoogleGenAI({ apiKey: 'key' });
+      (aiInstance.models.generateContent as jest.Mock).mockResolvedValueOnce({
+        text: 'Synthesized summary of 100 rows.'
+      });
+
+      // Run orchestrator
+      await handleSlackMessage(mockChannel, 'Show me large table', mockUserId, mockTeamId);
+
+      // Verify that Gemini Flash was called with the truncated rows list of size 100 and system note
+      expect(aiInstance.models.generateContent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'gemini-2.5-flash',
+          contents: expect.stringContaining('[System Note: The data payload exceeded safe limits and was truncated to the first 100 records for performance and safety.]')
+        })
+      );
+
+      // Verify it contains the first 100 rows, but not the 101st (id: 100)
+      const lastCallArgs = (aiInstance.models.generateContent as jest.Mock).mock.calls[0][0];
+      const contentsStr = lastCallArgs.contents;
+      expect(contentsStr).toContain('"id":99');
+      expect(contentsStr).not.toContain('"id":100');
+    });
   });
 
   /* ==========================================
@@ -276,6 +391,11 @@ describe('AdminZero Advanced Backend Event Processor - Testing Suite', () => {
       // Let's verify that chained statements (e.g., trying to run DROP table after the SELECT) are blocked.
       const chainedSQLInjection = "SELECT * FROM users WHERE name = ''; DROP TABLE users;";
       expect(() => validateSQLWithAST(chainedSQLInjection)).toThrow(/Multiple SQL statements.*forbidden/i);
+    });
+
+    test('Cybersecurity: Should block inference side-channel attacks trying to scan blacklisted columns in WHERE clauses', () => {
+      const sideChannelAttack = "SELECT count(*) FROM users WHERE password LIKE 'a%';";
+      expect(() => validateSQLWithAST(sideChannelAttack)).toThrow(/is blacklisted|contains a blacklisted/i);
     });
   });
 
