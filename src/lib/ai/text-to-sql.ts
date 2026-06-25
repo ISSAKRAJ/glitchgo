@@ -2,6 +2,7 @@ import { GoogleGenAI } from '@google/genai';
 import { Client } from 'pg';
 import { getWorkspaceToken, getConnection, getWorkspace, incrementWorkspaceQueryCount } from '../db/supabase-workspaces';
 import { decrypt } from '../encryption/aes';
+import { parse } from 'pgsql-ast-parser';
 
 const SYSTEM_PROMPT = `You are an expert PostgreSQL database engineer and a strict read-only SQL generator. 
 Your ONLY job is to translate the user's natural language question into a valid, highly optimized PostgreSQL query based on the provided database schema.
@@ -39,7 +40,13 @@ export function isQuerySafe(sql: string): boolean {
 }
 
 // Post response back to Slack using a dynamic workspace token and returns ts
-export async function postToSlack(channel: string, text: string, token: string, threadTs?: string): Promise<string | null> {
+export async function postToSlack(
+  channel: string,
+  text: string,
+  token: string,
+  threadTs?: string,
+  blocks?: any[]
+): Promise<string | null> {
   if (!token) {
     console.error('No Slack token provided to postToSlack.');
     return null;
@@ -55,6 +62,7 @@ export async function postToSlack(channel: string, text: string, token: string, 
       body: JSON.stringify({
         channel,
         text,
+        ...(blocks ? { blocks } : {}),
         ...(threadTs ? { thread_ts: threadTs } : {})
       })
     });
@@ -73,7 +81,13 @@ export async function postToSlack(channel: string, text: string, token: string, 
 }
 
 // Update an existing Slack message in place
-export async function updateSlackMessage(channel: string, ts: string, text: string, token: string): Promise<boolean> {
+export async function updateSlackMessage(
+  channel: string,
+  ts: string,
+  text: string,
+  token: string,
+  blocks?: any[]
+): Promise<boolean> {
   if (!token || !ts) return false;
   
   try {
@@ -86,7 +100,8 @@ export async function updateSlackMessage(channel: string, ts: string, text: stri
       body: JSON.stringify({
         channel,
         ts,
-        text
+        text,
+        ...(blocks ? { blocks } : {})
       })
     });
     
@@ -176,6 +191,69 @@ async function executeQuery(pgUrl: string, sql: string): Promise<any[]> {
 }
 
 /**
+ * Validates a generated SQL string against an AST structure using pgsql-ast-parser.
+ * Enforces zero-trust constraints: blocks mutating query types and blacklisted column accesses.
+ */
+export function validateSQLWithAST(sql: string): void {
+  let ast: any;
+  try {
+    ast = parse(sql);
+  } catch (err: any) {
+    throw new Error(`SQL AST Parsing Error: ${err.message}`);
+  }
+
+  if (!ast || !Array.isArray(ast)) {
+    throw new Error('Invalid SQL statement structure.');
+  }
+
+  // Prevent query chaining to block side-channel attacks
+  if (ast.length > 1) {
+    throw new Error('Multiple SQL statements in a single execution are strictly forbidden.');
+  }
+
+  const blacklistColumns = ['password', 'passwd', 'pass', 'ssn', 'social_security', 'credit_card', 'cc_number', 'secret_key', 'private_key', 'token', 'pii'];
+
+  function traverse(node: any) {
+    if (!node || typeof node !== 'object') return;
+
+    if (Array.isArray(node)) {
+      for (const item of node) {
+        traverse(item);
+      }
+      return;
+    }
+
+    // Check statement type property
+    if (node.type) {
+      const typeStr = String(node.type).toLowerCase();
+      const forbiddenTypes = [
+        'update', 'delete', 'insert', 'drop', 'alter', 'alter table', 'altertable',
+        'truncate', 'create', 'replace', 'grant', 'revoke', 'updatestmt', 'deletestmt',
+        'dropstmt', 'altertablestmt', 'insertstmt'
+      ];
+      if (forbiddenTypes.includes(typeStr)) {
+        throw new Error(`Unauthorized SQL operation detected: statement type '${node.type}' is forbidden.`);
+      }
+    }
+
+    // Check for blacklisted column references (pgsql-ast-parser maps columns as { type: 'ref', name: 'col_name' })
+    if (node.type === 'ref' && node.name) {
+      const colName = String(node.name).toLowerCase();
+      if (blacklistColumns.some(blacklisted => colName.includes(blacklisted))) {
+        throw new Error(`Unauthorized SQL access: column '${node.name}' is blacklisted.`);
+      }
+    }
+
+    // Recursively traverse child keys
+    for (const key of Object.keys(node)) {
+      traverse(node[key]);
+    }
+  }
+
+  traverse(ast);
+}
+
+/**
  * Attempts to translate natural language to SQL using DeepSeek V3 (Direct, OpenRouter, or Groq)
  */
 async function generateSQLWithDeepSeek(schema: string, query: string): Promise<string> {
@@ -249,7 +327,7 @@ async function generateSQLWithDeepSeek(schema: string, query: string): Promise<s
 }
 
 /**
- * Escalates to Gemini 1.5 Pro to correct failed SQL query based on pg error logs.
+ * Escalates to Gemini 2.5 Pro to correct failed SQL query based on pg error logs.
  */
 async function escalateToGeminiPro(
   schema: string,
@@ -289,7 +367,7 @@ INSTRUCTIONS:
 4. Return ONLY the corrected raw SQL string. Do not wrap it in markdown code blocks (no \`\`\`sql). Do not include any explanation, reasoning, or extra text.`;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-pro',
+    model: 'gemini-2.5-pro',
     contents: dbaPrompt,
     config: {
       systemInstruction: 'You are a Senior DBA and expert PostgreSQL query corrector. Return ONLY raw SQL, no markdown blocks, no explanations.',
@@ -308,12 +386,64 @@ INSTRUCTIONS:
 }
 
 /**
+ * Route raw query results to a synthesis function powered by Gemini 2.5 Flash.
+ * Interprets database rows and formats into conversational mrkdwn with text-bar visualizations (PowerBI mode).
+ */
+async function synthesizeResults(query: string, rows: any[]): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Gemini API key is not configured for synthesis.');
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+  // Send maximum 50 rows to synthesis to prevent token overflows
+  const rawDataJson = JSON.stringify(rows.slice(0, 50));
+
+  const synthesisPrompt = `You are an elite Lead Data Analyst.
+You have successfully executed a database query to answer a user's question.
+
+User Question: "${query}"
+
+Raw Database Rows Returned:
+${rawDataJson}
+
+Your job is to synthesize these raw rows into a concise, professional response.
+
+LOGIC DIRECTIVES:
+1. ADMINISTRATIVE CHECKS: If the user's query is administrative (e.g., listing tables, checking schemas, showing system tables), return a concise confirmation of the tables/schemas and format the raw rows into a clean text table.
+2. POWERBI MODE: If the query involves metrics, counts, timelines, or financial aggregations, you MUST trigger "PowerBI Mode".
+   PowerBI Mode Requirements:
+   - Calculate and display grand totals.
+   - Identify percentage trends or comparisons.
+   - Flag any anomalies or outliers in the data.
+   - Draw text-based horizontal visual progress bars or bar charts where appropriate to visualize the distributions (e.g. using symbols like █ and ░, for example: \`██████░░░░ 60%\`).
+3. SLACK MRKDWN FORMATTING:
+   - You must enforce strict Slack mrkdwn rules.
+   - Use single asterisks for bold (e.g. *this is bold*).
+   - Use underscores for italics (e.g. _this is italic_).
+   - Never use double asterisks (**this is wrong**).
+   - Keep paragraphs separated by double newlines for readability in Slack chat.
+4. Keep the synthesis under 500 words. Do not leak sensitive raw database connection credentials.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: synthesisPrompt,
+    config: {
+      systemInstruction: 'You are an elite Lead Data Analyst. Format your output strictly for Slack mrkdwn (single asterisks *bold*, underscores _italic_). No double asterisks.',
+      temperature: 0.2
+    }
+  });
+
+  return (response.text || '').trim();
+}
+
+/**
  * Core handler to process user slack command, translate to SQL using DeepSeek, execute, and fallback to Gemini Pro on failure.
  */
 export async function handleSlackMessage(channel: string, text: string, userId: string, teamId: string) {
   // Strip bot user mention from incoming message (e.g. <@U123456>)
   const cleanText = text.replace(/<@U[A-Z0-9]+>/g, '').trim();
-  console.log('--- handleSlackMessage (Dynamic Router) Started ---');
+  console.log('--- handleSlackMessage (Advanced Router) Started ---');
   console.log(`Channel: ${channel}`);
   console.log(`Clean Text: "${cleanText}"`);
   console.log(`User ID: ${userId}`);
@@ -390,9 +520,11 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     // Decrypt connection URL
     const pgUrl = decrypt(encrypted_pg_url as string);
     
-    let deepseekSql = '';
+    let activeSql = '';
+    let rows: any[] = [];
     let executeSuccess = false;
     let queryErrorText = '';
+    let deepseekSql = '';
     
     // --- STEP 1: FAST LANE (DEEPSEEK V3) ---
     try {
@@ -400,18 +532,12 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
       deepseekSql = await generateSQLWithDeepSeek(schema_hint || 'No schema hint provided.', cleanText);
       console.log(`DeepSeek generated raw query:\n${deepseekSql}`);
       
-      // Refuse modifications at deepseek layer if caught
-      if (deepseekSql.includes('SECURITY ALERT') || deepseekSql.includes('requires database modification')) {
-        throw new Error('Refused: AdminZero is restricted to read-only queries.');
-      }
-      
       // Apply auto limit
       const deepseekFinalSql = applyAutoLimit(deepseekSql);
+      activeSql = deepseekFinalSql;
       
-      // Run security scanner
-      if (!isQuerySafe(deepseekFinalSql)) {
-        throw new Error('Blocked by local safety scanner: Query is not read-only.');
-      }
+      // Zero-Trust AST Validation Check
+      validateSQLWithAST(deepseekFinalSql);
       
       // Update placeholder to executing state
       await updateSlackMessage(
@@ -423,30 +549,20 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
       
       // Execute query on PostgreSQL
       console.log('Executing DeepSeek SQL on database...');
-      const rows = await executeQuery(pgUrl, deepseekFinalSql);
+      rows = await executeQuery(pgUrl, deepseekFinalSql);
       console.log(`DeepSeek query completed successfully. Returned ${rows.length} rows.`);
-      
-      const formattedResults = formatSlackResults(rows);
-      const successMsg = `✅ **Query Results:**\n${formattedResults}\n\n_Executed SQL (DeepSeek V3):_\n\`\`\`sql\n${deepseekFinalSql}\n\`\`\``;
-      
-      await updateSlackMessage(channel, messageTs, successMsg, token);
       executeSuccess = true;
-      
-      // Increment workspace usage
-      if (teamId) {
-        await incrementWorkspaceQueryCount(teamId);
-      }
       
     } catch (deepseekErr: any) {
       console.warn('DeepSeek Fast Lane failed or query crashed. Message:', deepseekErr.message);
       queryErrorText = deepseekErr.message;
-      // Do not update Slack or alert the user. Move immediately to escalation.
+      // Catch silently and move immediately to escalation
     }
     
-    // --- STEP 2: HEAVY LIFTER ESCALATION (GEMINI PRO REPAIR) ---
+    // --- STEP 2: HEAVY LIFTER ESCALATION (GEMINI 2.5 PRO REPAIR) ---
     if (!executeSuccess) {
       try {
-        console.log('Escalating to Gemini 1.5 Pro to repair query...');
+        console.log('Escalating to Gemini 2.5 Pro to repair query...');
         
         // Notify Slack we are repairing
         await updateSlackMessage(
@@ -464,16 +580,11 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
         );
         console.log(`Gemini Pro corrected query:\n${correctedSql}`);
         
-        if (correctedSql.includes('SECURITY ALERT') || correctedSql.includes('requires database modification')) {
-          throw new Error('Refused: AdminZero is restricted to read-only queries.');
-        }
-        
         const geminiFinalSql = applyAutoLimit(correctedSql);
+        activeSql = geminiFinalSql;
         
-        // Run security scanner on Gemini corrected SQL
-        if (!isQuerySafe(geminiFinalSql)) {
-          throw new Error('Blocked by local safety scanner: Corrected query is not read-only.');
-        }
+        // Zero-Trust AST Validation on corrected SQL
+        validateSQLWithAST(geminiFinalSql);
         
         // Notify Slack we are running the repaired query
         await updateSlackMessage(
@@ -485,24 +596,78 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
         
         // Execute on PostgreSQL
         console.log('Executing Gemini corrected SQL on database...');
-        const rows = await executeQuery(pgUrl, geminiFinalSql);
+        rows = await executeQuery(pgUrl, geminiFinalSql);
         console.log(`Gemini query completed successfully. Returned ${rows.length} rows.`);
-        
-        const formattedResults = formatSlackResults(rows);
-        const successMsg = `✅ **Query Results:**\n${formattedResults}\n\n_Executed SQL (Gemini Pro Corrected):_\n\`\`\`sql\n${geminiFinalSql}\n\`\`\``;
-        
-        await updateSlackMessage(channel, messageTs, successMsg, token);
-        
-        // Increment workspace usage
-        if (teamId) {
-          await incrementWorkspaceQueryCount(teamId);
-        }
+        executeSuccess = true;
         
       } catch (geminiErr: any) {
         console.error('Gemini repair cycle failed. Message:', geminiErr.message);
         
         const finalFailureMsg = `❌ AdminZero encountered an issue with that complex query. Please try simplifying your request.`;
         await updateSlackMessage(channel, messageTs, finalFailureMsg, token);
+        return;
+      }
+    }
+    
+    // --- STEP 3: CONVERSATIONAL SYNTHESIS & VIRAL BUTTON ---
+    if (executeSuccess) {
+      try {
+        console.log('Executing Conversational Synthesis with Gemini 2.5 Flash...');
+        const synthesizedText = await synthesizeResults(cleanText, rows);
+        
+        // Construct Slack Block Kit blocks containing interactive insight sharing button
+        const slackBlocks = [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: synthesizedText
+            }
+          },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: `_Executed SQL:_\n\`\`\`sql\n${activeSql}\n\`\`\``
+              }
+            ]
+          },
+          {
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: '🔗 Share Public Insight',
+                  emoji: true
+                },
+                value: JSON.stringify({ query: cleanText, teamId, date: new Date().toISOString() }),
+                action_id: 'adminzero_share_insight'
+              }
+            ]
+          }
+        ];
+
+        console.log('Updating results block in Slack...');
+        await updateSlackMessage(channel, messageTs, synthesizedText, token, slackBlocks);
+        
+        // Atomically increment query count in Supabase since execution succeeded
+        if (teamId) {
+          try {
+            await incrementWorkspaceQueryCount(teamId);
+          } catch (incErr) {
+            console.error('Error incrementing workspace query count:', incErr);
+          }
+        }
+        
+      } catch (synthErr: any) {
+        console.error('Failed to synthesize results:', synthErr);
+        // Fallback to monospace text table if synthesis fails
+        const formattedResults = formatSlackResults(rows);
+        const successMsg = `✅ **Query Results:**\n${formattedResults}\n\n_Executed SQL:_\n\`\`\`sql\n${activeSql}\n\`\`\``;
+        await updateSlackMessage(channel, messageTs, successMsg, token);
       }
     }
     
