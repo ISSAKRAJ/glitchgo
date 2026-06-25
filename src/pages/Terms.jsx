@@ -26,8 +26,8 @@ export default function Terms() {
 
           <div className="space-y-8 text-sm md:text-base leading-relaxed">
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">1. Scope of Services</h2>
-              <p>GlitchGo provides rapid bug-fixing, deployment infrastructure, and AI automation web services. The scope of each project is independently negotiated following a client request. We reserve the right to decline any project request that involves illegal, malicious, or highly unethical use-cases.</p>
+              <h2 className="text-xl font-semibold text-white mb-3">1. Scope of Services & Read-Only Requirement</h2>
+              <p>GlitchGo provides rapid bug-fixing, deployment infrastructure, and AI automation web services. For our Slack-to-Postgres product, AdminZero, **users are strictly required to provide Read-Only database connection credentials**. AdminZero is designed to perform read-only queries. We are not liable for any data loss, modifications, or schema deletions if you register database credentials with admin or write-level privileges.</p>
             </section>
 
             <section>
@@ -51,12 +51,17 @@ export default function Terms() {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">6. Limitation of Liability</h2>
-              <p>While GlitchGo experts employ enterprise security practices, we are not liable for any secondary server outages, data loss, or downstream revenue impacts caused by pre-existing critical bugs in the client's architecture. Clients must ensure database backups are made before granting us admin access.</p>
+              <h2 className="text-xl font-semibold text-white mb-3">6. Service Level & Availability</h2>
+              <p>AdminZero relies on secure third-party Large Language Model (LLM) subprocessor endpoints (Google Gemini, DeepSeek V3) and external database networks. Query translations and syntheses are subject to the availability, response time, and API latency of these providers. We are not liable for delayed messages, database statement timeouts, or service unavailability due to subprocessor outages.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">7. Intellectual Property</h2>
+              <h2 className="text-xl font-semibold text-white mb-3">7. Limitation of Liability</h2>
+              <p>While GlitchGo experts employ enterprise security practices, we are not liable for any secondary server outages, data loss, or downstream revenue impacts caused by pre-existing critical bugs in the client's architecture. To protect database performance, AdminZero enforces automated query limits and a strict 5-second session execution timeout. We are not liable for queries aborted due to these security limits.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-white mb-3">8. Intellectual Property</h2>
               <p>Upon full payment, all custom code, automation scripts, and deployment architectures developed by our team for a specific project become the sole intellectual property of the client. GlitchGo retains no ownership over the final delivered product.</p>
             </section>
           </div>

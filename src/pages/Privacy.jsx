@@ -26,23 +26,23 @@ export default function Privacy() {
 
           <div className="space-y-8 text-sm md:text-base leading-relaxed">
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">1. Information We Collect</h2>
-              <p>When you use GlitchGo, we collect information that you explicitly provide to us via our client forms (including names, emails, phone numbers, and technical problem descriptions). We do not run invasive tracking scripts or sell your personal data to third parties.</p>
+              <h2 className="text-xl font-semibold text-white mb-3">1. Information We Collect & Slack Workspace Data</h2>
+              <p>When you use GlitchGo, we collect information that you explicitly provide to us via our client forms. For the AdminZero Slack application, we collect and store only basic Slack identifiers (Channel IDs, Team IDs, User IDs) strictly necessary to route database queries and responses to your channels. We do not run invasive tracking scripts or sell your personal data.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">2. Database Credentials & AES-256 Encryption</h2>
-              <p>For our database config product, AdminZero, your connection URLs and password credentials are securely encrypted on the server utilizing industrial AES-256 cipher keys before they are ingested into our local SQLite databases. Plaintext passwords or connection keys are never written to logs, never exposed in client sessions, and are processed strictly in secure memory contexts during query translation execution.</p>
+              <h2 className="text-xl font-semibold text-white mb-3">2. Zero Data Retention & Database Credentials</h2>
+              <p>For our database execution product, AdminZero, your connection URLs and password credentials are securely encrypted on the server utilizing industrial AES-256 cipher keys. We enforce a strict **Zero Data Retention** policy on your database query results: raw database rows retrieved during query execution are processed entirely in-memory for Slack delivery and are immediately discarded. We never write, store, or cache customer database rows to disk or logs.</p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold text-white mb-3">3. AI UPI Verification Processing</h2>
+              <h2 className="text-xl font-semibold text-white mb-3">3. LLM Subprocessors</h2>
+              <p>To translate natural language questions to SQL and synthesize results into Slack-ready charts, schema metadata (excluding database rows) and query outputs are sent to secure third-party AI subprocessors (Google Gemini and DeepSeek V3) via strict zero-data-retention enterprise endpoints. Subprocessors are contractually prohibited from retaining or using your data for model training.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold text-white mb-3">4. AI UPI Verification Processing</h2>
               <p>To automate payment validation, our checkout system scans payment receipt screenshots. Uploaded receipt images are temporarily held in secure server memory, processed via Gemini AI Vision models for financial auditing (to verify recipient UPI ID, status, and extract the 12-digit transaction ID), and are not stored permanently. We do not retain these screenshots after verification is completed.</p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-semibold text-white mb-3">4. AI Interaction Data</h2>
-              <p>Conversations with the GlitchGo AI Assistant are temporarily logged to improve bot accuracy and escalate queries to human agents. By using the chatbot, you consent to these logs being analyzed to resolve technical queries.</p>
             </section>
 
             <section>

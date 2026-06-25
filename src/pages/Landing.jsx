@@ -7,6 +7,8 @@ import Services from '../components/sections/Services';
 import HowItWorks from '../components/sections/HowItWorks';
 import AdminZeroPromo from '../components/sections/AdminZeroPromo';
 import Reviews from '../components/sections/Reviews';
+import SecurityTerminal from '../components/sections/SecurityTerminal';
+import Architecture from '../components/sections/Architecture';
 import ClientForm from '../components/sections/ClientForm';
 import FinalCta from '../components/sections/FinalCta';
 import ChatWidget from '../components/sections/ChatWidget';
@@ -22,6 +24,8 @@ export default function Landing() {
         <Trust />
         <Services />
         <HowItWorks />
+        <SecurityTerminal />
+        <Architecture />
         <ClientForm />
         <FinalCta />
       </main>
