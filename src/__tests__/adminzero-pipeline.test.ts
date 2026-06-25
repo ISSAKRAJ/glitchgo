@@ -18,6 +18,18 @@ jest.mock('../lib/db/supabase-workspaces', () => ({
   incrementWorkspaceQueryCount: jest.fn(),
 }));
 
+jest.mock('../lib/supabase', () => {
+  const mockInsert = jest.fn(() => Promise.resolve({ error: null }));
+  const mockFrom = jest.fn(() => ({
+    insert: mockInsert
+  }));
+  return {
+    supabase: {
+      from: mockFrom
+    }
+  };
+});
+
 jest.mock('../lib/encryption/aes', () => ({
   decrypt: jest.fn((str) => str),
 }));

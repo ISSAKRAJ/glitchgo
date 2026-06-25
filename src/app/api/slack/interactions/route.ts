@@ -46,6 +46,29 @@ export async function POST(req: NextRequest) {
             console.error('Failed to post interactive response back to Slack:', fetchErr);
           }
         }
+      } else if (action.action_id === 'adminzero_report_issue') {
+        const valData = action.value ? JSON.parse(action.value) : {};
+        console.log(`[REPORT ISSUE] Slack user clicked 'Report Issue' button.`);
+        console.log(`Prompt: "${valData.prompt}"`);
+        console.log(`Generated SQL: "${valData.sql}"`);
+        console.log(`Error Message: "${valData.error}"`);
+
+        // Respond asynchronously back to confirm acknowledgement
+        const responseUrl = payload.response_url;
+        if (responseUrl) {
+          try {
+            await fetch(responseUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                replace_original: false,
+                text: `✅ *Issue Reported:* Our engineering team has been notified of this error. Thank you!`
+              })
+            });
+          } catch (fetchErr) {
+            console.error('Failed to post report acknowledgement back to Slack:', fetchErr);
+          }
+        }
       }
     }
 

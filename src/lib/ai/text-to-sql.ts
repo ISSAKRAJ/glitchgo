@@ -3,6 +3,7 @@ import { Client } from 'pg';
 import { getWorkspaceToken, getConnection, getWorkspace, incrementWorkspaceQueryCount } from '../db/supabase-workspaces';
 import { decrypt } from '../encryption/aes';
 import { parse } from 'pgsql-ast-parser';
+import { supabase } from '../supabase';
 
 const SYSTEM_PROMPT = `You are an expert PostgreSQL database engineer and a strict read-only SQL generator. 
 Your ONLY job is to translate the user's natural language question into a valid, highly optimized PostgreSQL query based on the provided database schema.
@@ -447,6 +448,27 @@ LOGIC DIRECTIVES:
 }
 
 /**
+ * Helper function to log Slack pipeline errors using Supabase database insert.
+ */
+export async function logErrorToDatabase(userPrompt: string, generatedSql: string | null, error: any) {
+  try {
+    const errorMessage = error instanceof Error ? `${error.message}\n${error.stack}` : String(error);
+    const { error: dbErr } = await supabase.from('error_logs').insert([
+      {
+        user_prompt: userPrompt,
+        generated_sql: generatedSql || null,
+        error_message: errorMessage
+      }
+    ]);
+    if (dbErr) {
+      console.error('Failed to log error to database:', dbErr);
+    }
+  } catch (err) {
+    console.error('Exception in logErrorToDatabase helper:', err);
+  }
+}
+
+/**
  * Core handler to process user slack command, translate to SQL using DeepSeek, execute, and fallback to Gemini Pro on failure.
  */
 export async function handleSlackMessage(channel: string, text: string, userId: string, teamId: string) {
@@ -504,6 +526,7 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
   }
   
   let messageTs: string | null = null;
+  let activeSql = '';
   try {
     // 2. Retrieve connection mapping from Supabase
     console.log('Searching connection for channel ID in Supabase...');
@@ -529,7 +552,7 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     // Decrypt connection URL
     const pgUrl = decrypt(encrypted_pg_url as string);
     
-    let activeSql = '';
+    activeSql = '';
     let rows: any[] = [];
     let executeSuccess = false;
     let queryErrorText = '';
@@ -690,11 +713,41 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     
   } catch (err: any) {
     console.error('Error in handleSlackMessage dynamic router wrapper:', err);
-    const internalErrorMsg = `❌ **Internal Error:** ${err.message}`;
+    
+    // a) Call logErrorToDatabase
+    await logErrorToDatabase(cleanText, activeSql || null, err);
+    
+    // b) Respond to user with a clean hardcoded message and c) Report Issue button
+    const errorText = `AdminZero encountered a technical snag. Our team has been notified.`;
+    const errorBlocks = [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `❌ *${errorText}*`
+        }
+      },
+      {
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text: '🚨 Report Issue',
+              emoji: true
+            },
+            value: JSON.stringify({ prompt: cleanText, sql: activeSql || null, error: err.message }),
+            action_id: 'adminzero_report_issue'
+          }
+        ]
+      }
+    ];
+
     if (messageTs) {
-      await updateSlackMessage(channel, messageTs, internalErrorMsg, token);
+      await updateSlackMessage(channel, messageTs, errorText, token, errorBlocks);
     } else {
-      await postToSlack(channel, internalErrorMsg, token);
+      await postToSlack(channel, errorText, token, undefined, errorBlocks);
     }
   }
 }
