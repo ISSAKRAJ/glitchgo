@@ -226,12 +226,10 @@ export function validateSQLWithAST(sql: string): void {
     // Check statement type property
     if (node.type) {
       const typeStr = String(node.type).toLowerCase();
-      const forbiddenTypes = [
-        'update', 'delete', 'insert', 'drop', 'alter', 'alter table', 'altertable',
-        'truncate', 'create', 'replace', 'grant', 'revoke', 'updatestmt', 'deletestmt',
-        'dropstmt', 'altertablestmt', 'insertstmt'
+      const forbiddenKeywords = [
+        'update', 'delete', 'insert', 'drop', 'alter', 'truncate', 'create', 'replace', 'grant', 'revoke'
       ];
-      if (forbiddenTypes.includes(typeStr)) {
+      if (forbiddenKeywords.some(keyword => typeStr.includes(keyword))) {
         throw new Error(`Unauthorized SQL operation detected: statement type '${node.type}' is forbidden.`);
       }
     }
