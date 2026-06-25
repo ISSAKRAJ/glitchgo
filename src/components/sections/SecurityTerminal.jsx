@@ -31,52 +31,50 @@ export default function SecurityTerminal() {
   const [visibleLines, setVisibleLines] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [typedCommand, setTypedCommand] = useState('');
+  const [runTrigger, setRunTrigger] = useState(0);
   const terminalBodyRef = useRef(null);
-  const typeIntervalRef = useRef(null);
-  const logIntervalRef = useRef(null);
 
   const startTestRunner = () => {
-    // Clear any existing intervals
-    if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
-    if (logIntervalRef.current) clearInterval(logIntervalRef.current);
+    if (isRunning) return;
+    setRunTrigger(prev => prev + 1);
+  };
 
+  useEffect(() => {
     setIsRunning(true);
     setVisibleLines([]);
     setTypedCommand('');
 
-    // Simulate command typing
+    let typeInterval = null;
+    let logInterval = null;
+
     const command = 'npm run test';
     let i = 0;
-    typeIntervalRef.current = setInterval(() => {
+    typeInterval = setInterval(() => {
       if (i < command.length) {
         setTypedCommand(prev => prev + command[i]);
         i++;
       } else {
-        if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
+        clearInterval(typeInterval);
         
         // Command typed, now reveal logs line-by-line
         let lineIdx = 0;
-        logIntervalRef.current = setInterval(() => {
+        logInterval = setInterval(() => {
           if (lineIdx < JEST_LINES.length) {
             setVisibleLines(prev => [...prev, JEST_LINES[lineIdx]]);
             lineIdx++;
           } else {
-            if (logIntervalRef.current) clearInterval(logIntervalRef.current);
+            clearInterval(logInterval);
             setIsRunning(false);
           }
         }, 150);
       }
     }, 60);
-  };
 
-  // Run automatically on first viewport mount
-  useEffect(() => {
-    startTestRunner();
     return () => {
-      if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
-      if (logIntervalRef.current) clearInterval(logIntervalRef.current);
+      if (typeInterval) clearInterval(typeInterval);
+      if (logInterval) clearInterval(logInterval);
     };
-  }, []);
+  }, [runTrigger]);
 
   // Auto-scroll inside terminal window container only (avoid hijacking page scroll)
   useEffect(() => {

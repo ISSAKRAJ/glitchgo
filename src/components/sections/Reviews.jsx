@@ -62,21 +62,21 @@ export default function Reviews() {
 
   // Initialize reviews from localStorage or initial state
   useEffect(() => {
-    const saved = localStorage.getItem('adminzero_reviews');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setReviews(parsed);
-        } else {
-          setReviews(INITIAL_REVIEWS);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = window.localStorage.getItem('adminzero_reviews');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setReviews(parsed);
+            return;
+          }
+        } catch (e) {
+          // Fallback to initial
         }
-      } catch (e) {
-        setReviews(INITIAL_REVIEWS);
       }
-    } else {
-      setReviews(INITIAL_REVIEWS);
     }
+    setReviews(INITIAL_REVIEWS);
   }, []);
 
   // Handle Review Submission
@@ -99,7 +99,9 @@ export default function Reviews() {
     
     const updatedArray = stack.toArray();
     setReviews(updatedArray);
-    localStorage.setItem('adminzero_reviews', JSON.stringify(updatedArray));
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem('adminzero_reviews', JSON.stringify(updatedArray));
+    }
 
     // Reset Form & Close Modal
     setFormData({ name: '', role: '', rating: 5, comment: '' });
