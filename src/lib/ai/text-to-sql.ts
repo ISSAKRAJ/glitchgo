@@ -1,6 +1,14 @@
 import { GoogleGenAI } from '@google/genai';
 import { Client } from 'pg';
-import { getWorkspaceToken, getConnection, getWorkspace, incrementWorkspaceQueryCount } from '../db/supabase-workspaces';
+import { 
+  getWorkspaceToken, 
+  getConnection, 
+  getWorkspace, 
+  incrementWorkspaceQueryCount,
+  logQueryStart,
+  logQuerySuccess,
+  logQueryFailure
+} from '../db/supabase-workspaces';
 import { decrypt } from '../encryption/aes';
 import { parse } from 'pgsql-ast-parser';
 import { supabase } from '../supabase';
@@ -450,14 +458,15 @@ LOGIC DIRECTIVES:
 /**
  * Helper function to log Slack pipeline errors using Supabase database insert.
  */
-export async function logErrorToDatabase(userPrompt: string, generatedSql: string | null, error: any) {
+export async function logErrorToDatabase(userPrompt: string, generatedSql: string | null, error: any, queryLogId?: number | null) {
   try {
     const errorMessage = error instanceof Error ? `${error.message}\n${error.stack}` : String(error);
     const { error: dbErr } = await supabase.from('error_logs').insert([
       {
         user_prompt: userPrompt,
         generated_sql: generatedSql || null,
-        error_message: errorMessage
+        error_message: errorMessage,
+        query_log_id: queryLogId || null
       }
     ]);
     if (dbErr) {
@@ -525,6 +534,13 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     return;
   }
   
+  let queryId: number | null = null;
+  try {
+    queryId = await logQueryStart(teamId, cleanText);
+  } catch (err) {
+    console.error('Failed to log query start telemetry:', err);
+  }
+
   let messageTs: string | null = null;
   let activeSql = '';
   try {
@@ -635,6 +651,14 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
       } catch (geminiErr: any) {
         console.error('Gemini repair cycle failed. Message:', geminiErr.message);
         
+        if (queryId) {
+          try {
+            await logQueryFailure(queryId);
+          } catch (logErr) {
+            console.error('Failed to log query failure telemetry:', logErr);
+          }
+        }
+        
         const finalFailureMsg = `❌ AdminZero encountered an issue with that complex query. Please try simplifying your request.`;
         await updateSlackMessage(channel, messageTs, finalFailureMsg, token);
         return;
@@ -643,6 +667,13 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     
     // --- STEP 3: CONVERSATIONAL SYNTHESIS & VIRAL BUTTON ---
     if (executeSuccess) {
+      if (queryId) {
+        try {
+          await logQuerySuccess(queryId);
+        } catch (logErr) {
+          console.error('Failed to log query success telemetry:', logErr);
+        }
+      }
       try {
         console.log('Executing Conversational Synthesis with Gemini 2.5 Flash...');
         
@@ -714,8 +745,16 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
   } catch (err: any) {
     console.error('Error in handleSlackMessage dynamic router wrapper:', err);
     
+    if (queryId) {
+      try {
+        await logQueryFailure(queryId);
+      } catch (logErr) {
+        console.error('Failed to log query failure telemetry:', logErr);
+      }
+    }
+    
     // a) Call logErrorToDatabase
-    await logErrorToDatabase(cleanText, activeSql || null, err);
+    await logErrorToDatabase(cleanText, activeSql || null, err, queryId);
     
     // b) Respond to user with a clean hardcoded message and c) Report Issue button
     const errorText = `AdminZero encountered a technical snag. Our team has been notified.`;

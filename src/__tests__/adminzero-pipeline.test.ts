@@ -16,6 +16,10 @@ jest.mock('../lib/db/supabase-workspaces', () => ({
   getConnection: jest.fn(),
   getWorkspace: jest.fn(),
   incrementWorkspaceQueryCount: jest.fn(),
+  logWorkspaceInstall: jest.fn(),
+  logQueryStart: jest.fn().mockResolvedValue(123),
+  logQuerySuccess: jest.fn(),
+  logQueryFailure: jest.fn(),
 }));
 
 jest.mock('../lib/supabase', () => {

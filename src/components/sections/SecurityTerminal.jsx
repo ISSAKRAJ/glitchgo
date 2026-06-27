@@ -19,10 +19,14 @@ const JEST_LINES = [
   { text: '  Black-Box: Slack Interaction Boundaries', color: 'text-slate-400' },
   { text: '    ✓ should respond to share insight click action with HTTP 200 (8 ms)', color: 'text-slate-300' },
   { text: '', color: 'text-white' },
-  { text: 'Test Suites: 1 passed, 1 total', color: 'text-emerald-400 font-semibold' },
-  { text: 'Tests:       11 passed, 11 total', color: 'text-emerald-400 font-semibold' },
+  { text: 'PASS  src/__tests__/error-logger.test.ts', color: 'text-emerald-400 font-semibold' },
+  { text: '  AdminZero Automated Telemetry Integration Testing Suite', color: 'text-slate-400' },
+  { text: '    ✓ Should catch failures in handler pipeline, post safe fallback with Report Issue button, and log to database (84 ms)', color: 'text-slate-300' },
+  { text: '', color: 'text-white' },
+  { text: 'Test Suites: 2 passed, 2 total', color: 'text-emerald-400 font-semibold' },
+  { text: 'Tests:       12 passed, 12 total', color: 'text-emerald-400 font-semibold' },
   { text: 'Snapshots:   0 total', color: 'text-slate-400' },
-  { text: 'Time:        1.509 s', color: 'text-slate-400' },
+  { text: 'Time:        1.943 s', color: 'text-slate-400' },
   { text: 'Ran all test suites.', color: 'text-slate-400' },
   { text: '✔ Zero-Trust pipeline verified.', color: 'text-emerald-400 font-extrabold shadow-[0_0_15px_rgba(16,185,129,0.3)]' }
 ];

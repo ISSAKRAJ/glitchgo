@@ -275,4 +275,73 @@ export async function adminUpdateWorkspace(teamId: string, updates: any): Promis
   }
 }
 
+/**
+ * Telemetry: Logs workspace installation.
+ */
+export async function logWorkspaceInstall(teamId: string): Promise<void> {
+  const { error } = await supabase
+    .from('workspaces')
+    .upsert({ 
+      team_id: teamId.trim(), 
+      installed_at: new Date().toISOString() 
+    }, { onConflict: 'team_id' });
+    
+  if (error) {
+    console.error('Error in logWorkspaceInstall:', error);
+    throw error;
+  }
+}
 
+/**
+ * Telemetry: Logs query execution start as 'pending' and returns query ID.
+ */
+export async function logQueryStart(workspaceId: string, userPrompt: string): Promise<number | null> {
+  const { data, error } = await supabase
+    .from('query_logs')
+    .insert([
+      {
+        workspace_id: workspaceId.trim(),
+        user_prompt: userPrompt,
+        status: 'pending'
+      }
+    ])
+    .select('id')
+    .single();
+    
+  if (error) {
+    console.error('Error in logQueryStart:', error);
+    throw error;
+  }
+  
+  return data ? Number(data.id) : null;
+}
+
+/**
+ * Telemetry: Updates query log status to 'success'.
+ */
+export async function logQuerySuccess(queryId: number): Promise<void> {
+  const { error } = await supabase
+    .from('query_logs')
+    .update({ status: 'success' })
+    .eq('id', queryId);
+    
+  if (error) {
+    console.error('Error in logQuerySuccess:', error);
+    throw error;
+  }
+}
+
+/**
+ * Telemetry: Updates query log status to 'failed'.
+ */
+export async function logQueryFailure(queryId: number): Promise<void> {
+  const { error } = await supabase
+    .from('query_logs')
+    .update({ status: 'failed' })
+    .eq('id', queryId);
+    
+  if (error) {
+    console.error('Error in logQueryFailure:', error);
+    throw error;
+  }
+}
