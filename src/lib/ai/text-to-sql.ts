@@ -85,11 +85,11 @@ export async function postToSlack(
       console.error(`Channel: ${channel}`);
       console.error(`Token preview: ${token ? `${token.substring(0, 10)}...${token.substring(token.length - 4)}` : 'NULL'}`);
       console.error('=================================');
-      return null;
+      throw new Error(`Slack API error: ${data.error}`);
     }
   } catch (err) {
-    console.error('Network error posting response to Slack:', err);
-    return null;
+    console.error('Error in postToSlack helper:', err);
+    throw err;
   }
 }
 
@@ -565,8 +565,7 @@ export async function handleSlackMessage(channel: string, text: string, userId: 
     console.log('Posting placeholder notice to Slack...');
     messageTs = await postToSlack(channel, `🔍 _Analyzing data..._`, token);
     if (!messageTs) {
-      console.error('Failed to post initial message to Slack.');
-      return;
+      throw new Error('Failed to post initial message to Slack (returned empty message ID).');
     }
 
     // Decrypt connection URL
