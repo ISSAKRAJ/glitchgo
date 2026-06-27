@@ -95,15 +95,11 @@ export async function POST(req: NextRequest) {
         
         console.log(`Received app_mention from user ${user} in channel ${channel} (Team: ${teamId}): "${text}"`);
         
-        // Defer AI query translation and execution using Next.js after()
-        // This ensures the serverless function is not frozen until processing completes.
-        after(async () => {
-          try {
-            await handleSlackMessage(channel, text, user, teamId);
-          } catch (err) {
-            console.error('Error processing Slack message in background:', err);
-          }
-        });
+        try {
+          await handleSlackMessage(channel, text, user, teamId);
+        } catch (err) {
+          console.error('Error processing Slack message:', err);
+        }
       }
     }
     
