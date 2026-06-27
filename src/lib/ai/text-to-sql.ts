@@ -80,7 +80,11 @@ export async function postToSlack(
     if (data.ok) {
       return data.ts;
     } else {
-      console.error('Error posting response to Slack:', data.error);
+      console.error('=== SLACK POST MESSAGE FAILED ===');
+      console.error(`Slack Error Code: ${data.error}`);
+      console.error(`Channel: ${channel}`);
+      console.error(`Token preview: ${token ? `${token.substring(0, 10)}...${token.substring(token.length - 4)}` : 'NULL'}`);
+      console.error('=================================');
       return null;
     }
   } catch (err) {
