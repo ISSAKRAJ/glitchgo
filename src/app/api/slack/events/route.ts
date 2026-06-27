@@ -52,25 +52,26 @@ function verifySlackSignature(
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text();
-    const signature = req.headers.get('x-slack-signature');
-    const timestamp = req.headers.get('x-slack-request-timestamp');
-    const signingSecret = process.env.SLACK_SIGNING_SECRET;
-    
-    // 1. Verify Slack Signature (only if signingSecret is configured)
-    if (signingSecret && !verifySlackSignature(rawBody, signature, timestamp, signingSecret)) {
-      console.error('Slack event signature verification failed.');
-      return new Response('Unauthorized', { status: 401 });
-    }
-    
     const body = JSON.parse(rawBody);
     console.log("Slack Webhook Body:", JSON.stringify(body));
     
-    // 2. Handle Slack URL Verification Challenge (url_verification)
+    // 1. Handle Slack URL Verification Challenge (url_verification) BEFORE signature checks
+    // This ensures that Slack's URL verification always succeeds.
     if (body.type === 'url_verification') {
       return new Response(body.challenge, {
         status: 200,
         headers: { 'Content-Type': 'text/plain' }
       });
+    }
+
+    const signature = req.headers.get('x-slack-signature');
+    const timestamp = req.headers.get('x-slack-request-timestamp');
+    const signingSecret = process.env.SLACK_SIGNING_SECRET;
+    
+    // 2. Verify Slack Signature (only if signingSecret is configured)
+    if (signingSecret && !verifySlackSignature(rawBody, signature, timestamp, signingSecret)) {
+      console.error('Slack event signature verification failed.');
+      return new Response('Unauthorized', { status: 401 });
     }
     
     // 3. Handle Events (event_callback)
