@@ -1,5 +1,19 @@
-import { supabase } from '../supabase';
+import { supabase as anonSupabase } from '../supabase';
+import { createClient } from '@supabase/supabase-js';
 import { encrypt, decrypt } from '../encryption/aes';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Use Service Role client on the server to bypass RLS policies for telemetry and workspace queries
+const supabase = supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      }
+    })
+  : anonSupabase;
 
 /**
  * Saves or updates a workspace's bot access token securely in Supabase.
