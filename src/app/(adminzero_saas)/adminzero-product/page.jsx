@@ -55,7 +55,7 @@ export default function AdminZeroProductPage() {
           className="flex flex-wrap items-center justify-center gap-4 pt-4"
         >
           <a
-            href={`https://slack.com/oauth/v2/authorize?client_id=${process.env.NEXT_PUBLIC_SLACK_CLIENT_ID || '11352040316962.11349992784470'}&scope=app_mentions:read,chat:write&redirect_uri=${encodeURIComponent(redirectUri)}`}
+            href="/api/slack/oauth/start"
             className="flex items-center gap-2 bg-[#4A154B] hover:bg-[#381039] text-white font-bold px-6 py-3.5 rounded-xl border border-[#4A154B]/30 transition-all shadow-lg shadow-[#4A154B]/15 text-sm shrink-0 active:scale-95 duration-150"
           >
             <svg className="w-5 h-5 fill-white" viewBox="0 0 122.8 122.8">

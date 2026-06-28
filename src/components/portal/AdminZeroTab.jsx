@@ -381,7 +381,7 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
             </p>
           </div>
           <a
-            href={`https://slack.com/oauth/v2/authorize?client_id=${process.env.NEXT_PUBLIC_SLACK_CLIENT_ID || '11352040316962.11349992784470'}&scope=app_mentions:read,chat:write&redirect_uri=${encodeURIComponent(redirectUri)}`}
+            href="/api/slack/oauth/start"
             className="flex items-center justify-center gap-2 bg-[#4A154B] hover:bg-[#381039] text-white font-bold px-4 py-2.5 rounded-xl border border-[#4A154B]/30 transition-all text-xs shrink-0 cursor-pointer active:scale-95"
           >
             Add to Slack
