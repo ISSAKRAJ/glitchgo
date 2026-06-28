@@ -40,6 +40,10 @@ export async function GET(req: NextRequest) {
     formData.append('client_id', clientId);
     formData.append('client_secret', clientSecret);
     formData.append('code', code);
+    
+    // Add matching redirect_uri as required by the Slack OAuth v2 spec
+    const redirectUri = `${redirectBase}/api/slack/oauth`;
+    formData.append('redirect_uri', redirectUri);
 
     // Bypass SSL rejects internally for the fetch if rejected leaf signature env is set
     const oauthRes = await fetch('https://slack.com/api/oauth.v2.access', {
