@@ -21,7 +21,7 @@ export function validateQuerySafety(
       if (stmt.type !== 'select') {
         return {
           isSafe: false,
-          reason: "Forbidden Statement Type: Only SELECT queries are allowed."
+          reason: "[AdminZero SecOps] THREAT BLOCKED: Prompt-to-SQL (P2SQL) Injection attempt detected. Destructive AST node intercepted."
         };
       }
     }

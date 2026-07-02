@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import DashboardRenderer from '../../components/DashboardRenderer';
+import { Callout } from '@tremor/react';
 
 interface Message {
   id: string;
@@ -129,9 +130,9 @@ export default function AdminZeroPage() {
           <div className="h-3 w-3 rounded-full bg-indigo-500 animate-pulse" />
           <div>
             <h1 className="text-sm font-bold tracking-tight text-zinc-200">
-              AdminZero Workspace Gateway
+              AdminZero P2SQL Security Gateway
             </h1>
-            <p className="text-[10px] text-zinc-500">Autonomous AI Data Platform</p>
+            <p className="text-[10px] text-zinc-500">Zero-Trust Prompt Injection Firewall</p>
           </div>
         </div>
 
@@ -198,18 +199,30 @@ export default function AdminZeroPage() {
                   msg.role === 'user' ? 'items-end' : 'items-start'
                 }`}
               >
-                {/* Bubble */}
-                <div
-                  className={`max-w-4xl rounded-2xl px-4 py-3 text-xs leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-indigo-600 text-zinc-100 rounded-tr-none'
-                      : msg.role === 'error'
-                      ? 'bg-red-950/30 border border-red-900/40 text-red-400 rounded-tl-none font-mono'
-                      : 'bg-zinc-900 border border-zinc-800/80 text-zinc-300 rounded-tl-none'
-                  }`}
-                >
-                  {msg.content}
-                </div>
+                {/* Bubble / Callout */}
+                {msg.role === 'error' && (msg.content.includes('[AdminZero SecOps]') || msg.content.includes('AST Firewall Blocked Query')) ? (
+                  <div className="w-full max-w-4xl">
+                    <Callout
+                      title="Critical Threat Prevented (OWASP LLM01)"
+                      color="red"
+                      className="rounded-2xl border border-red-900/40 bg-red-950/20 text-red-200 py-3.5 px-4 text-xs"
+                    >
+                      The AI agent was manipulated into generating a destructive SQL command. The AST Firewall deterministic layer intercepted and killed the connection before execution. Production data secured.
+                    </Callout>
+                  </div>
+                ) : (
+                  <div
+                    className={`max-w-4xl rounded-2xl px-4 py-3 text-xs leading-relaxed ${
+                      msg.role === 'user'
+                        ? 'bg-indigo-600 text-zinc-100 rounded-tr-none'
+                        : msg.role === 'error'
+                        ? 'bg-red-950/30 border border-red-900/40 text-red-400 rounded-tl-none font-mono'
+                        : 'bg-zinc-900 border border-zinc-800/80 text-zinc-300 rounded-tl-none'
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                )}
 
                 {/* Generated SQL block */}
                 {msg.sql && (
