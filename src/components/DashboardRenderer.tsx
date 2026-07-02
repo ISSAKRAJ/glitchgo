@@ -3,7 +3,7 @@ import {
   Card,
   Title,
   BarChart,
-  LineChart,
+  AreaChart,
   Table,
   TableHead,
   TableRow,
@@ -17,9 +17,8 @@ interface DashboardRendererProps {
 }
 
 /**
- * DashboardRenderer dynamically analyzes database query output and renders
- * a LineChart (for timeseries data), a BarChart (for categorical data),
- * or fallbacks to a clean, paginated Tremor Table when charts aren't applicable.
+ * DashboardRenderer dynamically analyzes database query output with strict
+ * Data Analyst heuristics to determine whether to render an AreaChart, BarChart, or Table.
  */
 export default function DashboardRenderer({ data }: DashboardRendererProps) {
   if (!data || data.length === 0) {
@@ -33,88 +32,112 @@ export default function DashboardRenderer({ data }: DashboardRendererProps) {
   const firstRow = data[0];
   const keys = Object.keys(firstRow);
 
-  // 1. Identify candidate index key (string or date representation)
-  let indexKey = '';
+  // 1. RULE 1: Detect raw entity columns or excessive text columns
+  const entityPatterns = /email|name|description|password|title|body|url|website|address|phone|slug|comment|content/i;
+  let hasEntityColumns = false;
+  let textColumnCount = 0;
+
+  keys.forEach((key) => {
+    const val = firstRow[key];
+    if (typeof val === 'string') {
+      textColumnCount++;
+      if (entityPatterns.test(key)) {
+        hasEntityColumns = true;
+      }
+    }
+  });
+
+  // If there are columns indicating raw entity data or if there are > 3 text columns, ALWAYS render a Table.
+  if (hasEntityColumns || textColumnCount > 3) {
+    return renderTable(data, keys);
+  }
+
+  // 2. RULE 2: Exclude identifiers from metric calculations (Y-Axis Y-Values)
+  const isIdentifier = (key: string): boolean => {
+    const lowerKey = key.toLowerCase();
+    return lowerKey === 'id' || lowerKey === 'uuid' || lowerKey.endsWith('_id') || lowerKey.endsWith('id');
+  };
+
+  // Find candidate index columns (for the X-Axis)
   const dateIndicators = ['date', 'time', 'timestamp', 'month', 'year', 'day', 'created_at', 'updated_at', 'period'];
-  
-  // Try to find matching date keywords
-  indexKey = keys.find(k => dateIndicators.includes(k.toLowerCase())) || '';
+  let indexKey = keys.find(k => dateIndicators.includes(k.toLowerCase())) || '';
 
   if (!indexKey) {
-    // Try to find category / label keyword indicators
-    const catIndicators = ['category', 'name', 'status', 'label', 'key', 'id', 'type', 'country', 'city'];
-    indexKey = keys.find(k => catIndicators.includes(k.toLowerCase())) || '';
+    // Look for string columns that are NOT identifiers
+    indexKey = keys.find(k => typeof firstRow[k] === 'string' && !isIdentifier(k)) || '';
   }
 
   if (!indexKey) {
-    // Try to find the first string column
-    indexKey = keys.find(k => typeof firstRow[k] === 'string') || '';
-  }
-
-  if (!indexKey) {
-    // Fallback to first column key
+    // If no clean index key found, use the first key (which might be an ID)
     indexKey = keys[0] || '';
   }
 
-  // 2. Identify metric keys (numeric values, excluding the indexKey)
+  // Filter keys for numeric metrics, strictly excluding identifiers
   const metricKeys = keys.filter(k => {
     if (k === indexKey) return false;
+    if (isIdentifier(k)) return false;
     const val = firstRow[k];
     return typeof val === 'number';
   });
 
-  // 3. Determine if indexKey points to a time-series column
-  const isDateKey =
-    dateIndicators.includes(indexKey.toLowerCase()) ||
-    (typeof firstRow[indexKey] === 'string' &&
-      !isNaN(Date.parse(String(firstRow[indexKey]))) &&
-      isNaN(Number(firstRow[indexKey])));
+  // 3. RULE 3: Chart Choice (Single Date/String index + 1 or more non-ID numeric columns)
+  if (metricKeys.length > 0 && indexKey) {
+    const isDateKey =
+      dateIndicators.includes(indexKey.toLowerCase()) ||
+      (typeof firstRow[indexKey] === 'string' &&
+        !isNaN(Date.parse(String(firstRow[indexKey]))) &&
+        isNaN(Number(firstRow[indexKey])));
 
-  const valueFormatter = (number: number) => {
-    return Intl.NumberFormat('us').format(number).toString();
-  };
+    const valueFormatter = (number: number) => {
+      return Intl.NumberFormat('us').format(number).toString();
+    };
 
-  // Render Logic
-  // Case A: Has metric columns + Time-Series index -> Line Chart
-  if (metricKeys.length > 0 && isDateKey) {
-    return (
-      <Card className="bg-zinc-900 border-zinc-800 p-6 rounded-xl">
-        <Title className="text-zinc-200 text-sm font-semibold mb-2">Trend Analysis (Line Chart)</Title>
-        <LineChart
-          data={data}
-          index={indexKey}
-          categories={metricKeys}
-          colors={['indigo', 'emerald', 'violet', 'amber', 'rose']}
-          valueFormatter={valueFormatter}
-          className="h-72 mt-4 text-zinc-300"
-        />
-      </Card>
-    );
+    if (isDateKey) {
+      // Time-series -> AreaChart
+      return (
+        <Card className="bg-zinc-900 border-zinc-800 p-6 rounded-xl">
+          <Title className="text-zinc-200 text-xs font-bold tracking-wider uppercase mb-2">Trend Analysis (Area Chart)</Title>
+          <AreaChart
+            data={data}
+            index={indexKey}
+            categories={metricKeys}
+            colors={['indigo', 'emerald', 'violet', 'amber', 'rose']}
+            valueFormatter={valueFormatter}
+            className="h-72 mt-4 text-zinc-300"
+          />
+        </Card>
+      );
+    } else {
+      // Categorical -> BarChart
+      return (
+        <Card className="bg-zinc-900 border-zinc-800 p-6 rounded-xl">
+          <Title className="text-zinc-200 text-xs font-bold tracking-wider uppercase mb-2">Metrics Summary (Bar Chart)</Title>
+          <BarChart
+            data={data}
+            index={indexKey}
+            categories={metricKeys}
+            colors={['indigo', 'emerald', 'violet', 'amber', 'rose']}
+            valueFormatter={valueFormatter}
+            className="h-72 mt-4 text-zinc-300"
+          />
+        </Card>
+      );
+    }
   }
 
-  // Case B: Has metric columns + Categorical index -> Bar Chart
-  if (metricKeys.length > 0) {
-    return (
-      <Card className="bg-zinc-900 border-zinc-800 p-6 rounded-xl">
-        <Title className="text-zinc-200 text-sm font-semibold mb-2">Metrics Summary (Bar Chart)</Title>
-        <BarChart
-          data={data}
-          index={indexKey}
-          categories={metricKeys}
-          colors={['indigo', 'emerald', 'violet', 'amber', 'rose']}
-          valueFormatter={valueFormatter}
-          className="h-72 mt-4 text-zinc-300"
-        />
-      </Card>
-    );
-  }
+  // 4. RULE 4: Fallback to Table
+  return renderTable(data, keys);
+}
 
-  // Case C: Fallback to high-fidelity Table
+/**
+ * Standard dynamic Tremor Table renderer.
+ */
+function renderTable(data: any[], keys: string[]) {
   return (
     <Card className="bg-zinc-900 border-zinc-800 p-6 rounded-xl overflow-hidden">
-      <Title className="text-zinc-200 text-sm font-semibold mb-4">Results Table</Title>
+      <Title className="text-zinc-200 text-xs font-bold tracking-wider uppercase mb-4">Results Table</Title>
       <div className="overflow-x-auto">
-        <Table className="mt-4">
+        <Table className="mt-2">
           <TableHead>
             <TableRow className="border-zinc-800">
               {keys.map((key) => (

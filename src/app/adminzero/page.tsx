@@ -14,6 +14,7 @@ interface Message {
 export default function AdminZeroPage() {
   const [dbUrl, setDbUrl] = useState('');
   const [dbId, setDbId] = useState('');
+  const [dialect, setDialect] = useState<'postgres' | 'mysql'>('postgres');
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function AdminZeroPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/onboard`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dialect: 'postgres', connectionString: dbUrl })
+        body: JSON.stringify({ dialect, connectionString: dbUrl })
       });
       const result = await res.json();
 
@@ -136,11 +137,20 @@ export default function AdminZeroPage() {
 
         {/* Onboarding Form */}
         <form onSubmit={handleOnboard} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 max-w-3xl justify-end">
+          <select
+            value={dialect}
+            onChange={(e) => setDialect(e.target.value as 'postgres' | 'mysql')}
+            disabled={onboardLoading || !!dbId}
+            className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all disabled:opacity-50 shrink-0 font-medium cursor-pointer"
+          >
+            <option value="postgres">PostgreSQL</option>
+            <option value="mysql">MySQL</option>
+          </select>
           <input
             type="password"
             value={dbUrl}
             onChange={(e) => setDbUrl(e.target.value)}
-            placeholder="postgresql://user:password@host:5432/database"
+            placeholder={dialect === 'postgres' ? "postgresql://user:password@host:5432/database" : "mysql://user:password@host:3306/database"}
             disabled={onboardLoading || !!dbId}
             className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all disabled:opacity-50"
           />
