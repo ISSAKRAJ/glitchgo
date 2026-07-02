@@ -4,18 +4,18 @@ import { motion } from 'framer-motion';
 const steps = [
   {
     number: "01",
-    title: "Connect Your Database",
-    desc: "Securely link your read-only PostgreSQL credentials in our configuration portal in 30 seconds."
+    title: "Connect & Encrypt",
+    desc: "Submit your connection string. It is encrypted instantly using AES-256-GCM and cached in a secure LRU pool."
   },
   {
     number: "02",
-    title: "Install Slack App",
-    desc: "Add the AdminZero bot to your Slack workspace with a simple secure one-click OAuth flow."
+    title: "Profile Schema",
+    desc: "The Semantic Profiler maps tables, datatypes, and relations into a clean JSON dictionary for LLM context."
   },
   {
     number: "03",
-    title: "Query in Plain English",
-    desc: "Ask questions in your Slack channels and receive secure, instant visual data tables."
+    title: "Query Securely",
+    desc: "Ask database questions in plain English. The AST Firewall sanitizes the generated SQL before displaying visual charts."
   }
 ];
 
@@ -32,8 +32,8 @@ export default function HowItWorks() {
             viewport={{ once: true }}
             className="text-3xl md:text-5xl font-bold mb-6 font-outfit tracking-tight"
           >
-            Simple 3-Step Setup.<br />
-            <span className="text-brand-blue">Instant Slack ChatOps.</span>
+            Simple 3-Step Flow.<br />
+            <span className="text-brand-blue">Instant Zero-Trust Analytics.</span>
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, x: -30 }}
@@ -42,7 +42,7 @@ export default function HowItWorks() {
             transition={{ delay: 0.1 }}
             className="text-gray-400 text-lg mb-8 leading-relaxed"
           >
-            Get up and running in minutes. Connect your PostgreSQL database, invite the Slack bot, and start querying instantly with natural language.
+            Get up and running in under a minute. Connect your database, let the profiler map relationships, and run secure, AST-validated natural language queries instantly.
           </motion.p>
         </div>
 

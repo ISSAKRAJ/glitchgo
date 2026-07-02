@@ -27,7 +27,7 @@ const services = [
     bullets: [
       "Custom Multi-Agent System Design",
       "Private Enterprise LLM Integrations",
-      "Automated Alerting & Slack/Email Sync",
+      "Automated Alerting & Enterprise Notification Sync",
       "Full Uptime Monitoring & SLA Maintenance"
     ],
     glowClass: "group-hover:shadow-[0_0_40px_rgba(59,130,246,0.15)]",

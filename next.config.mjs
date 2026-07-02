@@ -14,6 +14,19 @@ const nextConfig = {
     VITE_GEMINI_API_KEY: process.env.VITE_GEMINI_API_KEY,
     VITE_TELEGRAM_USERNAME: process.env.VITE_TELEGRAM_USERNAME,
     NEXT_PUBLIC_SLACK_CLIENT_ID: process.env.SLACK_CLIENT_ID,
+  },
+  async rewrites() {
+    const apiHost = process.env.EXPRESS_API_URL || 'http://localhost:5000';
+    return [
+      {
+        source: '/api/slack/:path*',
+        destination: `${apiHost}/api/slack/:path*`
+      },
+      {
+        source: '/api/adminzero/:path*',
+        destination: `${apiHost}/api/adminzero/:path*`
+      }
+    ];
   }
 };
 
