@@ -1,4 +1,10 @@
 import 'dotenv/config';
+
+// Disable TLS verification for local dev environments to avoid cert issues
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 import express from 'express';
 import cors from 'cors';
 import { apiRouter } from './routes/api.js';
