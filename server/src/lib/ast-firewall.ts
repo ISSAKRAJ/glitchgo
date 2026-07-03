@@ -35,7 +35,8 @@ export async function validateQuery(
         'insert', 'update', 'delete', 'drop', 'alter', 'truncate', 
         'create', 'grant', 'replace', 'transaction', 'commit', 'rollback'
       ];
-      if (forbiddenTypes.includes(nodeType)) {
+      const isForbidden = forbiddenTypes.some(forbidden => nodeType.includes(forbidden));
+      if (isForbidden) {
         throw new Error(
           `[AdminZero SecOps] THREAT BLOCKED: Prompt-to-SQL (P2SQL) Injection attempt detected. Destructive AST node type [${node.type.toUpperCase()}] intercepted.`
         );
@@ -67,6 +68,17 @@ export async function validateQuery(
 
   // Iterate through all parsed statements in the batch (blocks semicolon stacked queries)
   for (const stmt of astArray) {
+    if (stmt.type) {
+      const stmtType = String(stmt.type).toLowerCase();
+      // Allow only SELECT, SHOW, or DESCRIBE statements
+      const allowedTypes = ['select', 'show', 'describe'];
+      const isAllowed = allowedTypes.some(allowed => stmtType.includes(allowed));
+      if (!isAllowed) {
+        throw new Error(
+          `[AdminZero SecOps] THREAT BLOCKED: Prompt-to-SQL (P2SQL) Injection attempt detected. Destructive AST node type [${stmt.type.toUpperCase()}] intercepted.`
+        );
+      }
+    }
     checkNode(stmt);
   }
 
