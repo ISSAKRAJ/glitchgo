@@ -97,7 +97,7 @@ function formatMessageText(text) {
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'model', text: "Hey there! I'm the GlitchGo AI assistant. Ready to scale your operations with AdminZero Slack ChatOps or discuss custom enterprise AI integrations?" }
+    { role: 'model', text: "Hey there! I'm the GlitchGo AI assistant. Ready to secure your AI operations with the AdminZero Zero-Trust Gateway or discuss custom enterprise AI integrations?" }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);

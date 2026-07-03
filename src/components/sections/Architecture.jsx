@@ -91,7 +91,7 @@ export default function Architecture() {
             </ul>
           </div>
 
-          {/* Column 3: Slack Synthesis */}
+          {/* Column 3: Dashboard Synthesis */}
           <div className="flex flex-col bg-white/[0.02] backdrop-blur-md border border-white/[0.06] rounded-2xl p-8 hover:border-pink-500/20 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/5 group relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-pink-500/0 via-pink-500/30 to-pink-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -118,7 +118,7 @@ export default function Architecture() {
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
-                Slack mrkdwn-native bolding & highlights
+                Dashboard-native visual charts & highlights
               </li>
             </ul>
           </div>

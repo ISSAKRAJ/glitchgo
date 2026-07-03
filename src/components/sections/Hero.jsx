@@ -28,7 +28,7 @@ export default function Hero() {
           className="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight"
         >
           Stop Interrupting Your Engineers. <br className="hidden md:block" />
-          <span className="text-gradient">Get Live Database Answers in Slack.</span>
+          <span className="text-gradient">Zero-Trust Query Gateways for AI.</span>
         </motion.h1>
 
         <motion.p 
@@ -37,7 +37,7 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed"
         >
-          AdminZero is the secure ChatOps data layer for modern startups. Translate plain English into read-only PostgreSQL instantly. No code required.
+          AdminZero is the secure Zero-Trust semantic data layer for AI. Translate plain English into safe, AST-firewalled SQL queries instantly. No leaks.
         </motion.p>
 
         <motion.div 
@@ -46,8 +46,8 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <Button size="lg" className="w-full sm:w-auto group" onClick={() => window.location.href = '/portal'}>
-            Add to Slack (Free Beta)
+          <Button size="lg" className="w-full sm:w-auto group" onClick={() => window.location.href = '/adminzero'}>
+            Access the Gateway
             <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Button variant="secondary" size="lg" className="w-full sm:w-auto" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>
