@@ -15,7 +15,7 @@ const steps = [
   {
     number: "03",
     title: "Query Securely",
-    desc: "Ask database questions in plain English. The AST Firewall sanitizes the generated SQL before displaying visual charts."
+    desc: "Ask database questions in plain English. The AST Firewall sanitizes the generated SQL before driver-level execution."
   }
 ];
 
@@ -33,7 +33,7 @@ export default function HowItWorks() {
             className="text-3xl md:text-5xl font-bold mb-6 font-outfit tracking-tight"
           >
             Simple 3-Step Flow.<br />
-            <span className="text-brand-blue">Instant Zero-Trust Analytics.</span>
+            <span className="text-brand-blue">Instant Zero-Trust Security.</span>
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, x: -30 }}
@@ -42,7 +42,7 @@ export default function HowItWorks() {
             transition={{ delay: 0.1 }}
             className="text-gray-400 text-lg mb-8 leading-relaxed"
           >
-            Get up and running in under a minute. Connect your database, let the profiler map relationships, and run secure, AST-validated natural language queries instantly.
+            Get up and running in under a minute. Connect your database, let the profiler map relationships, and intercept malicious prompt injection payloads instantly.
           </motion.p>
         </div>
 
