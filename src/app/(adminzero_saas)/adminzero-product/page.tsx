@@ -10,7 +10,12 @@ import {
   Cpu, 
   Lock, 
   ArrowRight, 
-  Code
+  Code,
+  Key,
+  Network,
+  Activity,
+  ShieldAlert,
+  Database
 } from 'lucide-react';
 
 export default function AdminZeroProductPage() {
@@ -36,22 +41,43 @@ export default function AdminZeroProductPage() {
       <div className="absolute top-[-10%] left-[10%] w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-6 pt-24 pb-20 text-center relative z-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest mb-6">
-          <Shield size={12} />
-          <span>OWASP LLM01 Mitigation</span>
+      {/* Sticky Top Header Navigation */}
+      <nav className="sticky top-0 z-50 w-full border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]">
+            <Shield size={16} />
+          </div>
+          <div>
+            <span className="font-extrabold text-sm tracking-tight text-white uppercase font-mono">AdminZero</span>
+            <span className="text-[10px] text-zinc-500 ml-2 border-l border-zinc-800 pl-2 font-mono">SECOPS v1.4</span>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4">
+          <a href="/adminzero" className="text-xs text-zinc-400 hover:text-white font-semibold transition-colors">
+            Access Gateway Portal
+          </a>
+          <a href="#demo" className="text-xs bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-200 px-3 py-1.5 rounded-lg font-semibold transition-all">
+            Live Simulator
+          </a>
+        </div>
+      </nav>
+
+      {/* PART 1: HERO SECTION */}
+      <section className="max-w-6xl mx-auto px-6 pt-24 pb-16 text-center relative z-10">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 text-[11px] font-mono mb-6">
+          <span className="text-indigo-400 font-bold">&lt;/&gt;</span>
+          <span>AdminZero SecOps — The Zero-Trust Agent Gateway is active.</span>
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-[1.1] font-sans">
-          The Zero-Trust Firewall <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-emerald-400">
-            for Autonomous AI Agents.
+          Stop AI From Destroying <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-violet-400 to-indigo-500">
+            Your Production Databases.
           </span>
         </h1>
 
-        <p className="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mt-6 leading-relaxed">
-          Prevent prompt injection, data exfiltration, and destructive database manipulation with deterministic Abstract Syntax Tree (AST) inspection. Zero probabilistic guessing. Zero data leakage.
+        <p className="text-zinc-400 text-base sm:text-lg max-w-3xl mx-auto mt-6 leading-relaxed">
+          AdminZero is a deterministic proxy layer for autonomous agentic workflows. Intercept Prompt-to-SQL (P2SQL) injections at the driver level before malicious commands reach your data layer. Zero probabilistic guessing. Zero leaks.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
@@ -60,20 +86,82 @@ export default function AdminZeroProductPage() {
             className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold uppercase tracking-wider py-3.5 px-6 rounded-xl border border-indigo-500/30 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] active:scale-[0.98]"
           >
             <Terminal size={14} className="font-bold" />
-            <span>Deploy Local Gateway (npm)</span>
+            <span>Deploy Local Proxy (npm)</span>
           </a>
-          <button
-            onClick={() => window.open('mailto:ciso@adminzero.security')}
+          <a
+            href="#architecture"
             className="w-full sm:w-auto bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 text-zinc-300 text-xs font-bold uppercase tracking-wider py-3.5 px-6 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
           >
-            <span>Book CISO PoV</span>
+            <span>View Security Architecture</span>
             <ArrowRight size={14} />
-          </button>
+          </a>
         </div>
       </section>
 
-      {/* Part 2: Interactive Live Threat Simulator */}
-      <section id="demo" className="max-w-6xl mx-auto px-6 py-12 relative z-10">
+      {/* PART 2: THE CORE FEATURE GRID OVERHAUL */}
+      <section id="architecture" className="max-w-6xl mx-auto px-6 py-16 relative z-10 border-t border-zinc-900/60">
+        <div className="text-center mb-12">
+          <h2 className="text-xs font-bold text-indigo-400 uppercase tracking-widest font-mono">// CORE SECURITY PILLARS</h2>
+          <h3 className="text-2xl font-black text-white mt-1">Deterministic Defensible Moats</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          {/* Card 1: Cryptographic Vault */}
+          <div className="bg-zinc-900/20 border border-zinc-900 p-6 rounded-2xl space-y-4 hover:border-zinc-800 transition-all text-left">
+            <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl w-11 h-11 flex items-center justify-center">
+              <Key size={20} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white font-mono">Cryptographic Vault</h3>
+              <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Database credentials never touch the LLM context. AdminZero stores credentials via local AES-256-GCM encryption and provisions low-latency, scoped transient connection pools on-the-fly, stripping administrative data privileges from the active agent pipeline.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 2: Semantic Schema Profiler */}
+          <div className="bg-zinc-900/20 border border-zinc-900 p-6 rounded-2xl space-y-4 hover:border-zinc-800 transition-all text-left">
+            <div className="p-3 bg-brand-blue/10 border border-brand-blue/20 text-emerald-400 rounded-xl w-11 h-11 flex items-center justify-center">
+              <Network size={20} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white font-mono">Semantic Schema Profiler</h3>
+              <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Isolate structural architecture without leaking raw schema designs. Maps relational tables, foreign keys, and column constraints into an encrypted, minimized JSON context dictionary, preventing schema discovery and structural data exfiltration exploits.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 3: AST Security Firewall */}
+          <div className="bg-zinc-900/20 border border-zinc-900 p-6 rounded-2xl space-y-4 hover:border-zinc-800 transition-all text-left">
+            <div className="p-3 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-xl w-11 h-11 flex items-center justify-center">
+              <Shield size={20} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white font-mono">AST Security Firewall</h3>
+              <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Enforces strict structural compiler mathematics in under 4ms. Tokens are compiled into a hierarchical Abstract Syntax Tree (AST) to recursively scan deeply nested queries, multi-statement semicolon stacks, and CTE chains for unauthorized modification blocks.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 4: Failsafe Closed Logging */}
+          <div className="bg-zinc-900/20 border border-zinc-900 p-6 rounded-2xl space-y-4 hover:border-zinc-800 transition-all text-left">
+            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl w-11 h-11 flex items-center justify-center">
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white font-mono">Failsafe Closed Logging</h3>
+              <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Eliminates syntax obfuscation vulnerabilities. Operating under a strict fail-closed security architecture, any malformed SQL syntax or unparseable payload intended to bypass safety rules triggers an immediate 403 exception, locking the data layer instantly.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PART 3: INTERACTIVE LIVE THREAT SIMULATOR */}
+      <section id="demo" className="max-w-6xl mx-auto px-6 py-12 relative z-10 border-t border-zinc-900/60">
         <div className="text-center mb-10">
           <h2 className="text-xl font-bold tracking-tight text-white font-mono">
             // INTERACTIVE SECURE INTERCEPTION SIMULATOR
@@ -212,7 +300,7 @@ export default function AdminZeroProductPage() {
         </div>
       </section>
 
-      {/* Part 3: Benchmark & Performance Grid */}
+      {/* Part 4: Benchmark & Performance Grid */}
       <section className="max-w-6xl mx-auto px-6 py-20 relative z-10 border-t border-zinc-900 bg-zinc-950">
         <div className="text-center mb-16">
           <h2 className="text-xs font-bold text-indigo-400 uppercase tracking-widest font-mono">// VERIFIABLE BENCHMARK METRICS</h2>
@@ -258,7 +346,7 @@ export default function AdminZeroProductPage() {
         </div>
       </section>
 
-      {/* Part 4: Developer Setup & Code Snippet */}
+      {/* Part 5: Developer Setup & Code Snippet */}
       <section id="install" className="max-w-6xl mx-auto px-6 py-20 relative z-10 border-t border-zinc-900">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
