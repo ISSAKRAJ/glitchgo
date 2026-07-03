@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
 import { SemanticSchema } from './semantic-profiler.js';
-import { validateQuerySafety } from './ast-firewall.js';
+import { validateQuery } from './ast-firewall.js';
 import { ConnectorFactory, ConnectionConfig } from './connectors/factory.js';
 
 export class GatewayOutageError extends Error {
@@ -196,9 +196,10 @@ export async function askDatabase(
   }
 
   // Run the generated SQL query through the AST Security Firewall
-  const safetyCheck = validateQuerySafety(generatedSql, forbiddenTables);
-  if (!safetyCheck.isSafe) {
-    throw new Error(`AST Firewall Blocked Query: ${safetyCheck.reason}`);
+  try {
+    await validateQuery(generatedSql, forbiddenTables);
+  } catch (err: any) {
+    throw new Error(`AST Firewall Blocked Query: ${err.message}`);
   }
 
   // Execute the safe query in the target database connection

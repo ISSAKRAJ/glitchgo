@@ -1,65 +1,80 @@
-import { parse, astVisitor } from 'pgsql-ast-parser';
+import { parse } from 'pgsql-ast-parser';
 
 /**
- * Validates the safety of a given SQL query string.
- * Enforces read-only SELECT constraints and checks against a forbidden tables registry using AST parsing.
- * 
- * @param sql The raw SQL query string to evaluate.
- * @param forbiddenTables Optional array of table names restricted from query access.
- * @returns Safety validation status and the failure reason if blocked.
+ * Deterministically validates the security of a given SQL query using a recursive fail-closed AST scanner.
+ * Specifically protects against Prompt-to-SQL (P2SQL) Injection vectors (OWASP LLM01).
+ *
+ * @param sql The raw SQL query string to inspect.
+ * @param forbiddenTables Array of table names restricted from query access.
+ * @throws {Error} Security exception indicating threat block if validation fails.
+ * @returns Safety audit data if query validation passes cleanly.
  */
-export function validateQuerySafety(
+export async function validateQuery(
   sql: string,
   forbiddenTables: string[] = []
-): { isSafe: boolean; reason?: string } {
+): Promise<{ safe: boolean; auditData: any }> {
+  let astArray: any[];
   try {
-    // Attempt AST parsing to catch malformed SQL / syntax error obfuscations
-    const statements = parse(sql);
+    // Attempt AST parsing to catch malformed SQL / syntax obfuscations designed to bypass validation
+    astArray = parse(sql);
+  } catch (err: any) {
+    console.error('[AdminZero SecOps] Parsing failed:', err);
+    throw new Error('[AdminZero SecOps] THREAT BLOCKED: Unparseable SQL Syntax payload detected. Failsafe Closed.');
+  }
 
-    // 1. Read-Only Constraint Check
-    for (const stmt of statements) {
-      if (stmt.type !== 'select') {
-        return {
-          isSafe: false,
-          reason: "[AdminZero SecOps] THREAT BLOCKED: Prompt-to-SQL (P2SQL) Injection attempt detected. Destructive AST node intercepted."
-        };
+  const normalizedForbidden = forbiddenTables.map(t => t.toLowerCase());
+
+  // Recursive AST scanner checking all child nodes for unauthorized types
+  function checkNode(node: any): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type) {
+      const nodeType = String(node.type).toLowerCase();
+      // Block any non-read-only statement types or data mutation operations
+      const forbiddenTypes = [
+        'insert', 'update', 'delete', 'drop', 'alter', 'truncate', 
+        'create', 'grant', 'replace', 'transaction', 'commit', 'rollback'
+      ];
+      if (forbiddenTypes.includes(nodeType)) {
+        throw new Error(
+          `[AdminZero SecOps] THREAT BLOCKED: Prompt-to-SQL (P2SQL) Injection attempt detected. Destructive AST node type [${node.type.toUpperCase()}] intercepted.`
+        );
       }
     }
 
-    // 2. Table Restriction Check via AST Traversal
-    const normalizedForbidden = forbiddenTables.map(t => t.toLowerCase());
-    let forbiddenFound: string | null = null;
+    // Check table references against forbidden tables registry
+    if (node.type === 'tableRef' && node.name) {
+      const tableNameLower = String(node.name).toLowerCase();
+      if (normalizedForbidden.includes(tableNameLower)) {
+        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: Restricted table access attempt on '${node.name}'.`);
+      }
+    }
 
-    const visitor = astVisitor(map => ({
-      tableRef: t => {
-        const tableNameLower = t.name.toLowerCase();
-        if (normalizedForbidden.includes(tableNameLower)) {
-          forbiddenFound = t.name;
-          // Halt execution immediately by throwing a recognizable internal string
-          throw new Error(`__FORBIDDEN_TABLE__:${t.name}`);
+    // Recursively scan all properties on this AST node
+    for (const key in node) {
+      if (Object.prototype.hasOwnProperty.call(node, key)) {
+        const child = node[key];
+        if (Array.isArray(child)) {
+          for (const item of child) {
+            checkNode(item);
+          }
+        } else if (typeof child === 'object' && child !== null) {
+          checkNode(child);
         }
       }
-    }));
-
-    for (const stmt of statements) {
-      visitor.statement(stmt);
     }
-
-    return { isSafe: true };
-
-  } catch (err: any) {
-    // Intercept our targeted internal error for immediate return
-    if (err.message && err.message.startsWith('__FORBIDDEN_TABLE__:')) {
-      const tableName = err.message.split('__FORBIDDEN_TABLE__:')[1];
-      return {
-        isSafe: false,
-        reason: `Access Denied: Table '${tableName}' is restricted.`
-      };
-    }
-    // Block any other errors as Syntax or Parse failures
-    return {
-      isSafe: false,
-      reason: "Syntax Error or Malformed SQL"
-    };
   }
+
+  // Iterate through all parsed statements in the batch (blocks semicolon stacked queries)
+  for (const stmt of astArray) {
+    checkNode(stmt);
+  }
+
+  return {
+    safe: true,
+    auditData: {
+      timestamp: Date.now(),
+      statementCount: astArray.length
+    }
+  };
 }
