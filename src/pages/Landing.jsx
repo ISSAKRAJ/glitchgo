@@ -12,6 +12,9 @@ import Architecture from '../components/sections/Architecture';
 import ClientForm from '../components/sections/ClientForm';
 import FinalCta from '../components/sections/FinalCta';
 import ChatWidget from '../components/sections/ChatWidget';
+import SecurityBenchmarks from '../components/sections/SecurityBenchmarks';
+import IntegrationSnippet from '../components/sections/IntegrationSnippet';
+import SecurityPricing from '../components/sections/SecurityPricing';
 
 export default function Landing() {
   return (
@@ -20,12 +23,15 @@ export default function Landing() {
       <main className="flex-1 w-full flex flex-col pt-20">
         <Hero />
         <AdminZeroPromo />
+        <SecurityBenchmarks />
         <Reviews />
         <Trust />
         <Services />
         <HowItWorks />
+        <IntegrationSnippet />
         <SecurityTerminal />
         <Architecture />
+        <SecurityPricing />
         <ClientForm />
         <FinalCta />
       </main>
