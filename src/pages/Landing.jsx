@@ -15,6 +15,7 @@ import ChatWidget from '../components/sections/ChatWidget';
 import SecurityBenchmarks from '../components/sections/SecurityBenchmarks';
 import IntegrationSnippet from '../components/sections/IntegrationSnippet';
 import SecurityPricing from '../components/sections/SecurityPricing';
+import SecurityOnboarding from '../components/sections/SecurityOnboarding';
 
 export default function Landing() {
   return (
@@ -23,6 +24,7 @@ export default function Landing() {
       <main className="flex-1 w-full flex flex-col pt-20">
         <Hero />
         <AdminZeroPromo />
+        <SecurityOnboarding />
         <SecurityBenchmarks />
         <Reviews />
         <Trust />
