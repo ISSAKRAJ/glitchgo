@@ -45,7 +45,7 @@ export default function Navbar() {
           {Array(6).fill(null).map((_, i) => (
             <span key={i} className="inline-flex items-center gap-8 mx-4">
               <span className="text-brand-orange font-extrabold flex items-center gap-1">⚡ ADMINZERO:</span>
-              <span className="font-extrabold text-white">ADMINZERO BETA IS LIVE: CONNECT POSTGRESQL TO SLACK IN 30 SECONDS.</span>
+              <span className="font-extrabold text-white">ZERO-TRUST P2SQL DATABASE FIREWALL PROXY GATEWAY IS LIVE.</span>
               <span className="text-gray-500 font-normal">★</span>
             </span>
           ))}
@@ -64,7 +64,7 @@ export default function Navbar() {
         
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
           <a href="/#services" className="hover:text-brand-blue transition-colors">Enterprise AI</a>
-          <a href="/adminzero-product" className="hover:text-brand-blue transition-colors">AdminZero Bot</a>
+          <a href="/adminzero-product" className="hover:text-brand-blue transition-colors">AdminZero Proxy</a>
           <a href="/guide" className="hover:text-brand-blue transition-colors font-semibold">Guide</a>
           <a href="/status" className="hover:text-brand-blue transition-colors font-semibold">Track Ticket</a>
           {user ? (
