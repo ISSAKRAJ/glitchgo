@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 
 export default function Landing() {
-  const [demoState, setDemoState] = useState<'idle' | 'safe' | 'attack'>('idle');
-  const [activeCodeLang, setActiveCodeLang] = useState<'js' | 'curl' | 'python'>('js');
+  const [demoState, setDemoState] = useState('idle');
+  const [activeCodeLang, setActiveCodeLang] = useState('js');
 
   const codeSnippets = {
     js: `// AdminZero Tokenization Endpoint - No database drivers or raw credentials in your app code
