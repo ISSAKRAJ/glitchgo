@@ -1,0 +1,12 @@
+# Ignore backend server directory during Vercel frontend builds
+server/
+
+# Ignore local builds and cache folders
+node_modules/
+.next/
+dist/
+out/
+.env.local
+.env
+*.db
+*.log
