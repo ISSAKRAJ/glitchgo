@@ -556,7 +556,7 @@ export default function GuidePage() {
                         <Shield size={14} /> Confidentiality & NDAs
                       </h4>
                       <p className="text-xs text-gray-400 leading-relaxed mb-4">
-                        All codebase refactoring and custom implementations are conducted under strict privacy. Our execution environments are isolated, ensuring client configurations and schema mappings are never leaked.
+All codebase refactoring and custom implementations are conducted under strict privacy. Our execution environments are isolated, ensuring client configurations and schema mappings are never leaked.
                       </p>
                     </div>
                     <div className="border border-white/10 rounded-lg p-3 bg-dark-bg flex items-center justify-between text-xs font-mono">
@@ -573,109 +573,93 @@ export default function GuidePage() {
           {/* Tab 2: AdminZero Guide */}
           {activeTab === 'adminzero' && (
             <div className="space-y-16 text-left">
-              {/* Section 1: Slack App Setup */}
+              {/* Section 1: Concept & Onboarding */}
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3 font-outfit">
                   <span className="w-8 h-8 rounded-lg bg-brand-blue/10 border border-brand-blue/20 text-brand-blue flex items-center justify-center text-sm font-bold font-mono">1</span>
-                  Setup custom Slack Application
+                  Onboard Your Database Layer
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4 text-gray-400 text-sm leading-relaxed">
                     <p>
-                      To interact with your database using natural English, you need to create a Slack app for your workspace:
+                      AdminZero acts as a deterministic intermediary database firewall between your AI Orchestration layer (such as LangChain, AutoGen, or custom agent scripts) and your actual production databases.
                     </p>
                     <ol className="list-decimal pl-5 space-y-2">
-                      <li>Go to the <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer" className="text-brand-blue hover:underline">Slack App Console</a> and click <strong>Create New App</strong>.</li>
-                      <li>Select <strong>From scratch</strong>, name your application (e.g. <em>AdminZero</em>), and choose your target Slack workspace.</li>
-                      <li>Under <strong>OAuth & Permissions</strong>, scroll down to <strong>Scopes</strong> and add these Bot Token scopes:
-                        <ul className="list-disc pl-5 mt-1 font-mono text-xs text-white space-y-0.5">
-                          <li>app_mentions:read</li>
-                          <li>chat:write</li>
-                        </ul>
-                      </li>
-                      <li>Install the app to your workspace and copy the generated <strong>Bot User OAuth Token</strong> (starts with <code className="text-white bg-white/5 px-1 py-0.5 rounded">xoxb-</code>).</li>
+                      <li>Navigate to the specialized **AdminZero Console** page at [adminzero](file:///c:/Users/ISSAK%20RAJ/OneDrive/Desktop/PROJECTS/GlitchGo/src/app/adminzero/page.tsx).</li>
+                      <li>Select your database dialect (currently supporting **PostgreSQL** and **MySQL**).</li>
+                      <li>Enter your database Connection URI in the credentials field. Credentials are encrypted on-the-fly via AES-256-GCM.</li>
+                      <li>If you do not have a live database connection ready, enter <code className="text-white bg-white/5 px-1 py-0.5 rounded">mock-sandbox</code> to connect to the AdminZero Sandbox Database for threat simulation testing.</li>
                     </ol>
                   </div>
                   <Card className="bg-white/[0.01] border-white/5 p-6 flex flex-col justify-center" hover={false}>
                     <h3 className="font-bold text-white mb-2 flex items-center gap-2 text-xs uppercase tracking-wider text-brand-blue">
-                      <Terminal size={14} /> Slack Credentials Hint
+                      <Database size={14} /> Connection Tokens
                     </h3>
                     <p className="text-xs text-gray-400 leading-relaxed mb-4">
-                      Add your Slack app Bot token and client credentials to your server environment file:
+                      Once connected, the gateway returns a unique Database ID Token. Your database password stays in a zero-knowledge hardware vault and never reaches the LLM context.
                     </p>
                     <div className="border border-white/10 rounded-lg p-3 bg-dark-bg font-mono text-[10px] text-brand-blue-light">
-                      SLACK_BOT_TOKEN=xoxb-your-token-here<br />
-                      SLACK_SIGNING_SECRET=your-secret-here<br />
-                      NEXT_PUBLIC_SLACK_CLIENT_ID=your-client-id-here
+                      DATABASE_ID_TOKEN=mock-sandbox-token-id-101<br />
+                      GATEWAY_DIALECT=postgres<br />
+                      LATENCY_LIMIT=4ms
                     </div>
                   </Card>
                 </div>
               </div>
 
-              {/* Section 2: Config Mappings */}
+              {/* Section 2: API Routing */}
               <div className="space-y-6 border-t border-white/5 pt-12">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3 font-outfit">
                   <span className="w-8 h-8 rounded-lg bg-brand-blue/10 border border-brand-blue/20 text-brand-blue flex items-center justify-center text-sm font-bold font-mono">2</span>
-                  Map Workspace & Database Credentials
+                  Route Agent Queries via Gateway Proxy
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <Card className="bg-white/[0.01] border-white/5 p-6 flex flex-col justify-center" hover={false}>
                     <div className="flex items-center gap-3 mb-4">
-                      <Database className="text-brand-blue" size={24} />
-                      <h4 className="font-bold text-white text-sm">Secure AES-256 Credentials</h4>
+                      <Terminal className="text-brand-blue" size={24} />
+                      <h4 className="font-bold text-white text-sm">Example Proxy Request</h4>
                     </div>
-                    <p className="text-xs text-gray-400 leading-relaxed mb-4">
-                      Your connection credentials are encrypted on the server utilizing cipher keys before inserting into the Supabase database. Database credentials are never stored in plaintext and cannot be read by anyone else.
-                    </p>
-                    <div className="border border-white/10 rounded-lg p-3 bg-dark-bg flex flex-col gap-1 text-xs font-mono">
-                      <span className="text-indigo-400">✓ Starter (Free, 1 DB limit)</span>
-                      <span className="text-indigo-400">✓ Pro (₹999/mo, 10 DB limit)</span>
-                      <span className="text-indigo-400">✓ Business (₹3,999/mo, unlimited)</span>
-                    </div>
+                    <pre className="border border-white/10 rounded-lg p-3 bg-dark-bg text-[10px] font-mono text-indigo-300 overflow-x-auto leading-relaxed">
+{`// Route agent inquiries safely
+const response = await fetch('/api/query', {
+  method: 'POST',
+  body: JSON.stringify({
+    dbId: "mock-sandbox-token-id-101",
+    question: "List user profiles"
+  })
+});
+const result = await response.json();`}
+                    </pre>
                   </Card>
                   <div className="space-y-4 text-gray-400 text-sm leading-relaxed">
                     <p>
-                      Log into the **AdminZero Portal** (`/adminzero`) to map database connection configurations:
+                      Instead of giving your autonomous AI agent direct access to database drivers (which risks database destruction or structure reconnaissance), you route requests to the AdminZero API:
                     </p>
                     <ul className="list-disc pl-5 space-y-2">
-                      <li>Create a **Workspace** representation. Tiers are defined as *Starter*, *Pro*, or *Business* (billing handles via Lemon Squeezy checkout portals).</li>
-                      <li>Under **Database Mappings**, click "Add Connection". Specify a unique Name, select the mapped Slack Channel ID, and enter your PostgreSQL Connection URI.</li>
-                      <li>Use the **Test Connection** button. The server will run a safe authentication check, returning success if the connection is established.</li>
+                      <li>Send queries to the <code className="text-white bg-white/5 px-1 py-0.5 rounded">/api/query</code> endpoint containing your database token ID and the user's natural language question.</li>
+                      <li>AdminZero automatically runs the query through our static compiler pipeline to generate the corresponding SQL statement.</li>
+                      <li>Before execution, the raw SQL is intercepted at the compiler layer and analyzed by the AST security parser.</li>
                     </ul>
                   </div>
                 </div>
               </div>
 
-              {/* Section 3: Schema hints & querying */}
+              {/* Section 3: AST Firewall rules */}
               <div className="space-y-6 border-t border-white/5 pt-12">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3 font-outfit">
                   <span className="w-8 h-8 rounded-lg bg-brand-blue/10 border border-brand-blue/20 text-brand-blue flex items-center justify-center text-sm font-bold font-mono">3</span>
-                  Supply Schema Hints & Run Queries in Slack
+                  Failsafe Closed AST Auditing
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4 text-gray-400 text-sm leading-relaxed">
                     <p>
-                      To help the AI translate natural language queries accurately, you can provide schema hints:
+                      The AST Security Firewall scans SQL structures recursively to identify malicious injection attempts and goal hijacking:
                     </p>
                     <ul className="list-disc pl-5 space-y-2">
-                      <li>Describe important tables, columns, and relations. E.g., <code>"client_requests table holds intake leads, status column shows payment status (Paid, Completed)"</code>.</li>
-                      <li>Invite the bot into your channel: Type <code className="text-white bg-white/5 px-1 py-0.5 rounded">/invite @AdminZero</code> inside the target Slack channel.</li>
-                      <li>Query the bot directly in English: Mention the bot and type your query, e.g. <code className="text-white bg-white/5 px-1 py-0.5 rounded">@AdminZero show me all paid client requests</code>.</li>
+                      <li><strong>Syntax Tokenization</strong>: Parses queries into nested Abstract Syntax Tree nodes to identify the operation types.</li>
+                      <li><strong>Fail-Closed Mutating Block</strong>: Restricts operations to safe, read-only statements (<code className="text-white bg-white/5 px-1 py-0.5 rounded">SELECT</code>, <code className="text-white bg-white/5 px-1 py-0.5 rounded">SHOW</code>, <code className="text-white bg-white/5 px-1 py-0.5 rounded">DESCRIBE</code>). Any mutation statement (<code className="text-white bg-white/5 px-1 py-0.5 rounded">DROP</code>, <code className="text-white bg-white/5 px-1 py-0.5 rounded">DELETE</code>, <code className="text-white bg-white/5 px-1 py-0.5 rounded">ALTER</code>, <code className="text-white bg-white/5 px-1 py-0.5 rounded">TRUNCATE</code>) triggers a connection termination immediately.</li>
+                      <li><strong>Restricted Tables Registry</strong>: Blocks access to sensitive schema resources (e.g. <code className="text-white bg-white/5 px-1 py-0.5 rounded">admin_passwords</code> or <code className="text-white bg-white/5 px-1 py-0.5 rounded">hr_salaries</code>).</li>
                     </ul>
-                    
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-xs">
-                      <p className="font-semibold text-white mb-2 flex items-center gap-2">
-                        <Shield size={14} className="text-brand-orange" /> Read-Only Security Guardrails
-                      </p>
-                      <p className="text-gray-400 leading-normal mb-3">
-                        AdminZero enforces read-only query integrity. Mutating statements are blocked at both the LLM generator core and a secondary local AST-based scanner.
-                      </p>
-                      <ul className="list-disc pl-5 text-gray-500 space-y-1">
-                        <li><strong>Deterministic AST checks:</strong> Analyzes Abstract Syntax Trees via <code>pgsql-ast-parser</code> to block mutating operations (DROP, DELETE, UPDATE, INSERT, ALTER) and scan restrictions.</li>
-                        <li><strong>Timeout Limits:</strong> PostgreSQL sessions have a strict 5000ms (5 seconds) timeout to prevent DoS Cartesian joins.</li>
-                        <li><strong>Payload Limits:</strong> Capped at a maximum of 100 rows to prevent payload overflow.</li>
-                      </ul>
-                    </div>
                   </div>
 
                   {/* INTERACTIVE SLACK ROUTER PLAYGROUND */}
@@ -683,13 +667,13 @@ export default function GuidePage() {
                     <div>
                       <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-4">
                         <h4 className="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-1.5">
-                          <Bot size={14} className="text-brand-blue" /> Dual-Model Query Playground
+                          <Bot size={14} className="text-brand-blue" /> AST Query Playground
                         </h4>
-                        <span className="text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded font-mono">AdminZero Core</span>
+                        <span className="text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded font-mono">Gateway Emulator</span>
                       </div>
 
                       <p className="text-[11px] text-slate-400 mb-4">
-                        Select a query preset below or type a query to trace how AdminZero's DeepSeek-to-Gemini query routing pipeline protects and self-heals in real time.
+                        Select a query preset below or type a query to trace how AdminZero's query routing pipeline protects and self-heals in real time.
                       </p>
 
                       {/* Presets Row */}
@@ -712,13 +696,13 @@ export default function GuidePage() {
                       {/* Custom Input */}
                       <div className="flex gap-2 mb-4">
                         <div className="relative flex-1">
-                          <span className="absolute left-2.5 top-2 text-[10px] text-brand-blue font-mono">@AdminZero</span>
+                          <span className="absolute left-2.5 top-2 text-[10px] text-brand-blue font-mono">Query:</span>
                           <input
                             type="text"
                             value={queryInput}
                             onChange={handleCustomQueryChange}
                             placeholder="Type a natural language database question..."
-                            className="w-full bg-[#181a1f] border border-white/10 rounded-lg pl-22 pr-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-blue"
+                            className="w-full bg-[#181a1f] border border-white/10 rounded-lg pl-14 pr-3 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-blue"
                           />
                         </div>
                         <button
@@ -741,7 +725,7 @@ export default function GuidePage() {
                             querySimStep === 'translating' ? 'bg-brand-blue/20 border-brand-blue text-white animate-pulse' : 
                             (querySimStep === 'checking_ast' || querySimStep === 'executing' || querySimStep === 'synthesizing' || querySimStep === 'done') ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/5 border-transparent text-slate-600'
                           }`}>
-                            1. DeepSeek Translate
+                            1. Translate
                           </div>
                           
                           <div className={`p-1 rounded border ${
@@ -759,7 +743,7 @@ export default function GuidePage() {
                             (querySimStep === 'done' && selectedQuery.astCheck === 'BLOCKED') ? 'bg-white/5 border-transparent text-slate-750' :
                             'bg-white/5 border-transparent text-slate-600'
                           }`}>
-                            3. DB Client {selectedQuery.healed && '/ Gemini Pro'}
+                            3. DB Client
                           </div>
 
                           <div className={`p-1 rounded border ${
@@ -767,7 +751,7 @@ export default function GuidePage() {
                             (querySimStep === 'done' && selectedQuery.astCheck !== 'BLOCKED') ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 
                             'bg-white/5 border-transparent text-slate-600'
                           }`}>
-                            4. Gemini Flash
+                            4. Synthesize
                           </div>
                         </div>
                       </div>
@@ -778,11 +762,11 @@ export default function GuidePage() {
                           <div className="text-slate-600 italic">No output. Press 'Send' to begin connection pipeline...</div>
                         ) : (
                           simLogs.map((log, idx) => (
-                            <div key={idx} className="whitespace-pre-line text-slate-300">
+                            <div key={idx} className="whitespace-pre-line text-slate-300 text-[9px] leading-tight">
                               {log.includes('BLOCKED') || log.includes('Exception') || log.includes('Error:') ? (
                                 <span className="text-red-400 font-bold">{log}</span>
                               ) : log.includes('PASS') || log.includes('Success') || log.includes('Repaired') ? (
-                                <span className="text-emerald-400">{log}</span>
+                                <span className="text-emerald-400 font-semibold">{log}</span>
                               ) : log.includes('Self-Healing') || log.includes('Escalating') ? (
                                 <span className="text-amber-400 font-semibold">{log}</span>
                               ) : (
@@ -792,50 +776,6 @@ export default function GuidePage() {
                           ))
                         )}
                       </div>
-
-                      {/* Simulated Slack Message Output */}
-                      {querySimStep === 'done' && (
-                        <div className="bg-[#1b1c20] border border-white/10 rounded-xl p-4 text-left text-xs font-sans mt-2">
-                          <div className="flex gap-2.5 items-start">
-                            <div className="w-8 h-8 rounded-lg bg-brand-blue flex items-center justify-center font-bold text-white text-xs select-none">
-                              AZ
-                            </div>
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-white">AdminZero</span>
-                                <span className="bg-emerald-500/20 text-emerald-400 text-[8px] font-bold px-1 rounded uppercase tracking-wider">APP</span>
-                                <span className="text-[10px] text-slate-500">10:45 PM</span>
-                              </div>
-                              <div className="text-slate-300 whitespace-pre-line leading-relaxed font-sans text-xs">
-                                {isCustomQuery ? (
-                                  selectedQuery.astCheck === 'BLOCKED' ? selectedQuery.finalResponse : (
-                                    `📊 *AdminZero Lead Analyst Report*
-Processed custom query: \`${queryInput.replace(/@AdminZero\s+/g, '')}\`
-Executed SQL safely. Results returned successfully.
-
-[Processed and summarized by *gemini-2.5-flash* Lead Analyst]`
-                                  )
-                                ) : (
-                                  selectedQuery.finalResponse
-                                )}
-                              </div>
-                              
-                              {/* Slack Block Kit Share Button mockup */}
-                              {selectedQuery.astCheck !== 'BLOCKED' && (
-                                <div className="pt-2 flex flex-col gap-1.5">
-                                  <button className="bg-white/5 border border-white/10 rounded-md px-2.5 py-1 text-[10px] font-bold text-slate-300 w-fit cursor-default">
-                                    🔗 Share Public Insight
-                                  </button>
-                                  <div className="text-[9px] text-slate-500">
-                                    ⭐ *Enjoying AdminZero?* <a href="#reviews" className="text-brand-blue hover:underline">Leave us a review!</a>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
                     </div>
                   </Card>
                 </div>
