@@ -156,7 +156,18 @@ async function syncLicenseWithCloud(increment = 0, threatsCount = 0) {
 // LOCAL SQL AST SEC-OPS FIREWALL
 // ----------------------------------------------------
 function checkAstSafety(sql, dialect, blockedTables, enforceReadOnly) {
-  // SQLite and basic queries check
+  // Pre-parser defense: Sanity check for comment injection obfuscation
+  const normalizedRaw = sql.toLowerCase().replace(/\s+/g, ' ');
+  if (normalizedRaw.includes('/*') || normalizedRaw.includes('--')) {
+    const suspiciousKeywords = [
+      'drop', 'delete', 'update', 'insert', 'alter', 'truncate', 
+      'pg_', 'information_schema', 'mysql', 'schema', 'credential'
+    ];
+    if (suspiciousKeywords.some(kw => normalizedRaw.includes(kw))) {
+      throw new Error('THREAT BLOCKED: Suspicious keyword detected inside SQL comment syntax.');
+    }
+  }
+
   if (dialect === 'postgres') {
     try {
       const ast = parse(sql);
@@ -165,18 +176,47 @@ function checkAstSafety(sql, dialect, blockedTables, enforceReadOnly) {
       const checkNode = (node) => {
         if (!node || typeof node !== 'object') return;
         
+        // Block forbidden statement types
         if (node.type) {
           const type = String(node.type).toLowerCase();
-          const mutations = ['insert', 'update', 'delete', 'drop', 'alter', 'truncate', 'create', 'grant'];
-          if (enforceReadOnly && mutations.some(m => type.includes(m))) {
-            throw new Error(`THREAT BLOCKED: Action node type [${type.toUpperCase()}] is prohibited under Read-Only security rules.`);
+          const forbiddenTypes = [
+            'insert', 'update', 'delete', 'drop', 'alter', 'truncate', 
+            'create', 'grant', 'revoke', 'replace', 'transaction', 
+            'commit', 'rollback', 'copy', 'explain', 'prepare', 'execute', 'deallocate'
+          ];
+          if (forbiddenTypes.some(m => type.includes(m))) {
+            throw new Error(`THREAT BLOCKED: Statement type [${type.toUpperCase()}] is prohibited under strict security policies.`);
           }
         }
         
+        // Table reference check (forbidden tables & metadata schemas)
         if (node.type === 'tableRef' && node.name) {
-          const tableName = String(node.name).toLowerCase();
-          if (normalizedBlocked.includes(tableName)) {
+          const tableNameClean = String(node.name).replace(/[`"\[\]]/g, '').toLowerCase();
+          const schemaNameClean = node.schema ? String(node.schema).replace(/[`"\[\]]/g, '').toLowerCase() : '';
+
+          if (normalizedBlocked.includes(tableNameClean)) {
             throw new Error(`THREAT BLOCKED: Restricted table access attempt on '${node.name}'.`);
+          }
+
+          const sensitiveSchemas = ['information_schema', 'pg_catalog', 'performance_schema', 'sys', 'mysql'];
+          if (sensitiveSchemas.includes(schemaNameClean) || sensitiveSchemas.includes(tableNameClean)) {
+            throw new Error(`THREAT BLOCKED: Administrative database schema access denied on '${node.name}'.`);
+          }
+          
+          if (tableNameClean.startsWith('pg_') || tableNameClean.startsWith('mysql_')) {
+            throw new Error(`THREAT BLOCKED: System table access attempt on '${node.name}'.`);
+          }
+        }
+
+        // Check administrative function calls
+        if (node.type === 'call' && node.function) {
+          const funcName = String(node.function.name).toLowerCase();
+          const forbiddenFunctions = [
+            'sleep', 'pg_sleep', 'sys_eval', 'sys_exec', 'version', 
+            'load_file', 'current_setting', 'session_user', 'execute'
+          ];
+          if (forbiddenFunctions.some(f => funcName.includes(f))) {
+            throw new Error(`THREAT BLOCKED: Execution of administrative function '${funcName}' is blocked.`);
           }
         }
         
@@ -195,7 +235,7 @@ function checkAstSafety(sql, dialect, blockedTables, enforceReadOnly) {
       for (const stmt of ast) {
         if (stmt.type) {
           const type = String(stmt.type).toLowerCase();
-          if (enforceReadOnly && !['select', 'show', 'describe'].some(t => type.includes(t))) {
+          if (!['select', 'show', 'describe'].some(t => type.includes(t))) {
             throw new Error(`THREAT BLOCKED: Statement type [${type.toUpperCase()}] is forbidden.`);
           }
         }
@@ -210,10 +250,18 @@ function checkAstSafety(sql, dialect, blockedTables, enforceReadOnly) {
     const normalizedBlocked = blockedTables.split(',').map(t => t.trim().toUpperCase()).filter(Boolean);
     
     if (enforceReadOnly) {
-      const writeKeywords = ['INSERT ', 'UPDATE ', 'DELETE ', 'DROP ', 'ALTER ', 'CREATE ', 'TRUNCATE '];
+      const writeKeywords = [
+        'INSERT ', 'UPDATE ', 'DELETE ', 'DROP ', 'ALTER ', 'CREATE ', 
+        'TRUNCATE ', 'REPLACE ', 'GRANT ', 'REVOKE ', 'EXECUTE '
+      ];
       if (writeKeywords.some(kw => upperSql.includes(kw))) {
         throw new Error(`THREAT BLOCKED: Write/mutation commands are forbidden under Read-Only rules.`);
       }
+    }
+
+    const sensitiveTables = ['INFORMATION_SCHEMA', 'PG_CATALOG', 'MYSQL', 'SYS', 'PERFORMANCE_SCHEMA'];
+    if (sensitiveTables.some(t => upperSql.includes(t))) {
+      throw new Error(`THREAT BLOCKED: Administrative database schema access denied.`);
     }
     
     for (const table of normalizedBlocked) {

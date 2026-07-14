@@ -13,6 +13,20 @@ export async function validateQuery(
   sql: string,
   forbiddenTables: string[] = []
 ): Promise<{ safe: boolean; auditData: any }> {
+  // Pre-parser defense: Sanity check for dangerous comments and obfuscation patterns before compilation
+  const normalizedRaw = sql.toLowerCase().replace(/\s+/g, ' ');
+  
+  // Block inline comments containing dangerous keywords or administrative schemas
+  if (normalizedRaw.includes('/*') || normalizedRaw.includes('--')) {
+    const suspiciousKeywords = [
+      'drop', 'delete', 'update', 'insert', 'alter', 'truncate', 
+      'pg_', 'information_schema', 'mysql', 'schema', 'credential'
+    ];
+    if (suspiciousKeywords.some(kw => normalizedRaw.includes(kw))) {
+      throw new Error('[AdminZero SecOps] THREAT BLOCKED: Suspicious keyword detected inside SQL comment syntax.');
+    }
+  }
+
   let astArray: any[];
   try {
     // Attempt AST parsing to catch malformed SQL / syntax obfuscations designed to bypass validation
@@ -28,26 +42,56 @@ export async function validateQuery(
   function checkNode(node: any): void {
     if (!node || typeof node !== 'object') return;
 
+    // Check node statement type
     if (node.type) {
       const nodeType = String(node.type).toLowerCase();
-      // Block any non-read-only statement types or data mutation operations
+      
+      // Prohibited statement types
       const forbiddenTypes = [
         'insert', 'update', 'delete', 'drop', 'alter', 'truncate', 
-        'create', 'grant', 'replace', 'transaction', 'commit', 'rollback'
+        'create', 'grant', 'revoke', 'replace', 'transaction', 
+        'commit', 'rollback', 'copy', 'explain', 'prepare', 'execute', 'deallocate'
       ];
-      const isForbidden = forbiddenTypes.some(forbidden => nodeType.includes(forbidden));
-      if (isForbidden) {
+      
+      if (forbiddenTypes.some(forbidden => nodeType.includes(forbidden))) {
         throw new Error(
-          `[AdminZero SecOps] THREAT BLOCKED: Prompt-to-SQL (P2SQL) Injection attempt detected. Destructive AST node type [${node.type.toUpperCase()}] intercepted.`
+          `[AdminZero SecOps] THREAT BLOCKED: Destructive statement type [${node.type.toUpperCase()}] is prohibited.`
         );
       }
     }
 
-    // Check table references against forbidden tables registry
+    // Check table references
     if (node.type === 'tableRef' && node.name) {
-      const tableNameLower = String(node.name).toLowerCase();
-      if (normalizedForbidden.includes(tableNameLower)) {
+      // Strip brackets, backticks, or double-quotes from table/schema names
+      const tableNameClean = String(node.name).replace(/[`"\[\]]/g, '').toLowerCase();
+      const schemaNameClean = node.schema ? String(node.schema).replace(/[`"\[\]]/g, '').toLowerCase() : '';
+
+      // Block access to forbidden tables
+      if (normalizedForbidden.includes(tableNameClean)) {
         throw new Error(`[AdminZero SecOps] THREAT BLOCKED: Restricted table access attempt on '${node.name}'.`);
+      }
+
+      // Block access to internal metadata schemas (schema-harvesting protection)
+      const sensitiveSchemas = ['information_schema', 'pg_catalog', 'performance_schema', 'sys', 'mysql'];
+      if (sensitiveSchemas.includes(schemaNameClean) || sensitiveSchemas.includes(tableNameClean)) {
+        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: Administrative database schema access denied on '${node.name}'.`);
+      }
+      
+      // Block prefix system tables (e.g. pg_shadow, pg_authid)
+      if (tableNameClean.startsWith('pg_') || tableNameClean.startsWith('mysql_')) {
+        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: System table access attempt on '${node.name}'.`);
+      }
+    }
+
+    // Check function calls (block sleep injection attacks and execution exploits)
+    if (node.type === 'call' && node.function) {
+      const funcName = String(node.function.name).toLowerCase();
+      const forbiddenFunctions = [
+        'sleep', 'pg_sleep', 'sys_eval', 'sys_exec', 'version', 
+        'load_file', 'current_setting', 'session_user', 'execute'
+      ];
+      if (forbiddenFunctions.some(f => funcName.includes(f))) {
+        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: Execution of administrative function '${funcName}' is blocked.`);
       }
     }
 
@@ -75,7 +119,7 @@ export async function validateQuery(
       const isAllowed = allowedTypes.some(allowed => stmtType.includes(allowed));
       if (!isAllowed) {
         throw new Error(
-          `[AdminZero SecOps] THREAT BLOCKED: Prompt-to-SQL (P2SQL) Injection attempt detected. Destructive AST node type [${stmt.type.toUpperCase()}] intercepted.`
+          `[AdminZero SecOps] THREAT BLOCKED: Statement type [${stmt.type.toUpperCase()}] is forbidden under read-only security policies.`
         );
       }
     }
