@@ -3,18 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  Loader2, LogOut, FileText, Send, Terminal, Settings, 
-  HelpCircle, ShieldCheck, User 
+  Loader2, LogOut, FileText, Settings, ShieldCheck, Terminal
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import { supabase } from '../../lib/supabase';
 
-// Modular tab components
-import DashboardTab from '../../components/portal/DashboardTab';
-import OrderTab from '../../components/portal/OrderTab';
+// Tab components
 import AdminZeroTab from '../../components/portal/AdminZeroTab';
 import SettingsTab from '../../components/portal/SettingsTab';
+import AdminTab from '../../components/portal/AdminTab';
 
 export default function PortalPage() {
   const router = useRouter();
@@ -24,16 +22,16 @@ export default function PortalPage() {
   const [userToken, setUserToken] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // Active Tab State: 'dashboard' | 'order' | 'products' | 'settings'
+  // Active Tab State: 'dashboard' | 'settings' | 'admin'
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Enforce session check on mount & listen to redirects/params
+  const isSuperAdmin = user?.email === 'issakrajraj@gmail.com';
+
   useEffect(() => {
     const checkSession = async () => {
       setIsAuthLoading(true);
       let { data: { session } } = await supabase.auth.getSession();
       
-      // Prevent race conditions on Google OAuth callbacks
       const hasHash = typeof window !== 'undefined' && (
         window.location.hash.includes('access_token=') || 
         window.location.hash.includes('id_token=') || 
@@ -42,8 +40,6 @@ export default function PortalPage() {
       );
 
       if (!session && hasHash) {
-        console.log("OAuth token detected in URL. Waiting for Supabase to parse...");
-        // Poll for session up to 2.5 seconds (25 attempts * 100ms)
         for (let i = 0; i < 25; i++) {
           await new Promise(r => setTimeout(r, 100));
           const { data: { session: activeSession } } = await supabase.auth.getSession();
@@ -59,10 +55,8 @@ export default function PortalPage() {
         return;
       }
 
-      // Verify user validity on the protected route using getUser()
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
-        console.error("User validation failed:", userError);
         router.push('/signin?next=/portal');
         return;
       }
@@ -71,11 +65,10 @@ export default function PortalPage() {
       setUserToken(session.access_token);
       setIsAuthLoading(false);
 
-      // Parse initial tab from query parameters
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
-        if (tab && ['dashboard', 'order', 'products', 'settings'].includes(tab)) {
+        if (tab && ['dashboard', 'settings', 'admin'].includes(tab)) {
           setActiveTab(tab);
         }
       }
@@ -83,9 +76,7 @@ export default function PortalPage() {
     
     checkSession();
 
-    // Listen to global auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state change in Portal:", event, session ? "session exists" : "no session");
       if (session) {
         setUser(session.user);
         setUserToken(session.access_token);
@@ -101,11 +92,10 @@ export default function PortalPage() {
     return () => subscription.unsubscribe();
   }, [router]);
 
-  // Listen to custom tab change events from child components
   useEffect(() => {
     const handleTabChange = (e) => {
       const targetTab = e.detail;
-      if (['dashboard', 'order', 'products', 'settings'].includes(targetTab)) {
+      if (['dashboard', 'settings', 'admin'].includes(targetTab)) {
         setActiveTab(targetTab);
       }
     };
@@ -123,44 +113,44 @@ export default function PortalPage() {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-brand-blue" size={48} />
-          <p className="text-gray-400 text-sm font-semibold tracking-wider uppercase">Loading client portal...</p>
+          <Loader2 className="animate-spin text-emerald-400" size={48} />
+          <p className="text-slate-400 text-sm font-semibold tracking-wider uppercase font-mono">Loading AdminZero portal...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-dark-bg text-white font-sans">
+    <div className="flex flex-col min-h-screen bg-slate-950 text-white font-sans relative overflow-hidden">
       <Navbar />
 
-      <main className="flex-1 w-full pt-32 pb-24 relative overflow-hidden">
-        {/* Background ambient lighting */}
-        <div className="absolute top-1/4 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-brand-blue/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[400px] h-[400px] bg-brand-orange/5 rounded-full blur-[100px] pointer-events-none" />
+      {/* Decorative glows */}
+      <div className="absolute top-1/4 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <main className="flex-1 w-full pt-32 pb-24 relative z-10">
+        <div className="max-w-7xl mx-auto px-6">
           
           {/* Dashboard Header Bar */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-white/5 pb-8 mb-10">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-800 pb-8 mb-10">
             <div>
-              <span className="text-[10px] text-brand-blue font-bold uppercase tracking-wider">Welcome Back</span>
-              <h1 className="text-3xl font-black text-white tracking-tight mt-1 font-outfit">
-                GlitchGo Client Console
+              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider font-mono">SaaS Control Plane</span>
+              <h1 className="text-3xl font-black text-white tracking-tight mt-1">
+                AdminZero Client Dashboard
               </h1>
             </div>
             
             {user && (
-              <div className="glass px-4 py-2.5 rounded-2xl flex items-center gap-3.5 border border-white/5 bg-white/[0.01]">
+              <div className="bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-2xl flex items-center gap-3.5">
                 <div className="text-left select-none">
-                  <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider block">Account Session</span>
-                  <span className="text-xs font-semibold text-gray-300 block truncate max-w-[160px]">{user.email}</span>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block font-mono">Active Client</span>
+                  <span className="text-xs font-semibold text-slate-300 block truncate max-w-[160px]">{user.email}</span>
                 </div>
                 <button 
                   onClick={handleSignOut}
-                  className="p-2 bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-xl transition-all cursor-pointer"
+                  className="p-2 bg-slate-950 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-xl transition-all cursor-pointer border border-slate-850"
                   title="Sign Out"
                 >
                   <LogOut size={14} />
@@ -170,73 +160,58 @@ export default function PortalPage() {
           </div>
 
           {/* Navigation tabs */}
-          <div className="flex border-b border-white/5 overflow-x-auto whitespace-nowrap gap-6 mb-10 text-sm font-semibold tracking-wide scrollbar-hide select-none">
+          <div className="flex border-b border-slate-800 overflow-x-auto whitespace-nowrap gap-6 mb-10 text-xs font-bold uppercase tracking-wider select-none font-mono">
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`pb-4 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'dashboard' 
-                  ? 'border-brand-blue text-white' 
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
+                  ? 'border-emerald-500 text-white' 
+                  : 'border-transparent text-slate-500 hover:text-slate-350'
               }`}
             >
               <FileText size={16} />
-              <span>Dashboard & Tickets</span>
+              <span>License & Telemetry</span>
             </button>
-            <button
-              onClick={() => setActiveTab('order')}
-              className={`pb-4 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'order' 
-                  ? 'border-brand-blue text-white' 
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              <Send size={16} />
-              <span>Book a Service</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('products')}
-              className={`pb-4 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'products' 
-                  ? 'border-brand-blue text-white' 
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              <Terminal size={16} />
-              <span>Database ChatOps (AdminZero)</span>
-            </button>
+
             <button
               onClick={() => setActiveTab('settings')}
               className={`pb-4 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'settings' 
-                  ? 'border-brand-blue text-white' 
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
+                  ? 'border-emerald-500 text-white' 
+                  : 'border-transparent text-slate-500 hover:text-slate-350'
               }`}
             >
               <Settings size={16} />
-              <span>Settings</span>
+              <span>Account Settings</span>
             </button>
+
+            {isSuperAdmin && (
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`pb-4 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+                  activeTab === 'admin' 
+                    ? 'border-red-500 text-red-400' 
+                    : 'border-transparent text-slate-500 hover:text-slate-350'
+                }`}
+              >
+                <Terminal size={16} />
+                <span>Super Admin Panel</span>
+              </button>
+            )}
           </div>
 
           {/* Render Active Tab Component */}
           <div className="animate-fade-in min-h-[40vh]">
             {activeTab === 'dashboard' && (
-              <DashboardTab user={user} supabase={supabase} />
-            )}
-            
-            {activeTab === 'order' && (
-              <OrderTab 
-                user={user} 
-                supabase={supabase} 
-                onOrderSuccess={() => setActiveTab('dashboard')} 
-              />
-            )}
-            
-            {activeTab === 'products' && (
               <AdminZeroTab user={user} supabase={supabase} userToken={userToken} />
             )}
             
             {activeTab === 'settings' && (
               <SettingsTab user={user} supabase={supabase} />
+            )}
+            
+            {activeTab === 'admin' && isSuperAdmin && (
+              <AdminTab user={user} supabase={supabase} userToken={userToken} />
             )}
           </div>
 

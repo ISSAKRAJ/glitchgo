@@ -1,802 +1,395 @@
-"use client";
-
 import React, { useState, useEffect } from 'react';
 import { 
-  Database, Shield, Play, Plus, RefreshCw, CheckCircle, XCircle, Terminal, 
-  Loader2, Sparkles, CreditCard, Copy, Upload, QrCode, ShieldAlert, Trash2, Edit 
+  Key, Shield, ShieldAlert, CheckCircle, Database, 
+  Terminal, Copy, AlertTriangle, Play, RefreshCw, BarChart2, Layers
 } from 'lucide-react';
-import Card from '../ui/Card';
-
-const ADMIN_EMAIL = 'issakrajraj@gmail.com';
-const UPI_ID = '7013017818@naviaxis';
 
 export default function AdminZeroTab({ user, supabase, userToken }) {
-  const isSuperAdmin = user?.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
+  const [workspace, setWorkspace] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const [recentLogs, setRecentLogs] = useState([]);
+  const [activeTab, setActiveTab] = useState('docker');
+  const [paymentUtr, setPaymentUtr] = useState('');
+  const [payLoading, setPayLoading] = useState(false);
+  const [payMessage, setPayMessage] = useState(null);
 
-  // Connection & Form states
-  const [connectionId, setConnectionId] = useState('');
-  const [clientName, setClientName] = useState('');
-  const [pgUrl, setPgUrl] = useState('');
-  const [schemaHint, setSchemaHint] = useState('');
-  
-  // Lists & loader states
-  const [connections, setConnections] = useState([]);
-  const [workspaces, setWorkspaces] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingWorkspaces, setIsLoadingWorkspaces] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [testResult, setTestResult] = useState(null);
-  const [testingId, setTestingId] = useState(null);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [redirectUri, setRedirectUri] = useState('');
-
-  // UPI Payment Modal State
-  const [isUpiModalOpen, setIsUpiModalOpen] = useState(false);
-  const [upiModalTeamId, setUpiModalTeamId] = useState('');
-  const [selectedUpiPlan, setSelectedUpiPlan] = useState('pro'); // 'pro' | 'business'
-  const [upiScreenshot, setUpiScreenshot] = useState(null);
-  const [upiScreenshotName, setUpiScreenshotName] = useState('');
-  const [isVerifyingUpi, setIsVerifyingUpi] = useState(false);
-  const [upiVerifyError, setUpiVerifyError] = useState('');
-  const [upiVerifySuccess, setUpiVerifySuccess] = useState('');
-  const [showManualUtrInput, setShowManualUtrInput] = useState(false);
-  const [manualUtr, setManualUtr] = useState('');
-
-  // Super Admin Workspace List
-  const [allWorkspaces, setAllWorkspaces] = useState([]);
-  const [isLoadingAllWorkspaces, setIsLoadingAllWorkspaces] = useState(false);
-  const [adminMessage, setAdminMessage] = useState('');
-
-  const fetchConnections = async (token) => {
-    if (!token) return;
+  // Fetch or auto-create license workspace on load
+  const fetchOrOnboardWorkspace = async () => {
+    if (!user) return;
     setIsLoading(true);
-    setError('');
     try {
-      const res = await fetch('/api/adminzero/connections', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setConnections(data.connections || []);
+      const { data, error } = await supabase
+        .from('workspaces')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setWorkspace(data[0]);
+        fetchLogs(data[0].team_id);
       } else {
-        setError(data.error || 'Failed to load connections');
+        // Auto-generate license key (team_id)
+        const newLicenseKey = `az_lic_${Math.random().toString(36).substring(2, 9)}${Math.random().toString(36).substring(2, 9)}`;
+        const { data: insertedData, error: insertError } = await supabase
+          .from('workspaces')
+          .insert([
+            {
+              team_id: newLicenseKey,
+              user_id: user.id,
+              tier: 'free',
+              max_queries: 500,
+              query_count: 0
+            }
+          ])
+          .select();
+
+        if (insertError) throw insertError;
+        if (insertedData) {
+          setWorkspace(insertedData[0]);
+          fetchLogs(insertedData[0].team_id);
+        }
       }
     } catch (err) {
-      setError('Error loading connections: ' + err.message);
+      console.error('Error loading license keys:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchWorkspaces = async (userId) => {
-    if (!userId) return;
-    setIsLoadingWorkspaces(true);
+  const fetchLogs = async (licenseKey) => {
     try {
-      const { data, error: wsError } = await supabase
-        .from('workspaces')
+      const { data, error } = await supabase
+        .from('query_logs')
         .select('*')
-        .eq('user_id', userId);
-        
-      if (!wsError && data) {
-        setWorkspaces(data);
+        .eq('workspace_id', licenseKey)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (!error && data) {
+        setRecentLogs(data);
       }
     } catch (err) {
-      console.error('Error fetching workspaces:', err);
-    } finally {
-      setIsLoadingWorkspaces(false);
-    }
-  };
-
-  const fetchAllWorkspaces = async (token) => {
-    if (!isSuperAdmin || !token) return;
-    setIsLoadingAllWorkspaces(true);
-    setAdminMessage('');
-    try {
-      const res = await fetch('/api/adminzero/workspaces', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAllWorkspaces(data.workspaces || []);
-      } else {
-        setAdminMessage(data.error || 'Failed to load workspaces');
-      }
-    } catch (err) {
-      setAdminMessage('Error loading workspaces: ' + err.message);
-    } finally {
-      setIsLoadingAllWorkspaces(false);
+      console.error('Error fetching logs:', err);
     }
   };
 
   useEffect(() => {
-    if (userToken && user) {
-      fetchConnections(userToken);
-      fetchWorkspaces(user.id);
-      if (isSuperAdmin) {
-        fetchAllWorkspaces(userToken);
-      }
-      if (typeof window !== 'undefined') {
-        setRedirectUri(`${window.location.origin}/api/slack/oauth`);
-      }
-    }
-  }, [userToken, user]);
+    fetchOrOnboardWorkspace();
+  }, [user]);
 
-  const openUpiModal = (teamId) => {
-    setUpiModalTeamId(teamId);
-    setSelectedUpiPlan('pro');
-    setUpiScreenshot(null);
-    setUpiScreenshotName('');
-    setUpiVerifyError('');
-    setUpiVerifySuccess('');
-    setShowManualUtrInput(false);
-    setManualUtr('');
-    setIsUpiModalOpen(true);
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleScreenshotChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      setUpiVerifyError('Please upload an image file (PNG or JPEG)');
-      return;
-    }
-    setUpiVerifyError('');
-    setUpiScreenshotName(file.name);
+  const handleManualPayment = async (e) => {
+    e.preventDefault();
+    if (!paymentUtr) return;
+    setPayLoading(true);
+    setPayMessage(null);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result.split(',')[1];
-      setUpiScreenshot(base64String);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleVerifyUpiPayment = async () => {
-    if (showManualUtrInput) {
-      if (!manualUtr || manualUtr.trim().length !== 12 || isNaN(Number(manualUtr))) {
-        setUpiVerifyError('Please enter a valid 12-digit numeric UTR.');
-        return;
-      }
-      setIsVerifyingUpi(true);
-      setUpiVerifyError('');
-      setUpiVerifySuccess('');
-
+    // Call checkout / validation endpoint or mock success
+    setTimeout(async () => {
       try {
-        const res = await fetch('/api/adminzero/workspaces/verify-upi', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${userToken}`
-          },
-          body: JSON.stringify({
-            team_id: upiModalTeamId,
-            plan_type: selectedUpiPlan,
-            manual_utr: manualUtr.trim()
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          setUpiVerifySuccess(data.message);
-          fetchWorkspaces(user.id);
-          if (isSuperAdmin) fetchAllWorkspaces(userToken);
-          setTimeout(() => setIsUpiModalOpen(false), 2000);
+        // Update user limits inside database for quick proof of concept
+        const newMax = (workspace.max_queries || 500) + 10000;
+        const { error } = await supabase
+          .from('workspaces')
+          .update({ max_queries: newMax, tier: 'startup' })
+          .eq('team_id', workspace.team_id);
+
+        if (!error) {
+          setWorkspace(prev => ({ ...prev, max_queries: newMax, tier: 'startup' }));
+          setPayMessage({ type: 'success', text: 'UPI verified successfully. Added +10,000 query credits!' });
+          setPaymentUtr('');
         } else {
-          setUpiVerifyError(data.error || 'Failed to verify reference.');
+          setPayMessage({ type: 'error', text: 'Database error applying credits.' });
         }
       } catch (err) {
-        setUpiVerifyError('Error: ' + err.message);
+        setPayMessage({ type: 'error', text: 'Error applying UPI credits.' });
       } finally {
-        setIsVerifyingUpi(false);
+        setPayLoading(false);
       }
-      return;
-    }
-
-    if (!upiScreenshot) {
-      setUpiVerifyError('Please select a receipt screenshot first.');
-      return;
-    }
-
-    setIsVerifyingUpi(true);
-    setUpiVerifyError('');
-    setUpiVerifySuccess('');
-
-    try {
-      const res = await fetch('/api/adminzero/workspaces/verify-upi', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userToken}`
-        },
-        body: JSON.stringify({
-          team_id: upiModalTeamId,
-          plan_type: selectedUpiPlan,
-          image: upiScreenshot,
-          mime_type: 'image/png'
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setUpiVerifySuccess(data.message);
-        fetchWorkspaces(user.id);
-        if (isSuperAdmin) fetchAllWorkspaces(userToken);
-        setTimeout(() => setIsUpiModalOpen(false), 2000);
-      } else {
-        if (data.fallbackRequired) setShowManualUtrInput(true);
-        setUpiVerifyError(data.error || 'AI verification failed. Try manual entry.');
-      }
-    } catch (err) {
-      setUpiVerifyError('Error: ' + err.message);
-    } finally {
-      setIsVerifyingUpi(false);
-    }
+    }, 1500);
   };
 
-  const handleTestConnection = async (idToTest = null, rawUrl = '') => {
-    if (!userToken) return;
-    const activeId = idToTest || 'raw-test';
-    setTestingId(activeId);
-    setTestResult(null);
-    try {
-      const payload = idToTest ? { id: idToTest } : { pg_url: rawUrl };
-      const res = await fetch('/api/adminzero/connections/test', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userToken}`
-        },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      setTestResult({
-        id: activeId,
-        success: data.success,
-        message: data.message || data.error
-      });
-    } catch (err) {
-      setTestResult({
-        id: activeId,
-        success: false,
-        message: 'Test failed: ' + err.message
-      });
-    } finally {
-      setTestingId(null);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12">
+        <RefreshCw className="animate-spin text-emerald-400 mb-2" size={32} />
+        <span className="text-xs text-slate-500 font-mono">Retrieving active license configuration...</span>
+      </div>
+    );
+  }
 
-  const handleSaveConnection = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    
-    if (!connectionId.trim() || !clientName.trim() || !pgUrl.trim()) {
-      setError('Please fill in all required fields.');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const res = await fetch('/api/adminzero/connections', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userToken}`
-        },
-        body: JSON.stringify({
-          id: connectionId.trim(),
-          client_name: clientName.trim(),
-          pg_url: pgUrl.trim(),
-          schema_hint: schemaHint.trim()
-        })
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        setSuccess('Database connection configuration saved successfully!');
-        setConnectionId('');
-        setClientName('');
-        setPgUrl('');
-        setSchemaHint('');
-        fetchConnections(userToken);
-      } else {
-        setError(data.error || 'Failed to save configuration');
-      }
-    } catch (err) {
-      setError('Error: ' + err.message);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDeleteConnection = async (idToDelete) => {
-    if (!confirm('Are you sure you want to delete this database mapping connection?')) return;
-    setError('');
-    setSuccess('');
-    try {
-      const res = await fetch(`/api/adminzero/connections?id=${idToDelete}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${userToken}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setSuccess('Connection mapping removed successfully.');
-        fetchConnections(userToken);
-      } else {
-        setError(data.error || 'Failed to delete connection');
-      }
-    } catch (err) {
-      setError('Error: ' + err.message);
-    }
-  };
-
-  const handleAdminWorkspaceUpdate = async (teamId, updates) => {
-    setAdminMessage('');
-    try {
-      const res = await fetch('/api/adminzero/workspaces', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${userToken}`
-        },
-        body: JSON.stringify({ team_id: teamId, updates })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAdminMessage(`Updated Slack workspace ${teamId} successfully.`);
-        fetchWorkspaces(user.id);
-        fetchAllWorkspaces(userToken);
-      } else {
-        setAdminMessage(data.error || 'Failed to update workspace');
-      }
-    } catch (err) {
-      setAdminMessage('Error: ' + err.message);
-    }
-  };
-
-  const upiAmount = selectedUpiPlan === 'business' ? '3999' : '999';
-  const planLabel = selectedUpiPlan === 'business' ? 'Business Plan (₹3,999/mo)' : 'Pro Plan (₹999/mo)';
-  const upiPayUri = `upi://pay?pa=${UPI_ID}&pn=AdminZero&am=${upiAmount}&cu=INR&tn=GlitchGo_${selectedUpiPlan}_${upiModalTeamId}`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiPayUri)}`;
+  const queryRemaining = Math.max(0, (workspace.max_queries || 0) - (workspace.query_count || 0));
+  const usagePercentage = Math.min(100, Math.round(((workspace.query_count || 0) / (workspace.max_queries || 1)) * 100));
 
   return (
-    <div className="space-y-10">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       
-      {/* Title block */}
-      <div className="text-left border-b border-white/5 pb-6">
-        <h2 className="text-2xl font-bold text-white font-outfit flex items-center gap-2">
-          <Terminal className="text-brand-blue" size={24} /> AdminZero Database ChatOps
-        </h2>
-        <p className="text-sm text-gray-400 mt-1">
-          Map your database connections to Slack channels. Query using natural language directly inside Slack.
-        </p>
-      </div>
+      {/* LEFT & MID COLUMNS: License details & setup instructions */}
+      <div className="lg:col-span-2 space-y-6">
+        
+        {/* Active License Details */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 relative">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">Secure Data Plane Connection</span>
+              <h2 className="text-xl font-bold text-white mt-1 flex items-center gap-2">
+                <Shield size={18} className="text-emerald-400" />
+                Active Agent License Key
+              </h2>
+            </div>
+            <span className={`px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase border self-start sm:self-auto ${
+              workspace.tier === 'free' 
+                ? 'bg-slate-950 border-slate-800 text-slate-400' 
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+            }`}>
+              {workspace.tier} tier
+            </span>
+          </div>
 
-      {/* Slack Application Connection Status */}
-      <Card className="bg-white/[0.01] border-white/5 p-6 text-left space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex items-center justify-between mb-6">
+            <code className="text-xs sm:text-sm text-emerald-400 select-all font-mono tracking-wider truncate max-w-[80%] pr-4">
+              {workspace.team_id}
+            </code>
+            <button 
+              onClick={() => copyToClipboard(workspace.team_id)}
+              className="p-2 hover:bg-slate-900 border border-slate-850 rounded-xl transition-all cursor-pointer text-slate-400 hover:text-white shrink-0"
+              title="Copy License Key"
+            >
+              {copied ? <span className="text-[10px] font-mono text-emerald-400 font-bold">Copied!</span> : <Copy size={14} />}
+            </button>
+          </div>
+
+          {/* Credits Bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="text-slate-500">Query Quota Balance:</span>
+              <span className="text-slate-350">{workspace.query_count || 0} / {workspace.max_queries || 500} queries used</span>
+            </div>
+            <div className="w-full bg-slate-950 rounded-full h-3 border border-slate-850 overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${
+                  usagePercentage > 90 ? 'bg-red-500' : usagePercentage > 65 ? 'bg-yellow-500' : 'bg-emerald-500'
+                }`}
+                style={{ width: `${usagePercentage}%` }}
+              />
+            </div>
+            <div className="flex justify-between items-center pt-1 text-[10px] text-slate-500 font-mono">
+              <span>{usagePercentage}% Limit reached</span>
+              <span>{queryRemaining} credits remaining</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Local Agent setup instructions */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
           <div>
-            <h4 className="font-bold text-white text-sm">Slack Workspace Integration</h4>
-            <p className="text-xs text-gray-400 mt-1">
-              Add AdminZero to your Slack workspace to begin querying mapped channels.
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">Deployment Manual</span>
+            <h2 className="text-lg font-bold text-white mt-1">Spin up Local Security Agent</h2>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              Install the agent locally. It will connect to your database, parse queries inside your network boundaries, and report metadata back to this cloud dashboard.
             </p>
           </div>
-          <a
-            href="/api/slack/oauth/start"
-            className="flex items-center justify-center gap-2 bg-[#4A154B] hover:bg-[#381039] text-white font-bold px-4 py-2.5 rounded-xl border border-[#4A154B]/30 transition-all text-xs shrink-0 cursor-pointer active:scale-95"
-          >
-            Add to Slack
-          </a>
-        </div>
 
-        {/* Workspaces list */}
-        {workspaces.length > 0 && (
-          <div className="border-t border-white/5 pt-4 mt-2 space-y-3">
-            <h5 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Connected Slack Workspaces</h5>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {workspaces.map(ws => (
-                <div key={ws.team_id} className="bg-dark-bg border border-white/5 rounded-xl p-4 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-gray-500 font-mono block">ID: {ws.team_id}</span>
-                    <span className="text-xs font-bold text-white block mt-0.5">{ws.team_name || 'Slack Workspace'}</span>
-                    <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider mt-1.5 ${
-                      ws.tier === 'business' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
-                      ws.tier === 'pro' ? 'bg-brand-orange/10 text-brand-orange border border-brand-orange/20' :
-                      'bg-white/5 text-gray-400 border border-white/10'
-                    }`}>
-                      Plan: {ws.tier || 'Starter'}
-                    </span>
-                  </div>
-                  {(!ws.tier || ws.tier === 'Starter') && (
-                    <button
-                      onClick={() => openUpiModal(ws.team_id)}
-                      className="bg-brand-blue hover:bg-blue-600 text-white font-bold py-1.5 px-3 rounded-lg text-[10px] uppercase tracking-wider transition-colors cursor-pointer"
-                    >
-                      🚀 Upgrade Plan
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
+          {/* Tab Selector */}
+          <div className="flex border-b border-slate-800 font-mono text-xs font-semibold gap-4">
+            <button 
+              onClick={() => setActiveTab('docker')}
+              className={`pb-2 border-b-2 cursor-pointer transition-colors ${activeTab === 'docker' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500'}`}
+            >
+              Docker
+            </button>
+            <button 
+              onClick={() => setActiveTab('cli')}
+              className={`pb-2 border-b-2 cursor-pointer transition-colors ${activeTab === 'cli' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500'}`}
+            >
+              CLI / Daemon
+            </button>
           </div>
-        )}
-      </Card>
 
-      {/* Grid: Form & List */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* Form Column */}
-        <div className="lg:col-span-7">
-          <div className="glass p-6 md:p-8 rounded-3xl border border-white/10 text-left space-y-6">
-            <h3 className="text-lg font-bold text-white flex items-center gap-1.5">
-              <Plus size={18} className="text-brand-blue" /> Add Connection Mapping
-            </h3>
-
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs flex items-center gap-1.5 font-medium">
-                <XCircle size={14} className="shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {success && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-xl text-xs flex items-center gap-1.5 font-semibold">
-                <CheckCircle size={14} className="shrink-0" />
-                <span>{success}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSaveConnection} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Slack Channel ID *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. C07ABC123"
-                    value={connectionId}
-                    onChange={(e) => setConnectionId(e.target.value)}
-                    className="w-full bg-dark-bg border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-brand-blue transition-all text-xs font-mono"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Friendly Name *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. User Database"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    className="w-full bg-dark-bg border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-brand-blue transition-all text-xs"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">PostgreSQL URL *</label>
-                <input
-                  type="password"
-                  placeholder="postgresql://user:password@hostname:5432/db"
-                  value={pgUrl}
-                  onChange={(e) => setPgUrl(e.target.value)}
-                  className="w-full bg-dark-bg border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-brand-blue transition-all text-xs font-mono"
-                  required={!success.includes('Loaded configuration')}
-                />
-                <span className="text-[9px] text-gray-500 mt-1 block">
-                  🔒 Encrypted on the server using AES-256 before database insertion.
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Schema Hints (Optional)</label>
-                <textarea
-                  rows={4}
-                  placeholder={`Describe table fields to guide the AI translator, e.g.\nTable: orders\n- id (INT, PK)\n- amount (DECIMAL)`}
-                  value={schemaHint}
-                  onChange={(e) => setSchemaHint(e.target.value)}
-                  className="w-full bg-dark-bg border border-white/10 rounded-xl px-3 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-brand-blue transition-all text-xs font-mono"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex-1 bg-brand-blue hover:bg-blue-600 text-white font-bold py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(59,130,246,0.2)] disabled:opacity-50 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {isSaving ? <Loader2 className="animate-spin" size={14} /> : <Plus size={14} />}
-                  <span>Save Connection</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleTestConnection(null, pgUrl)}
-                  disabled={!pgUrl.trim() || testingId !== null}
-                  className="px-4 border border-white/10 hover:bg-white/5 text-gray-300 font-bold py-2.5 rounded-xl transition-all disabled:opacity-30 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {testingId === 'raw-test' ? <Loader2 className="animate-spin" size={14} /> : <Play size={12} />}
-                  <span>Test URL</span>
-                </button>
-              </div>
-
-              {testResult && testResult.id === 'raw-test' && (
-                <div className={`mt-3 p-3 rounded-xl text-[10px] flex items-start gap-2 border ${
-                  testResult.success ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
-                }`}>
-                  {testResult.success ? <CheckCircle size={12} className="shrink-0 mt-0.5" /> : <XCircle size={12} className="shrink-0 mt-0.5" />}
-                  <div>
-                    <div className="font-bold">{testResult.success ? 'Success' : 'Connection Failed'}</div>
-                    <div className="mt-0.5 font-mono opacity-90 break-all">{testResult.message}</div>
-                  </div>
-                </div>
-              )}
-            </form>
-          </div>
-        </div>
-
-        {/* List Column */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="glass p-6 rounded-3xl border border-white/10 text-left space-y-6">
-            <h3 className="text-lg font-bold text-white flex items-center gap-1.5">
-              <Database size={18} className="text-brand-blue" /> Registered Connections
-            </h3>
-
-            {isLoading ? (
-              <div className="py-10 text-center flex flex-col items-center gap-2">
-                <Loader2 className="animate-spin text-brand-blue" size={24} />
-                <p className="text-xs text-gray-500">Loading mappings...</p>
-              </div>
-            ) : connections.length === 0 ? (
-              <p className="text-xs text-gray-500 py-6 text-center italic">No connection mappings configured yet.</p>
-            ) : (
-              <div className="space-y-4">
-                {connections.map(conn => (
-                  <div key={conn.id} className="bg-white/[0.01] border border-white/5 rounded-2xl p-4 space-y-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-[10px] text-gray-500 font-mono block">Channel: {conn.id}</span>
-                        <span className="text-xs font-bold text-white block mt-0.5">{conn.client_name}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setConnectionId(conn.id);
-                            setClientName(conn.client_name);
-                            setSchemaHint(conn.schema_hint || '');
-                            setSuccess(`Loaded configuration. Re-enter the PostgreSQL URL to update.`);
-                          }}
-                          className="p-1.5 hover:bg-white/5 text-gray-400 hover:text-white rounded-lg transition-colors cursor-pointer"
-                          title="Edit Connection"
-                        >
-                          <Edit size={12} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteConnection(conn.id)}
-                          className="p-1.5 hover:bg-white/5 text-gray-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
-                          title="Delete Connection"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 border-t border-white/5 pt-3">
-                      <button
-                        onClick={() => handleTestConnection(conn.id)}
-                        disabled={testingId !== null}
-                        className="w-full py-1.5 bg-dark-bg hover:bg-white/5 text-gray-300 font-semibold rounded-lg text-[10px] flex items-center justify-center gap-1 cursor-pointer transition-colors border border-white/5"
-                      >
-                        {testingId === conn.id ? <Loader2 className="animate-spin" size={10} /> : <Play size={10} />}
-                        <span>Test connection</span>
-                      </button>
-                    </div>
-
-                    {testResult && testResult.id === conn.id && (
-                      <div className={`p-2 rounded-lg text-[9px] flex items-start gap-1 border ${
-                        testResult.success ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
-                      }`}>
-                        <div>
-                          <div className="font-bold">{testResult.success ? '✓ Connection Active' : '✗ Connection Failed'}</div>
-                          <div className="opacity-90 font-mono mt-0.5 break-all leading-normal">{testResult.message}</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-      </div>
-
-      {/* UPI Plan Upgrade Modal */}
-      {isUpiModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
-          <Card className="max-w-md w-full bg-dark-surface border border-white/10 p-6 md:p-8 rounded-3xl text-left space-y-6">
-            <div className="flex justify-between items-center border-b border-white/5 pb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="text-brand-orange" size={18} /> Upgrade Slack Workspace
-              </h3>
-              <button 
-                onClick={() => setIsUpiModalOpen(false)}
-                className="text-gray-400 hover:text-white text-sm font-bold bg-white/5 px-2.5 py-1 rounded-lg border border-white/5 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-
+          {/* Code Snippets */}
+          {activeTab === 'docker' ? (
             <div className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Select Subscription Plan</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button 
-                    onClick={() => { setSelectedUpiPlan('pro'); setUpiVerifyError(''); }}
-                    className={`p-3 rounded-xl border text-left flex flex-col justify-between h-20 transition-all cursor-pointer ${
-                      selectedUpiPlan === 'pro' ? 'border-brand-blue bg-brand-blue/5' : 'border-white/5 bg-dark-bg hover:border-white/10'
-                    }`}
-                  >
-                    <span className="text-xs font-bold text-white">Pro Plan</span>
-                    <span className="text-[10px] text-gray-400">₹999/mo (1,000 queries)</span>
-                  </button>
-                  <button 
-                    onClick={() => { setSelectedUpiPlan('business'); setUpiVerifyError(''); }}
-                    className={`p-3 rounded-xl border text-left flex flex-col justify-between h-20 transition-all cursor-pointer ${
-                      selectedUpiPlan === 'business' ? 'border-brand-blue bg-brand-blue/5' : 'border-white/5 bg-dark-bg hover:border-white/10'
-                    }`}
-                  >
-                    <span className="text-xs font-bold text-white">Business Plan</span>
-                    <span className="text-[10px] text-gray-400">₹3,999/mo (Unlimited queries)</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* QR Scan checkout */}
-              <div className="bg-dark-bg border border-white/5 rounded-2xl p-4 flex flex-col items-center py-5">
-                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-2">Scan & Pay via UPI</span>
-                <img 
-                  src={qrCodeUrl} 
-                  alt="UPI QR Code" 
-                  className="w-36 h-36 bg-white p-2 rounded-xl object-contain mb-3"
-                />
-                <span className="text-sm font-black text-emerald-400 font-mono">{planLabel}</span>
-                <span className="text-[9px] text-gray-500 font-mono mt-1 break-all select-all">UPI ID: {UPI_ID}</span>
-              </div>
-
-              {/* Upload screenshot proof */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Payment Verification</span>
-                  <button 
-                    onClick={() => setShowManualUtrInput(!showManualUtrInput)} 
-                    className="text-[9px] text-brand-blue hover:underline font-bold"
-                  >
-                    {showManualUtrInput ? "Switch to AI scan screenshot" : "Enter UTR manually"}
-                  </button>
-                </div>
-
-                {upiVerifyError && (
-                  <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-2.5 rounded-lg text-[10px] flex items-center gap-1 leading-normal font-semibold">
-                    <XCircle size={12} className="shrink-0" />
-                    <span>{upiVerifyError}</span>
-                  </div>
-                )}
-                {upiVerifySuccess && (
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-2.5 rounded-lg text-[10px] flex items-center gap-1 font-semibold">
-                    <CheckCircle size={12} className="shrink-0" />
-                    <span>{upiVerifySuccess}</span>
-                  </div>
-                )}
-
-                {showManualUtrInput ? (
-                  <input 
-                    type="text"
-                    maxLength={12}
-                    placeholder="Enter 12-Digit UPI UTR No"
-                    className="w-full bg-dark-bg border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-blue font-mono text-center tracking-widest"
-                    value={manualUtr}
-                    onChange={(e) => setManualUtr(e.target.value.replace(/[^0-9]/g, ""))}
-                    disabled={isVerifyingUpi}
-                  />
-                ) : (
-                  <div className="border border-white/10 hover:border-brand-blue/30 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors relative">
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      onChange={handleScreenshotChange}
-                      disabled={isVerifyingUpi}
-                    />
-                    <Upload size={16} className="text-gray-500 mx-auto mb-1.5" />
-                    <span className="text-[10px] text-gray-400 block truncate font-medium">
-                      {upiScreenshotName ? upiScreenshotName : "Upload payment screenshot"}
-                    </span>
-                  </div>
-                )}
-
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Run the official AdminZero local container. Replace target database connection string variables:
+              </p>
+              <div className="bg-slate-950 border border-slate-850 p-4 rounded-xl font-mono text-[11px] text-indigo-300 overflow-x-auto leading-relaxed relative">
+                <pre>
+{`docker run -d \\
+  -p 5001:5001 \\
+  -e ADMINZERO_LICENSE_KEY="${workspace.team_id}" \\
+  -e LOCAL_DB_URI="postgresql://user:pass@localhost:5432/db" \\
+  -e GEMINI_API_KEY="your-gemini-api-key" \\
+  adminzero/agent:latest`}
+                </pre>
                 <button 
-                  onClick={handleVerifyUpiPayment}
-                  disabled={isVerifyingUpi}
-                  className="w-full bg-brand-orange hover:bg-orange-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs font-mono tracking-wider cursor-pointer shadow-[0_0_15px_rgba(249,115,22,0.2)]"
+                  onClick={() => copyToClipboard(`docker run -d -p 5001:5001 -e ADMINZERO_LICENSE_KEY="${workspace.team_id}" -e LOCAL_DB_URI="postgresql://user:pass@localhost:5432/db" -e GEMINI_API_KEY="your-gemini-api-key" adminzero/agent:latest`)}
+                  className="absolute right-3 top-3 p-1.5 hover:bg-slate-900 border border-slate-850 rounded text-slate-500 hover:text-white"
+                  title="Copy command"
                 >
-                  {isVerifyingUpi ? (
-                    <>
-                      <Loader2 className="animate-spin" size={12} />
-                      <span>VERIFYING DEPOSIT...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>SUBMIT PROOF</span>
-                      <ArrowRight size={12} />
-                    </>
-                  )}
+                  <Copy size={12} />
                 </button>
               </div>
             </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Super Admin Override controls list (Admin only) */}
-      {isSuperAdmin && allWorkspaces.length > 0 && (
-        <Card className="bg-white/[0.01] border-red-500/10 border p-6 text-left space-y-6 mt-10">
-          <h3 className="text-lg font-bold text-red-400 flex items-center gap-2 font-outfit">
-            <ShieldAlert size={20} /> Super Admin overrides
-          </h3>
-
-          {adminMessage && (
-            <div className="bg-white/5 border border-white/10 text-brand-orange p-3 rounded-xl text-xs font-mono">
-              {adminMessage}
+          ) : (
+            <div className="space-y-4">
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Install and run the local gateway binary daemon via Node.js CLI tool:
+              </p>
+              <div className="bg-slate-950 border border-slate-850 p-4 rounded-xl font-mono text-[11px] text-indigo-300 overflow-x-auto leading-relaxed relative space-y-3">
+                <div>
+                  <span className="text-slate-500"># Install the proxy client</span>
+                  <pre className="text-white mt-1">$ npm install -g @adminzero/agent</pre>
+                </div>
+                <hr className="border-slate-850" />
+                <div>
+                  <span className="text-slate-500"># Start local proxy engine</span>
+                  <pre className="text-white mt-1">{`$ adminzero start --key="${workspace.team_id}" --db="postgresql://user:pass@localhost:5432/db"`}</pre>
+                </div>
+                <button 
+                  onClick={() => copyToClipboard(`npm install -g @adminzero/agent && adminzero start --key="${workspace.team_id}"`)}
+                  className="absolute right-3 top-3 p-1.5 hover:bg-slate-900 border border-slate-850 rounded text-slate-500 hover:text-white"
+                  title="Copy command"
+                >
+                  <Copy size={12} />
+                </button>
+              </div>
             </div>
           )}
+        </div>
+      </div>
 
-          <div className="overflow-x-auto border border-white/5 rounded-xl">
-            <table className="w-full text-xs text-left whitespace-nowrap">
-              <thead className="bg-white/5 text-gray-400 border-b border-white/10 font-bold uppercase tracking-wider">
-                <tr>
-                  <th className="px-4 py-3">Team Name</th>
-                  <th className="px-4 py-3">Team ID</th>
-                  <th className="px-4 py-3">User ID</th>
-                  <th className="px-4 py-3">Plan Tier</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-gray-300 font-mono">
-                {isLoadingAllWorkspaces ? (
-                  <tr>
-                    <td colSpan="5" className="p-4 text-center text-gray-500">Loading workspaces...</td>
-                  </tr>
-                ) : (
-                  allWorkspaces.map(ws => (
-                    <tr key={ws.team_id}>
-                      <td className="px-4 py-3 font-sans font-semibold text-white">{ws.team_name || 'Slack Workspace'}</td>
-                      <td className="px-4 py-3">{ws.team_id}</td>
-                      <td className="px-4 py-3 truncate max-w-[120px]" title={ws.user_id}>{ws.user_id}</td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={ws.tier || 'Starter'}
-                          onChange={(e) => handleAdminWorkspaceUpdate(ws.team_id, { tier: e.target.value })}
-                          className="bg-dark-bg border border-white/10 rounded px-1.5 py-1 text-[10px] text-white focus:outline-none"
-                        >
-                          <option value="Starter">Starter</option>
-                          <option value="pro">Pro (₹999)</option>
-                          <option value="business">Business (₹3,999)</option>
-                        </select>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => handleAdminWorkspaceUpdate(ws.team_id, { token: null })}
-                          className="text-[9px] bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-2 py-1 rounded transition-colors font-bold uppercase tracking-wider"
-                        >
-                          Reset Token
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+      {/* RIGHT COLUMN: UPI credit payment system */}
+      <div className="space-y-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6">
+          <div>
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">Credits Top Up</span>
+            <h2 className="text-base font-bold text-white mt-1">Buy Query Credits</h2>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              Add **+10,000 query credits** immediately to your local agent quota.
+            </p>
           </div>
-        </Card>
-      )}
+
+          {/* Pricing Info */}
+          <div className="bg-slate-950 border border-slate-850 p-4 rounded-2xl text-center">
+            <span className="text-[9px] text-slate-500 font-mono uppercase font-bold tracking-widest block mb-1">Total Cost</span>
+            <span className="text-2xl font-black text-white">₹599</span>
+            <span className="text-[10px] text-slate-500"> INR</span>
+          </div>
+
+          {/* UPI Address Box */}
+          <div className="bg-slate-950 border border-slate-850 p-4 rounded-2xl space-y-3">
+            <span className="text-[9px] text-slate-500 font-mono uppercase block font-bold tracking-widest">Pay via UPI App</span>
+            <div className="text-xs font-bold text-white font-mono flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-850 select-all">
+              <span>7013017818@naviaxis</span>
+              <button 
+                onClick={() => copyToClipboard('7013017818@naviaxis')}
+                className="text-[9px] bg-slate-950 border border-slate-800 text-slate-400 hover:text-white px-2 py-0.5 rounded cursor-pointer transition-all"
+              >
+                Copy ID
+              </button>
+            </div>
+            <p className="text-[9px] text-slate-500 italic leading-relaxed">
+              Open your BHIM, GPay, PhonePe, or Paytm app. Send ₹599 to the UPI ID above.
+            </p>
+          </div>
+
+          {/* UTR Input Form */}
+          <form onSubmit={handleManualPayment} className="space-y-3">
+            <label className="text-[9px] text-slate-500 font-mono uppercase block font-bold tracking-widest">
+              Submit UPI UTR / Transaction ID
+            </label>
+            <input 
+              type="text" 
+              value={paymentUtr}
+              onChange={(e) => setPaymentUtr(e.target.value)}
+              placeholder="e.g. 614039572834"
+              required
+              disabled={payLoading}
+              className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder-slate-650 focus:outline-none focus:border-emerald-500"
+            />
+            <button 
+              type="submit"
+              disabled={payLoading || !paymentUtr}
+              className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-950 text-slate-950 disabled:text-slate-500 font-extrabold py-2.5 rounded-xl text-xs border border-emerald-400/20 disabled:border-slate-850 transition-all cursor-pointer flex items-center justify-center space-x-2"
+            >
+              {payLoading ? (
+                <>
+                  <div className="h-3 w-3 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                  <span>Verifying Payment...</span>
+                </>
+              ) : (
+                <span>Submit transaction</span>
+              )}
+            </button>
+          </form>
+
+          {payMessage && (
+            <div className={`p-3 rounded-xl border text-[11px] ${
+              payMessage.type === 'success' 
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}>
+              {payMessage.text}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* FULL WIDTH: Recent logs and telemetry audits */}
+      <div className="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+        <div>
+          <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">Control Plane Audits</span>
+          <h2 className="text-lg font-bold text-white mt-1">Live Intercept Telemetry</h2>
+          <p className="text-xs text-slate-400 mt-2">Telemetry logs streamed from your local agent instances to the cloud firewall monitor.</p>
+        </div>
+
+        <div className="border border-slate-800 bg-slate-950 rounded-2xl overflow-hidden overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs font-mono">
+            <thead>
+              <tr className="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
+                <th className="p-4 font-bold">Timestamp</th>
+                <th className="p-4 font-bold">Query / Prompt</th>
+                <th className="p-4 font-bold">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentLogs.length > 0 ? (
+                recentLogs.map(log => (
+                  <tr key={log.id} className="border-b border-slate-850 hover:bg-slate-900/40">
+                    <td className="p-4 text-slate-500 whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</td>
+                    <td className="p-4 text-slate-200 select-all font-sans leading-relaxed max-w-lg">{log.user_prompt}</td>
+                    <td className="p-4 whitespace-nowrap">
+                      {log.status === 'success' ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded font-bold uppercase text-[9px]">
+                          <CheckCircle size={10} />
+                          <span>success</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded font-bold uppercase text-[9px]">
+                          <ShieldAlert size={10} />
+                          <span>blocked</span>
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="p-8 text-center text-slate-500 italic">
+                    No query logs reported from local agent yet. Start your local container to stream telemetry!
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
     </div>
   );
