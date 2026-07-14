@@ -36,6 +36,11 @@ export async function validateQuery(
     throw new Error('[AdminZero SecOps] THREAT BLOCKED: Unparseable SQL Syntax payload detected. Failsafe Closed.');
   }
 
+  // Block query stacking / multiple statements in a single batch for strict transaction bounds
+  if (astArray.length > 1) {
+    throw new Error('[AdminZero SecOps] THREAT BLOCKED: Multiple SQL statements in a single transaction (query stacking) are forbidden.');
+  }
+
   const normalizedForbidden = forbiddenTables.map(t => t.toLowerCase());
 
   // Recursive AST scanner checking all child nodes for unauthorized types
@@ -60,26 +65,34 @@ export async function validateQuery(
       }
     }
 
-    // Check table references
-    if (node.type === 'tableRef' && node.name) {
-      // Strip brackets, backticks, or double-quotes from table/schema names
-      const tableNameClean = String(node.name).replace(/[`"\[\]]/g, '').toLowerCase();
-      const schemaNameClean = node.schema ? String(node.schema).replace(/[`"\[\]]/g, '').toLowerCase() : '';
+    // Check table references (pgsql-ast-parser uses type 'table' and names can be objects containing schema/name keys)
+    if (node.type === 'table' && node.name) {
+      let tableNameClean = '';
+      let schemaNameClean = '';
+
+      if (typeof node.name === 'string') {
+        tableNameClean = node.name.replace(/[`"\[\]]/g, '').toLowerCase();
+      } else if (typeof node.name === 'object') {
+        tableNameClean = String(node.name.name || '').replace(/[`"\[\]]/g, '').toLowerCase();
+        if (node.name.schema) {
+          schemaNameClean = String(node.name.schema).replace(/[`"\[\]]/g, '').toLowerCase();
+        }
+      }
 
       // Block access to forbidden tables
       if (normalizedForbidden.includes(tableNameClean)) {
-        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: Restricted table access attempt on '${node.name}'.`);
+        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: Restricted table access attempt on '${tableNameClean}'.`);
       }
 
       // Block access to internal metadata schemas (schema-harvesting protection)
       const sensitiveSchemas = ['information_schema', 'pg_catalog', 'performance_schema', 'sys', 'mysql'];
       if (sensitiveSchemas.includes(schemaNameClean) || sensitiveSchemas.includes(tableNameClean)) {
-        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: Administrative database schema access denied on '${node.name}'.`);
+        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: Administrative database schema access denied on '${tableNameClean}'.`);
       }
       
       // Block prefix system tables (e.g. pg_shadow, pg_authid)
       if (tableNameClean.startsWith('pg_') || tableNameClean.startsWith('mysql_')) {
-        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: System table access attempt on '${node.name}'.`);
+        throw new Error(`[AdminZero SecOps] THREAT BLOCKED: System table access attempt on '${tableNameClean}'.`);
       }
     }
 
@@ -110,12 +123,12 @@ export async function validateQuery(
     }
   }
 
-  // Iterate through all parsed statements in the batch (blocks semicolon stacked queries)
+  // Iterate through all parsed statements in the batch
   for (const stmt of astArray) {
     if (stmt.type) {
       const stmtType = String(stmt.type).toLowerCase();
-      // Allow only SELECT, SHOW, or DESCRIBE statements
-      const allowedTypes = ['select', 'show', 'describe'];
+      // Allow SELECT, SHOW, DESCRIBE, and WITH statements
+      const allowedTypes = ['select', 'show', 'describe', 'with'];
       const isAllowed = allowedTypes.some(allowed => stmtType.includes(allowed));
       if (!isAllowed) {
         throw new Error(

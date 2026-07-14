@@ -173,6 +173,11 @@ function checkAstSafety(sql, dialect, blockedTables, enforceReadOnly) {
       const ast = parse(sql);
       const normalizedBlocked = blockedTables.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
       
+      // Block query stacking / multiple statements in a single batch
+      if (ast.length > 1) {
+        throw new Error('THREAT BLOCKED: Multiple SQL statements in a single transaction (query stacking) are forbidden.');
+      }
+
       const checkNode = (node) => {
         if (!node || typeof node !== 'object') return;
         
@@ -189,22 +194,31 @@ function checkAstSafety(sql, dialect, blockedTables, enforceReadOnly) {
           }
         }
         
-        // Table reference check (forbidden tables & metadata schemas)
-        if (node.type === 'tableRef' && node.name) {
-          const tableNameClean = String(node.name).replace(/[`"\[\]]/g, '').toLowerCase();
-          const schemaNameClean = node.schema ? String(node.schema).replace(/[`"\[\]]/g, '').toLowerCase() : '';
+        // Table reference check (pgsql-ast-parser uses type 'table' and names can be objects containing schema/name keys)
+        if (node.type === 'table' && node.name) {
+          let tableNameClean = '';
+          let schemaNameClean = '';
+
+          if (typeof node.name === 'string') {
+            tableNameClean = node.name.replace(/[`"\[\]]/g, '').toLowerCase();
+          } else if (typeof node.name === 'object') {
+            tableNameClean = String(node.name.name || '').replace(/[`"\[\]]/g, '').toLowerCase();
+            if (node.name.schema) {
+              schemaNameClean = String(node.name.schema).replace(/[`"\[\]]/g, '').toLowerCase();
+            }
+          }
 
           if (normalizedBlocked.includes(tableNameClean)) {
-            throw new Error(`THREAT BLOCKED: Restricted table access attempt on '${node.name}'.`);
+            throw new Error(`THREAT BLOCKED: Restricted table access attempt on '${tableNameClean}'.`);
           }
 
           const sensitiveSchemas = ['information_schema', 'pg_catalog', 'performance_schema', 'sys', 'mysql'];
           if (sensitiveSchemas.includes(schemaNameClean) || sensitiveSchemas.includes(tableNameClean)) {
-            throw new Error(`THREAT BLOCKED: Administrative database schema access denied on '${node.name}'.`);
+            throw new Error(`THREAT BLOCKED: Administrative database schema access denied on '${tableNameClean}'.`);
           }
           
           if (tableNameClean.startsWith('pg_') || tableNameClean.startsWith('mysql_')) {
-            throw new Error(`THREAT BLOCKED: System table access attempt on '${node.name}'.`);
+            throw new Error(`THREAT BLOCKED: System table access attempt on '${tableNameClean}'.`);
           }
         }
 
@@ -235,7 +249,7 @@ function checkAstSafety(sql, dialect, blockedTables, enforceReadOnly) {
       for (const stmt of ast) {
         if (stmt.type) {
           const type = String(stmt.type).toLowerCase();
-          if (!['select', 'show', 'describe'].some(t => type.includes(t))) {
+          if (!['select', 'show', 'describe', 'with'].some(t => type.includes(t))) {
             throw new Error(`THREAT BLOCKED: Statement type [${type.toUpperCase()}] is forbidden.`);
           }
         }
