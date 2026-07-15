@@ -232,7 +232,7 @@ export default function Footer() {
           {/* ── BOTTOM BAR ── */}
           <div className="footer-bottom">
             <span className="footer-copy">
-              © {year} GlitchGo Technologies. All rights reserved.
+              © {year} GlitchGo. All rights reserved.
             </span>
 
             <span className="status-dot">All systems operational</span>

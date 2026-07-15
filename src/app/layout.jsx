@@ -21,9 +21,9 @@ export const metadata = {
     'PostgreSQL security',
     'LLM database protection',
   ],
-  authors: [{ name: 'GlitchGo Technologies', url: 'https://glitchgo.tech' }],
-  creator: 'GlitchGo Technologies',
-  publisher: 'GlitchGo Technologies',
+  authors: [{ name: 'GlitchGo', url: 'https://glitchgo.tech' }],
+  creator: 'GlitchGo',
+  publisher: 'GlitchGo',
   metadataBase: new URL('https://glitchgo.tech'),
 
   openGraph: {

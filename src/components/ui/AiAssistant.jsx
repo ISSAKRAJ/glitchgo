@@ -11,7 +11,7 @@ const KB = {
   },
   what: {
     triggers: ['what is', 'what does', 'explain', 'about adminzero', 'about glitchgo', 'tell me', 'overview', 'adminzero'],
-    reply: () => `**AdminZero** is a local AI database security gateway built by **GlitchGo Technologies**.\n\nIt sits between your AI agents (LangChain, ChatGPT plugins, custom LLMs) and your database — intercepting every SQL query in real-time.\n\n🔑 **Core idea:**\nYour AI generates SQL → AdminZero validates it → Only safe queries reach your DB.\n\n✅ Blocks SQL injections\n✅ Runs 100% locally\n✅ Under 4ms overhead\n✅ No cloud access to your data\n\nWant to know about pricing, installation, or the firewall?`
+    reply: () => `**AdminZero** is a local AI database security gateway built by **GlitchGo**.\n\nIt sits between your AI agents (LangChain, ChatGPT plugins, custom LLMs) and your database — intercepting every SQL query in real-time.\n\n🔑 **Core idea:**\nYour AI generates SQL → AdminZero validates it → Only safe queries reach your DB.\n\n✅ Blocks SQL injections\n✅ Runs 100% locally\n✅ Under 4ms overhead\n✅ No cloud access to your data\n\nWant to know about pricing, installation, or the firewall?`
   },
   firewall: {
     triggers: ['firewall', 'ast', 'how does it work', 'how it works', 'block', 'detect', 'injection', 'security', 'protection', 'prevent'],
@@ -35,7 +35,7 @@ const KB = {
   },
   glitchgo: {
     triggers: ['glitchgo', 'company', 'who made', 'team', 'built by', 'india', 'msme', 'founder'],
-    reply: () => `**About GlitchGo Technologies**\n\nGlitchGo is an Indian technology startup building security infrastructure for the AI era.\n\n🇮🇳 **MSME Registered** — Government of India (UDYAM-AP-17-0080333)\n\n**Our mission:** Make AI-powered applications safe by default — without requiring developers to become security experts.\n\n**AdminZero** is our flagship product — a local AI database firewall that any developer can install in 2 minutes.\n\n📧 teamglitchgo@gmail.com\n🌐 glitchgo.tech`
+    reply: () => `**About GlitchGo**\n\nGlitchGo is an Indian startup building security infrastructure for the AI era.\n\n🇮🇳 **MSME Registered** — Government of India (UDYAM-AP-17-0080333)\n\n**Our mission:** Make AI-powered applications safe by default — without requiring developers to become security experts.\n\n**AdminZero** is our flagship product — a local AI database firewall that any developer can install in 2 minutes.\n\n📧 teamglitchgo@gmail.com\n🌐 glitchgo.tech`
   },
   portal: {
     triggers: ['portal', 'dashboard', 'client', 'login', 'sign in', 'account', 'license', 'key'],
@@ -371,7 +371,7 @@ export default function AiAssistant() {
               </button>
             </div>
 
-            <div className="az-footer-brand">Powered by <span>GlitchGo Technologies</span></div>
+            <div className="az-footer-brand">Powered by <span>GlitchGo</span></div>
           </div>
         )}
 
