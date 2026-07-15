@@ -1,0 +1,6 @@
+This is a mock installer for AdminZero Windows client. Run this on your x64 Windows desktop.
+To configure:
+1. Open AdminZero desktop app.
+2. Go to settings and insert your license key.
+3. Hook up your local Postgres or MySQL database.
+4. Point your AI prompt executions to http://localhost:5001/v1/query.
