@@ -1,4 +1,5 @@
 import './globals.css';
+import AiAssistant from '../components/ui/AiAssistant';
 
 export const metadata = {
   title: {
@@ -89,6 +90,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="min-h-screen bg-dark-bg text-white antialiased selection:bg-brand-blue/30 overflow-x-hidden">
         {children}
+        <AiAssistant />
       </body>
     </html>
   );
