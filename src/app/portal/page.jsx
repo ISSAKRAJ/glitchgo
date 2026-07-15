@@ -113,11 +113,10 @@ export default function PortalPage() {
 
   if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-emerald-400" size={48} />
-          <p className="text-slate-400 text-sm font-semibold tracking-wider uppercase font-mono">Loading AdminZero portal...</p>
-        </div>
+      <div style={{minHeight:'100vh',background:'#040404',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'16px'}}>
+        <div style={{width:'44px',height:'44px',border:'2px solid rgba(234,108,18,0.12)',borderTop:'2px solid #ea6c12',borderRadius:'50%',animation:'spin 0.9s linear infinite'}} />
+        <p style={{color:'#3f3f46',fontSize:'11px',fontWeight:700,letterSpacing:'0.14em',textTransform:'uppercase',fontFamily:"'JetBrains Mono',monospace"}}>Loading AdminZero portal...</p>
+        <style>{`@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}`}</style>
       </div>
     );
   }
