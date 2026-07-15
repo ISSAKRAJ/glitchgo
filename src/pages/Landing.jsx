@@ -1,311 +1,726 @@
-import React from 'react';
+"use client";
+import React, { useEffect, useRef } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
-import { 
-  Shield, 
-  Terminal, 
-  CheckCircle2, 
-  ArrowRight, 
-  Key,
-  Network,
-  Activity,
-  ShieldAlert,
-  Download,
-  Monitor,
-  Laptop,
-  Zap,
-  Lock,
-  Eye,
-  Server
-} from 'lucide-react';
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-[#020202] text-zinc-100 font-sans selection:bg-orange-500 selection:text-black relative overflow-hidden w-full">
-      <Navbar />
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-      {/* === AMBIENT LIGHTING SYSTEM === */}
-      {/* Primary orange light source — top center */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-gradient-radial from-orange-500/8 via-orange-500/3 to-transparent rounded-full blur-[160px] pointer-events-none z-0" />
-      {/* Secondary warm accent — bottom right */}
-      <div className="fixed bottom-0 right-0 w-[700px] h-[700px] bg-gradient-radial from-amber-500/4 to-transparent rounded-full blur-[180px] pointer-events-none z-0" />
-      {/* Cool contrast — left mid */}
-      <div className="fixed top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-radial from-indigo-600/3 to-transparent rounded-full blur-[160px] pointer-events-none z-0" />
+        :root {
+          --orange: #f97316;
+          --orange-bright: #fb923c;
+          --orange-glow: rgba(249,115,22,0.18);
+          --blue: #3b82f6;
+          --blue-bright: #60a5fa;
+          --blue-glow: rgba(59,130,246,0.15);
+          --gold: #fbbf24;
+          --surface: rgba(255,255,255,0.028);
+          --surface-hover: rgba(255,255,255,0.05);
+          --border: rgba(255,255,255,0.06);
+          --border-bright: rgba(255,255,255,0.12);
+        }
 
-      {/* Grid Pattern */}
-      <div className="fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:radial-gradient(ellipse_80%_70%_at_50%_30%,black_40%,transparent_100%)] pointer-events-none z-0" />
+        .landing-root * { box-sizing: border-box; }
+        .landing-root { font-family: 'Inter', sans-serif; background: #030303; color: #e4e4e7; overflow-x: hidden; }
 
-      {/* ================================================
-          PART 1: HERO
-      ================================================ */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 pt-52 pb-28 text-center">
-        {/* Live badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-10 backdrop-blur-xl" style={{background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.15)'}}>
-          <span className="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse" />
-          <span className="text-orange-400 text-[10px] font-bold font-mono tracking-widest uppercase">AdminZero v2.4 — Now Available for All Platforms</span>
+        /* ── ANIMATED BACKGROUND ── */
+        .bg-canvas {
+          position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+        }
+        .orb {
+          position: absolute; border-radius: 50%; filter: blur(120px); will-change: transform;
+        }
+        .orb-1 {
+          width: 700px; height: 700px; top: -200px; left: 50%; transform: translateX(-50%);
+          background: radial-gradient(circle, rgba(249,115,22,0.12) 0%, rgba(234,88,12,0.04) 50%, transparent 70%);
+          animation: float1 14s ease-in-out infinite;
+        }
+        .orb-2 {
+          width: 600px; height: 600px; bottom: 10%; right: -150px;
+          background: radial-gradient(circle, rgba(59,130,246,0.10) 0%, rgba(99,102,241,0.04) 50%, transparent 70%);
+          animation: float2 18s ease-in-out infinite;
+        }
+        .orb-3 {
+          width: 500px; height: 500px; top: 40%; left: -100px;
+          background: radial-gradient(circle, rgba(249,115,22,0.07) 0%, transparent 70%);
+          animation: float3 22s ease-in-out infinite;
+        }
+        .orb-4 {
+          width: 400px; height: 400px; top: 60%; left: 50%; transform: translateX(-50%);
+          background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+          animation: float1 16s ease-in-out infinite reverse;
+        }
+
+        @keyframes float1 {
+          0%,100% { transform: translateX(-50%) translateY(0px) scale(1); }
+          33% { transform: translateX(-45%) translateY(-40px) scale(1.05); }
+          66% { transform: translateX(-55%) translateY(20px) scale(0.97); }
+        }
+        @keyframes float2 {
+          0%,100% { transform: translate(0,0) scale(1); }
+          50% { transform: translate(-40px, -60px) scale(1.08); }
+        }
+        @keyframes float3 {
+          0%,100% { transform: translate(0,0); }
+          50% { transform: translate(30px, -50px); }
+        }
+
+        /* Grid */
+        .bg-grid {
+          position: fixed; inset: 0; z-index: 0; pointer-events: none;
+          background-image: linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+          background-size: 64px 64px;
+          mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 100%);
+        }
+
+        /* Noise overlay */
+        .bg-noise {
+          position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.025;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+          background-repeat: repeat; background-size: 200px;
+        }
+
+        /* ── SECTIONS ── */
+        .section { position: relative; z-index: 10; }
+
+        /* ── GLASS CARD ── */
+        .glass {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-radius: 20px;
+          position: relative;
+          overflow: hidden;
+          transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+        }
+        .glass::before {
+          content: '';
+          position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(249,115,22,0.35), rgba(59,130,246,0.2), transparent);
+        }
+        .glass:hover {
+          background: var(--surface-hover);
+          border-color: rgba(255,255,255,0.10);
+          transform: translateY(-2px);
+        }
+
+        .glass-featured {
+          background: rgba(249,115,22,0.055);
+          border: 1.5px solid rgba(249,115,22,0.28);
+          backdrop-filter: blur(24px);
+          border-radius: 20px;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 0 80px rgba(249,115,22,0.08), 0 0 160px rgba(249,115,22,0.03);
+        }
+        .glass-featured::before {
+          content: '';
+          position: absolute; top: 0; left: 5%; right: 5%; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(249,115,22,0.8), transparent);
+        }
+
+        /* ── GRADIENT TEXT ── */
+        .grad-text-orange {
+          background: linear-gradient(135deg, #f97316 0%, #fb923c 40%, #fbbf24 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .grad-text-blue {
+          background: linear-gradient(135deg, #60a5fa 0%, #818cf8 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .grad-text-mixed {
+          background: linear-gradient(135deg, #f97316 0%, #fb923c 35%, #818cf8 70%, #60a5fa 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        /* ── GLOW BORDER ANIMATION ── */
+        @keyframes borderGlow {
+          0%,100% { opacity: 0.5; }
+          50% { opacity: 1; }
+        }
+        .animate-glow { animation: borderGlow 3s ease-in-out infinite; }
+
+        /* ── MARQUEE ── */
+        .marquee-track {
+          display: flex; gap: 48px; width: max-content;
+          animation: marquee 30s linear infinite;
+        }
+        @keyframes marquee {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        .marquee-item {
+          display: flex; align-items: center; gap: 10px;
+          color: rgba(255,255,255,0.22); font-size: 11px; font-weight: 700;
+          letter-spacing: 0.15em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace;
+          white-space: nowrap;
+        }
+        .marquee-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--orange); opacity: 0.6; }
+
+        /* ── FADE IN ── */
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.8s ease forwards; }
+        .delay-1 { animation-delay: 0.1s; opacity: 0; }
+        .delay-2 { animation-delay: 0.25s; opacity: 0; }
+        .delay-3 { animation-delay: 0.4s; opacity: 0; }
+        .delay-4 { animation-delay: 0.55s; opacity: 0; }
+
+        /* ── BADGE PULSE ── */
+        @keyframes pulse-ring {
+          0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(249,115,22,0.5); }
+          70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(249,115,22,0); }
+          100% { transform: scale(0.9); }
+        }
+        .pulse-dot { animation: pulse-ring 2s ease-out infinite; }
+
+        /* ── PRIMARY BUTTON ── */
+        .btn-primary {
+          display: inline-flex; align-items: center; gap: 10px;
+          padding: 16px 32px; border-radius: 14px;
+          background: linear-gradient(135deg, #f97316, #fb923c);
+          color: #000; font-weight: 800; font-size: 13px; letter-spacing: 0.08em;
+          text-transform: uppercase; text-decoration: none;
+          box-shadow: 0 0 40px rgba(249,115,22,0.4), 0 2px 0 rgba(255,255,255,0.12) inset;
+          transition: all 0.25s ease; border: none; cursor: pointer; position: relative; overflow: hidden;
+        }
+        .btn-primary::after {
+          content: ''; position: absolute; inset: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+          opacity: 0; transition: opacity 0.25s;
+        }
+        .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 0 60px rgba(249,115,22,0.55), 0 8px 30px rgba(0,0,0,0.4); }
+        .btn-primary:hover::after { opacity: 1; }
+        .btn-primary:active { transform: scale(0.98); }
+
+        .btn-ghost {
+          display: inline-flex; align-items: center; gap: 10px;
+          padding: 16px 32px; border-radius: 14px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          color: #e4e4e7; font-weight: 600; font-size: 13px; letter-spacing: 0.05em;
+          text-decoration: none; transition: all 0.25s ease; cursor: pointer;
+          backdrop-filter: blur(12px);
+        }
+        .btn-ghost:hover {
+          background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.14);
+          transform: translateY(-1px); color: #fff;
+        }
+
+        /* ── ICON BOX ── */
+        .icon-box {
+          display: flex; align-items: center; justify-content: center;
+          width: 44px; height: 44px; border-radius: 12px;
+          background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.15);
+          color: #f97316;
+        }
+        .icon-box-blue {
+          background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.15);
+          color: #60a5fa;
+        }
+
+        /* ── STEP NUMBER ── */
+        .step-num {
+          width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+          font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+          color: #f97316; background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.18);
+        }
+
+        /* ── DOWNLOAD CARD ── */
+        .dl-card {
+          padding: 36px 28px; border-radius: 24px; display: flex; flex-direction: column;
+          align-items: center; text-align: center; gap: 24px;
+          backdrop-filter: blur(24px); position: relative; overflow: hidden;
+          background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07);
+          transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .dl-card:hover {
+          transform: translateY(-6px) scale(1.01);
+          border-color: rgba(249,115,22,0.25);
+          background: rgba(249,115,22,0.04);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(249,115,22,0.07);
+        }
+        .dl-card::before {
+          content: ''; position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(249,115,22,0.4), transparent);
+        }
+        .dl-card-featured {
+          background: rgba(249,115,22,0.06); border: 1.5px solid rgba(249,115,22,0.25);
+          box-shadow: 0 0 80px rgba(249,115,22,0.09), 0 0 160px rgba(249,115,22,0.03);
+        }
+        .dl-card-featured::before {
+          background: linear-gradient(90deg, transparent, rgba(249,115,22,0.7), transparent);
+        }
+
+        .dl-icon-wrap {
+          width: 72px; height: 72px; border-radius: 22px; display: flex; align-items: center; justify-content: center;
+          position: relative;
+        }
+        .dl-icon-wrap::after {
+          content: ''; position: absolute; inset: -1px; border-radius: 23px;
+          background: linear-gradient(135deg, rgba(249,115,22,0.4), rgba(59,130,246,0.2), transparent);
+          z-index: -1;
+        }
+
+        .dl-btn {
+          width: 100%; padding: 13px 20px; border-radius: 12px; display: flex; align-items: center;
+          justify-content: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase;
+          letter-spacing: 0.08em; text-decoration: none; transition: all 0.25s ease; cursor: pointer;
+        }
+        .dl-btn-primary {
+          background: linear-gradient(135deg, #f97316, #fb923c); color: #000;
+          box-shadow: 0 0 24px rgba(249,115,22,0.25);
+        }
+        .dl-btn-primary:hover { box-shadow: 0 0 40px rgba(249,115,22,0.45); transform: scale(1.02); }
+        .dl-btn-ghost {
+          background: rgba(0,0,0,0.35); color: #e4e4e7;
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+        .dl-btn-ghost:hover { background: rgba(255,255,255,0.05); border-color: rgba(249,115,22,0.25); color: #fb923c; }
+
+        /* ── FEATURE CARD ── */
+        .feat-card {
+          padding: 28px 24px; border-radius: 20px;
+          background: rgba(255,255,255,0.022); border: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(20px); position: relative; overflow: hidden;
+          transition: all 0.3s ease;
+        }
+        .feat-card::before {
+          content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(249,115,22,0.25), rgba(59,130,246,0.15), transparent);
+        }
+        .feat-card:hover {
+          background: rgba(255,255,255,0.04); border-color: rgba(249,115,22,0.18);
+          transform: translateY(-4px);
+          box-shadow: 0 12px 48px rgba(0,0,0,0.4), 0 0 24px rgba(249,115,22,0.06);
+        }
+
+        /* ── STAT BOX ── */
+        .stat-box {
+          padding: 28px 24px; border-radius: 18px; text-align: center;
+          background: rgba(255,255,255,0.022); border: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(20px); position: relative; overflow: hidden;
+        }
+        .stat-box::before {
+          content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(249,115,22,0.3), transparent);
+        }
+
+        /* ── PRICING CARD ── */
+        .price-card {
+          padding: 32px 28px; border-radius: 22px; display: flex; flex-direction: column;
+          background: rgba(255,255,255,0.022); border: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(20px); position: relative; overflow: hidden;
+          transition: all 0.3s ease;
+        }
+        .price-card::before {
+          content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }
+        .price-card:hover {
+          background: rgba(255,255,255,0.04); transform: translateY(-4px);
+          box-shadow: 0 16px 64px rgba(0,0,0,0.4);
+        }
+        .price-card-featured {
+          background: rgba(249,115,22,0.055); border: 1.5px solid rgba(249,115,22,0.25);
+          box-shadow: 0 0 100px rgba(249,115,22,0.07);
+        }
+        .price-card-featured::before {
+          background: linear-gradient(90deg, transparent, rgba(249,115,22,0.65), transparent);
+        }
+
+        /* ── TESTIMONIAL ── */
+        .testi-card {
+          padding: 28px; border-radius: 18px;
+          background: rgba(255,255,255,0.022); border: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(20px);
+        }
+
+        /* ── CHECK ITEM ── */
+        .check-item { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #a1a1aa; }
+        .check-dot { width: 16px; height: 16px; border-radius: 50%; background: rgba(249,115,22,0.1);
+          border: 1px solid rgba(249,115,22,0.25); display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0; }
+        .check-dot svg { width: 8px; height: 8px; color: #f97316; }
+
+        /* ── DIVIDER ── */
+        .divider {
+          height: 1px; width: 100%; position: relative; overflow: hidden;
+          background: linear-gradient(90deg, transparent, rgba(249,115,22,0.1), rgba(59,130,246,0.08), transparent);
+        }
+
+        /* ── LABEL ── */
+        .section-label {
+          display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px;
+          padding: 6px 14px; border-radius: 100px;
+          background: rgba(249,115,22,0.06); border: 1px solid rgba(249,115,22,0.14);
+          color: #f97316; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+          font-family: 'JetBrains Mono', monospace;
+        }
+        .section-label-blue {
+          background: rgba(59,130,246,0.06); border-color: rgba(59,130,246,0.14); color: #60a5fa;
+        }
+
+        /* ── SHIMMER ── */
+        @keyframes shimmer {
+          from { background-position: -400px 0; }
+          to { background-position: 400px 0; }
+        }
+        .shimmer {
+          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+          background-size: 400px 100%; animation: shimmer 3s infinite linear;
+        }
+
+        /* responsive */
+        @media (max-width: 768px) {
+          .hero-grid { grid-template-columns: 1fr; }
+          .features-grid { grid-template-columns: 1fr; }
+          .dl-grid { grid-template-columns: 1fr; }
+          .pricing-grid { grid-template-columns: 1fr; }
+          .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+      `}</style>
+
+      <div className="landing-root">
+        {/* ── BACKGROUNDS ── */}
+        <div className="bg-canvas">
+          <div className="orb orb-1" />
+          <div className="orb orb-2" />
+          <div className="orb orb-3" />
+          <div className="orb orb-4" />
         </div>
+        <div className="bg-grid" />
+        <div className="bg-noise" />
 
-        {/* Headline */}
-        <h1 className="text-5xl sm:text-7xl font-black tracking-tight text-white max-w-4xl mx-auto leading-[1.05] mb-6">
-          Stop AI from
-          <br />
-          <span className="relative">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500">
-              Destroying Your Database.
-            </span>
-            {/* Glow under text */}
-            <span className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 blur-2xl opacity-30 select-none" aria-hidden>
-              Destroying Your Database.
-            </span>
-          </span>
-        </h1>
+        <Navbar />
 
-        {/* Sub-headline */}
-        <p className="text-zinc-400 text-base sm:text-lg max-w-xl mx-auto leading-relaxed mb-12">
-          AdminZero installs locally on your computer and acts as an intelligent firewall between your AI models and your database — blocking injections before they execute.
-        </p>
+        {/* ────────────────────────────────────────────
+            HERO
+        ──────────────────────────────────────────── */}
+        <section className="section" style={{maxWidth:'1160px', margin:'0 auto', padding:'160px 24px 80px', textAlign:'center'}}>
 
-        {/* CTA Row */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a
-            href="#download"
-            className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-extrabold text-black uppercase tracking-wider transition-all active:scale-[0.97] cursor-pointer overflow-hidden"
-            style={{background: 'linear-gradient(135deg, #f97316, #fb923c)', boxShadow: '0 0 40px rgba(249,115,22,0.35), 0 2px 0 rgba(255,255,255,0.1) inset'}}
-          >
-            <Download size={16} className="stroke-[3]" />
-            Download Free — All Platforms
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform stroke-[3]" />
-          </a>
-          <a
-            href="/guide"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold text-zinc-300 hover:text-white transition-all cursor-pointer backdrop-blur-xl"
-            style={{background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)'}}
-          >
-            How It Works
-            <ArrowRight size={14} />
-          </a>
-        </div>
-
-        {/* Social proof row */}
-        <div className="flex items-center justify-center gap-6 mt-12 text-[11px] text-zinc-500 font-mono">
-          <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-orange-400" /> Free to start</span>
-          <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-orange-400" /> No cloud access to your DB</span>
-          <span className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-orange-400" /> Windows, macOS & Linux</span>
-        </div>
-      </section>
-
-      {/* ================================================
-          PART 2: HOW IT WORKS — visual architecture
-      ================================================ */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 py-20 border-t" style={{borderColor: 'rgba(255,255,255,0.04)'}}>
-        <div className="text-center mb-16">
-          <span className="text-[10px] font-bold text-orange-400 uppercase tracking-widest font-mono">// How It Works</span>
-          <h2 className="text-3xl font-extrabold text-white mt-2">Install Once. Protect Forever.</h2>
-        </div>
-
-        {/* 3-step flow */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-          {[
-            { step: '01', icon: Download, title: 'Download & Install', desc: 'Install AdminZero on your Windows, Mac or Linux machine in under 2 minutes.' },
-            { step: '02', icon: Key, title: 'Connect Your Database', desc: 'Paste your database credentials securely. They are encrypted locally and never leave your machine.' },
-            { step: '03', icon: Shield, title: 'Activate the Gateway', desc: 'AdminZero now sits between your AI agent and database, blocking every dangerous query automatically.' },
-          ].map(({ step, icon: Icon, title, desc }) => (
-            <div key={step} className="relative p-6 rounded-2xl backdrop-blur-xl text-left group" style={{background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)'}}>
-              {/* Top edge highlight */}
-              <div className="absolute top-0 left-8 right-8 h-px" style={{background: 'linear-gradient(90deg, transparent, rgba(249,115,22,0.3), transparent)'}} />
-              <span className="text-[10px] text-orange-400/60 font-black font-mono tracking-widest">{step}</span>
-              <div className="my-4 p-2.5 w-10 h-10 rounded-xl flex items-center justify-center" style={{background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.12)'}}>
-                <Icon size={18} className="text-orange-400" />
-              </div>
-              <h3 className="text-sm font-bold text-white mb-2">{title}</h3>
-              <p className="text-xs text-zinc-500 leading-relaxed">{desc}</p>
+          {/* Live badge */}
+          <div className="fade-up delay-1" style={{display:'flex', justifyContent:'center', marginBottom:'28px'}}>
+            <div style={{display:'inline-flex', alignItems:'center', gap:'10px', padding:'8px 18px', borderRadius:'100px', background:'rgba(249,115,22,0.07)', border:'1px solid rgba(249,115,22,0.18)', backdropFilter:'blur(12px)'}}>
+              <span className="pulse-dot" style={{width:'8px', height:'8px', borderRadius:'50%', background:'#f97316', display:'block'}} />
+              <span style={{fontFamily:"'JetBrains Mono', monospace", fontSize:'10px', fontWeight:700, color:'#f97316', letterSpacing:'0.15em', textTransform:'uppercase'}}>
+                AdminZero v2.4 — Now Live · Windows · macOS · Linux
+              </span>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
 
-      {/* ================================================
-          PART 3: DOWNLOAD CENTER — Rich Glass Cards
-      ================================================ */}
-      <section id="download" className="relative z-10 max-w-6xl mx-auto px-6 py-24 border-t" style={{borderColor: 'rgba(255,255,255,0.04)'}}>
-        <div className="text-center mb-16">
-          <span className="text-[10px] font-bold text-orange-400 uppercase tracking-widest font-mono">// Download</span>
-          <h2 className="text-3xl font-extrabold text-white mt-2">Choose Your Platform</h2>
-          <p className="text-zinc-500 text-xs mt-2 max-w-sm mx-auto">All versions include the full AST security firewall and local credential vault.</p>
-        </div>
+          {/* Headline */}
+          <h1 className="fade-up delay-2" style={{
+            fontFamily:"'Space Grotesk', Inter, sans-serif",
+            fontSize:'clamp(42px, 7vw, 88px)',
+            fontWeight:800, lineHeight:1.0,
+            letterSpacing:'-0.03em', margin:'0 0 24px',
+            color:'#fff'
+          }}>
+            The <span className="grad-text-orange">Firewall</span> That<br />
+            <span className="grad-text-mixed">Thinks Before</span><br />
+            Your AI Does.
+          </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          {/* Windows */}
-          <div className="relative p-8 rounded-3xl flex flex-col justify-between items-center text-center space-y-6 group transition-all duration-300 backdrop-blur-xl overflow-hidden"
-            style={{background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)'}}>
-            <div className="absolute top-0 left-8 right-8 h-px" style={{background: 'linear-gradient(90deg, transparent, rgba(249,115,22,0.4), transparent)'}} />
-            <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{background: 'radial-gradient(ellipse at top, rgba(249,115,22,0.05) 0%, transparent 70%)'}} />
-            <div className="relative z-10 space-y-4">
-              <div className="p-4 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto" style={{background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.12)'}}>
-                <Monitor size={28} className="text-orange-400" />
-              </div>
-              <div>
-                <h4 className="text-base font-extrabold text-white tracking-wide uppercase font-mono">Windows</h4>
-                <p className="text-[10px] text-zinc-500 mt-1">Windows 10 / 11 · x64</p>
-                <p className="text-[10px] text-zinc-600 mt-0.5 font-mono">.NET 4.8 Runtime included</p>
-              </div>
-            </div>
-            <a href="/downloads/AdminZero-Setup.exe" download="AdminZero-Setup.exe" target="_self"
-              className="relative z-10 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold text-white transition-all cursor-pointer group-hover:text-orange-300 group-hover:border-orange-500/30"
-              style={{background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)'}}>
-              <Download size={13} className="stroke-[2.5]" />
-              Download .EXE
+          {/* Sub */}
+          <p className="fade-up delay-3" style={{
+            fontSize:'clamp(14px, 2vw, 17px)', color:'#71717a', maxWidth:'520px',
+            margin:'0 auto 40px', lineHeight:1.75, fontWeight:400
+          }}>
+            AdminZero installs on your machine and acts as an intelligent security gateway — blocking every SQL injection and dangerous AI query before it reaches your database.
+          </p>
+
+          {/* CTAs */}
+          <div className="fade-up delay-4" style={{display:'flex', gap:'14px', justifyContent:'center', flexWrap:'wrap', marginBottom:'56px'}}>
+            <a href="#download" className="btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Free
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+            <a href="/guide" className="btn-ghost">
+              How It Works
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
           </div>
 
-          {/* macOS — featured */}
-          <div className="relative p-8 rounded-3xl flex flex-col justify-between items-center text-center space-y-6 backdrop-blur-xl overflow-hidden"
-            style={{background: 'rgba(249,115,22,0.06)', border: '1.5px solid rgba(249,115,22,0.25)', boxShadow: '0 0 60px rgba(249,115,22,0.08)'}}>
-            <div className="absolute top-0 left-8 right-8 h-px" style={{background: 'linear-gradient(90deg, transparent, rgba(249,115,22,0.7), transparent)'}} />
-            <div className="absolute -top-3 right-6 px-3 py-1 rounded-full text-black text-[9px] font-black uppercase tracking-widest" style={{background: 'linear-gradient(135deg, #f97316, #fb923c)'}}>
-              Most Popular
-            </div>
-            <div className="relative z-10 space-y-4">
-              <div className="p-4 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto" style={{background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)'}}>
-                <Laptop size={28} className="text-orange-400" />
+          {/* Trust badges */}
+          <div className="fade-up delay-4" style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'28px', flexWrap:'wrap'}}>
+            {['100% Local — Your data never leaves your machine', 'Free forever tier included', 'Sub-4ms query interception'].map(t => (
+              <div key={t} style={{display:'flex', alignItems:'center', gap:'7px', fontSize:'11px', color:'#52525b', fontWeight:500}}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                {t}
               </div>
-              <div>
-                <h4 className="text-base font-extrabold text-white tracking-wide uppercase font-mono">macOS</h4>
-                <p className="text-[10px] text-zinc-500 mt-1">Apple Silicon + Intel · Universal</p>
-                <p className="text-[10px] text-zinc-600 mt-0.5 font-mono">macOS 12 Monterey+</p>
-              </div>
-            </div>
-            <a href="/downloads/AdminZero-Mac.dmg" download="AdminZero-Mac.dmg" target="_self"
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-extrabold text-black transition-all cursor-pointer"
-              style={{background: 'linear-gradient(135deg, #f97316, #fb923c)', boxShadow: '0 0 20px rgba(249,115,22,0.2)'}}>
-              <Download size={13} className="stroke-[2.5]" />
-              Download .DMG
-            </a>
+            ))}
           </div>
+        </section>
 
-          {/* Linux */}
-          <div className="relative p-8 rounded-3xl flex flex-col justify-between items-center text-center space-y-6 group transition-all duration-300 backdrop-blur-xl overflow-hidden"
-            style={{background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)'}}>
-            <div className="absolute top-0 left-8 right-8 h-px" style={{background: 'linear-gradient(90deg, transparent, rgba(249,115,22,0.4), transparent)'}} />
-            <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{background: 'radial-gradient(ellipse at top, rgba(249,115,22,0.05) 0%, transparent 70%)'}} />
-            <div className="relative z-10 space-y-4">
-              <div className="p-4 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto" style={{background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.12)'}}>
-                <Terminal size={28} className="text-orange-400" />
+        {/* ── MARQUEE ── */}
+        <div style={{overflow:'hidden', borderTop:'1px solid rgba(255,255,255,0.04)', borderBottom:'1px solid rgba(255,255,255,0.04)', padding:'18px 0', position:'relative', zIndex:10, background:'rgba(0,0,0,0.3)', backdropFilter:'blur(8px)'}}>
+          <div className="marquee-track">
+            {[...Array(2)].fill(['SQL Injection Blocked','Zero-Knowledge Vault','AST Query Parsing','Real-Time Monitoring','Offline-First Architecture','Sub-4ms Latency','AES-256 Encryption','Enterprise Ready','Cross-Platform']).flat().map((t,i) => (
+              <div key={i} className="marquee-item">
+                <span className="marquee-dot" />
+                {t}
               </div>
-              <div>
-                <h4 className="text-base font-extrabold text-white tracking-wide uppercase font-mono">Linux</h4>
-                <p className="text-[10px] text-zinc-500 mt-1">Ubuntu / Debian / Arch</p>
-                <p className="text-[10px] text-zinc-600 mt-0.5 font-mono">AppImage — no install needed</p>
-              </div>
-            </div>
-            <a href="/downloads/AdminZero-Linux.AppImage" download="AdminZero-Linux.AppImage" target="_self"
-              className="relative z-10 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold text-white transition-all cursor-pointer group-hover:text-orange-300 group-hover:border-orange-500/30"
-              style={{background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)'}}>
-              <Download size={13} className="stroke-[2.5]" />
-              Download .AppImage
-            </a>
+            ))}
           </div>
         </div>
 
-        {/* SmartScreen notice */}
-        <p className="text-center text-zinc-600 text-[10px] font-mono mt-8 max-w-lg mx-auto leading-relaxed">
-          <span className="text-zinc-500">⚠ Windows Users:</span> If SmartScreen shows a warning, click <span className="text-zinc-400 font-bold">"More info" → "Run anyway"</span>. This is normal for new apps that aren't yet signed with a Microsoft certificate. AdminZero is completely safe to run.
-        </p>
-      </section>
-
-      {/* ================================================
-          PART 4: SECURITY FEATURES — Glassmorphic grid
-      ================================================ */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 border-t" style={{borderColor: 'rgba(255,255,255,0.04)'}}>
-        <div className="text-center mb-16">
-          <span className="text-[10px] font-bold text-orange-400 uppercase tracking-widest font-mono">// Protection Engine</span>
-          <h2 className="text-3xl font-extrabold text-white mt-2">Enterprise-Grade Security, Locally.</h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
-          {[
-            { icon: Lock, title: 'Zero-Knowledge Vault', desc: 'Credentials encrypted by your OS. AdminZero cannot see your passwords.' },
-            { icon: Zap, title: '< 4ms Firewall', desc: 'Every query is checked in under 4 milliseconds before it ever reaches your DB.' },
-            { icon: Eye, title: 'Live Threat Monitor', desc: 'See every blocked injection in real-time inside your local dashboard.' },
-            { icon: Server, title: 'Offline-First', desc: 'AdminZero works entirely offline. Your data never touches our cloud.' },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="relative p-6 rounded-2xl backdrop-blur-xl group hover:scale-[1.02] transition-transform duration-300"
-              style={{background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)'}}>
-              <div className="absolute top-0 left-6 right-6 h-px" style={{background: 'linear-gradient(90deg, transparent, rgba(249,115,22,0.25), transparent)'}} />
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{background: 'radial-gradient(ellipse at top, rgba(249,115,22,0.04) 0%, transparent 70%)'}} />
-              <div className="relative z-10">
-                <div className="mb-4 p-2 w-9 h-9 rounded-lg flex items-center justify-center" style={{background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.1)'}}>
-                  <Icon size={16} className="text-orange-400" />
-                </div>
-                <h3 className="text-xs font-extrabold text-white uppercase tracking-wider font-mono mb-2">{title}</h3>
-                <p className="text-[11px] text-zinc-500 leading-relaxed">{desc}</p>
+        {/* ── STATS ── */}
+        <section className="section" style={{maxWidth:'960px', margin:'0 auto', padding:'80px 24px'}}>
+          <div className="stats-grid" style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px'}}>
+            {[
+              { val:'< 4ms', label:'Query Interception', color:'#f97316' },
+              { val:'100%', label:'Local Processing', color:'#60a5fa' },
+              { val:'27/27', label:'Edge Case Tests Passed', color:'#f97316' },
+              { val:'0 Leaks', label:'Cloud Data Access', color:'#60a5fa' },
+            ].map(({ val, label, color }) => (
+              <div key={label} className="stat-box">
+                <div style={{fontFamily:"'Space Grotesk', sans-serif", fontSize:'32px', fontWeight:800, color, letterSpacing:'-0.03em', marginBottom:'6px'}}>{val}</div>
+                <div style={{fontSize:'11px', color:'#52525b', fontWeight:500, lineHeight:1.5}}>{label}</div>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="divider" style={{margin:'0 24px'}} />
+
+        {/* ── HOW IT WORKS ── */}
+        <section className="section" style={{maxWidth:'1100px', margin:'0 auto', padding:'96px 24px'}}>
+          <div style={{textAlign:'center', marginBottom:'64px'}}>
+            <div style={{display:'flex', justifyContent:'center', marginBottom:'16px'}}>
+              <span className="section-label">// How It Works</span>
             </div>
-          ))}
-        </div>
-      </section>
+            <h2 style={{fontFamily:"'Space Grotesk', sans-serif", fontSize:'clamp(28px, 4vw, 44px)', fontWeight:800, color:'#fff', letterSpacing:'-0.02em', margin:'0 0 14px'}}>
+              Setup in <span className="grad-text-orange">Under 2 Minutes</span>
+            </h2>
+            <p style={{fontSize:'14px', color:'#52525b', maxWidth:'380px', margin:'0 auto', lineHeight:1.8}}>
+              AdminZero runs completely locally. No complex cloud setup. No DevOps required.
+            </p>
+          </div>
 
-      {/* ================================================
-          PART 5: PRICING — Glassmorphic Tiers
-      ================================================ */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 border-t" style={{borderColor: 'rgba(255,255,255,0.04)'}}>
-        <div className="text-center mb-16">
-          <span className="text-[10px] font-bold text-orange-400 uppercase tracking-widest font-mono">// Plans</span>
-          <h2 className="text-3xl font-extrabold text-white mt-2">Simple, Transparent Pricing</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto">
-          {[
-            { name: 'Developer', price: '₹0', period: 'forever', features: ['Local DB support', '500 queries/mo', 'AST Firewall', 'Community support'], cta: 'Download Free', href: '#download', featured: false },
-            { name: 'Startup', price: '₹2,999', period: 'per month', features: ['Postgres & MySQL', '50,000 queries/mo', 'Custom blocklists', 'Email support'], cta: 'Get Started', href: '/portal', featured: true },
-            { name: 'Scale', price: '₹14,999', period: 'per month', features: ['All databases', '250,000 queries/mo', 'Team dashboard', 'Priority support'], cta: 'Upgrade', href: '/portal', featured: false },
-            { name: 'Enterprise', price: 'Custom', period: 'annual quote', features: ['Unlimited queries', 'Private VPC deploy', 'SLA guarantee', 'Dedicated support'], cta: 'Contact Us', href: 'mailto:issakrajraj@gmail.com', featured: false },
-          ].map(({ name, price, period, features, cta, href, featured }) => (
-            <div key={name} className="relative p-6 rounded-2xl flex flex-col justify-between backdrop-blur-xl overflow-hidden transition-all duration-300"
-              style={{
-                background: featured ? 'rgba(249,115,22,0.07)' : 'rgba(255,255,255,0.025)',
-                border: featured ? '1.5px solid rgba(249,115,22,0.3)' : '1px solid rgba(255,255,255,0.06)',
-                boxShadow: featured ? '0 0 50px rgba(249,115,22,0.07)' : 'none'
-              }}>
-              <div className="absolute top-0 left-6 right-6 h-px" style={{background: featured ? 'linear-gradient(90deg, transparent, rgba(249,115,22,0.6), transparent)' : 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)'}} />
-              {featured && (
-                <div className="absolute -top-3 right-4 px-2.5 py-0.5 rounded-full text-black text-[9px] font-black uppercase tracking-widest" style={{background: 'linear-gradient(135deg, #f97316, #fb923c)'}}>
-                  Popular
+          <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'20px', maxWidth:'860px', margin:'0 auto'}}>
+            {[
+              { n:'01', title:'Download & Install', desc:'Grab the installer for your OS — Windows, macOS, or Linux. Double-click to install. Takes under 2 minutes.', icon:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> },
+              { n:'02', title:'Connect Your Database', desc:"Paste your DB credentials into AdminZero's secure vault. They're encrypted with your OS keychain and never sent anywhere.", icon:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> },
+              { n:'03', title:'Activate the Gateway', desc:'AdminZero now intercepts every query your AI sends. Dangerous queries are blocked in real-time before they execute.', icon:<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> },
+            ].map(({ n, title, desc, icon }) => (
+              <div key={n} className="glass" style={{padding:'28px', position:'relative'}}>
+                {/* Step indicator + icon */}
+                <div style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px'}}>
+                  <div className="step-num">{n}</div>
+                  <div className="icon-box" style={{width:'36px', height:'36px', borderRadius:'10px'}}>{icon}</div>
                 </div>
-              )}
-              <div>
-                <h3 className="font-extrabold text-white text-sm font-mono uppercase tracking-wider">{name}</h3>
-                <div className="my-4">
-                  <span className="text-2xl font-black text-white">{price}</span>
-                  <span className="text-[10px] text-zinc-500 ml-1">/ {period}</span>
-                </div>
-                <ul className="space-y-2.5 mb-6">
-                  {features.map(f => (
-                    <li key={f} className="flex items-center gap-2 text-[11px] text-zinc-400">
-                      <CheckCircle2 className="w-3 h-3 text-orange-400 shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
+                <h3 style={{fontSize:'14px', fontWeight:700, color:'#f4f4f5', marginBottom:'10px', fontFamily:"'Space Grotesk', sans-serif"}}>{title}</h3>
+                <p style={{fontSize:'12px', color:'#52525b', lineHeight:1.8}}>{desc}</p>
               </div>
-              <a href={href} className="w-full text-center py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer block"
-                style={featured ? {
-                  background: 'linear-gradient(135deg, #f97316, #fb923c)',
-                  color: '#000',
-                  boxShadow: '0 0 15px rgba(249,115,22,0.2)'
-                } : {
-                  background: 'rgba(255,255,255,0.04)',
-                  color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.08)'
-                }}>
-                {cta}
+            ))}
+          </div>
+        </section>
+
+        <div className="divider" style={{margin:'0 24px'}} />
+
+        {/* ── DOWNLOAD CENTER ── */}
+        <section id="download" className="section" style={{maxWidth:'1100px', margin:'0 auto', padding:'96px 24px'}}>
+          <div style={{textAlign:'center', marginBottom:'64px'}}>
+            <div style={{display:'flex', justifyContent:'center', marginBottom:'16px'}}>
+              <span className="section-label">// Download Center</span>
+            </div>
+            <h2 style={{fontFamily:"'Space Grotesk', sans-serif", fontSize:'clamp(28px, 4vw, 44px)', fontWeight:800, color:'#fff', letterSpacing:'-0.02em', margin:'0 0 14px'}}>
+              Pick Your <span className="grad-text-mixed">Platform</span>
+            </h2>
+            <p style={{fontSize:'14px', color:'#52525b', maxWidth:'360px', margin:'0 auto', lineHeight:1.8}}>
+              All versions include the full AST security firewall, local credential vault, and real-time threat dashboard.
+            </p>
+          </div>
+
+          <div className="dl-grid" style={{display:'grid', gridTemplateColumns:'1fr 1.1fr 1fr', gap:'20px', maxWidth:'900px', margin:'0 auto'}}>
+            {/* Windows */}
+            <div className="dl-card">
+              <div className="dl-icon-wrap" style={{background:'rgba(249,115,22,0.08)', border:'1px solid rgba(249,115,22,0.15)'}}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              </div>
+              <div>
+                <h3 style={{fontFamily:"'JetBrains Mono', monospace", fontSize:'13px', fontWeight:700, color:'#fff', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'6px'}}>Windows</h3>
+                <p style={{fontSize:'11px', color:'#52525b', marginBottom:'3px'}}>Windows 10 / 11 · x64</p>
+                <p style={{fontSize:'10px', color:'#3f3f46', fontFamily:"'JetBrains Mono', monospace"}}>.NET Runtime included</p>
+              </div>
+              <a href="/downloads/AdminZero-Setup.exe" download="AdminZero-Setup.exe" className="dl-btn dl-btn-ghost" style={{width:'100%'}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download .EXE
               </a>
             </div>
-          ))}
-        </div>
-      </section>
 
-      <Footer />
-    </div>
+            {/* macOS — featured */}
+            <div className="dl-card dl-card-featured" style={{transform:'scale(1.03)'}}>
+              <div style={{position:'absolute', top:'-13px', right:'20px', padding:'5px 14px', borderRadius:'100px', background:'linear-gradient(135deg,#f97316,#fb923c)', color:'#000', fontSize:'9px', fontWeight:900, textTransform:'uppercase', letterSpacing:'0.15em'}}>
+                Most Popular
+              </div>
+              <div className="dl-icon-wrap" style={{background:'rgba(249,115,22,0.10)', border:'1px solid rgba(249,115,22,0.22)'}}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              </div>
+              <div>
+                <h3 style={{fontFamily:"'JetBrains Mono', monospace", fontSize:'13px', fontWeight:700, color:'#fff', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'6px'}}>macOS</h3>
+                <p style={{fontSize:'11px', color:'#71717a', marginBottom:'3px'}}>Apple Silicon + Intel · Universal</p>
+                <p style={{fontSize:'10px', color:'#3f3f46', fontFamily:"'JetBrains Mono', monospace"}}>macOS 12 Monterey+</p>
+              </div>
+              <a href="/downloads/AdminZero-Mac.dmg" download="AdminZero-Mac.dmg" className="dl-btn dl-btn-primary" style={{width:'100%'}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download .DMG
+              </a>
+            </div>
+
+            {/* Linux */}
+            <div className="dl-card">
+              <div className="dl-icon-wrap" style={{background:'rgba(59,130,246,0.07)', border:'1px solid rgba(59,130,246,0.14)'}}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+              </div>
+              <div>
+                <h3 style={{fontFamily:"'JetBrains Mono', monospace", fontSize:'13px', fontWeight:700, color:'#fff', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'6px'}}>Linux</h3>
+                <p style={{fontSize:'11px', color:'#52525b', marginBottom:'3px'}}>Ubuntu / Debian / Arch</p>
+                <p style={{fontSize:'10px', color:'#3f3f46', fontFamily:"'JetBrains Mono', monospace"}}>AppImage — no install needed</p>
+              </div>
+              <a href="/downloads/AdminZero-Linux.AppImage" download="AdminZero-Linux.AppImage" className="dl-btn dl-btn-ghost" style={{width:'100%', borderColor:'rgba(59,130,246,0.2)', color:'#60a5fa'}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download .AppImage
+              </a>
+            </div>
+          </div>
+
+          {/* SmartScreen note */}
+          <div style={{textAlign:'center', marginTop:'32px', padding:'14px 20px', borderRadius:'12px', background:'rgba(251,191,36,0.04)', border:'1px solid rgba(251,191,36,0.1)', maxWidth:'580px', margin:'32px auto 0'}}>
+            <p style={{fontSize:'11px', color:'#71717a', fontFamily:"'JetBrains Mono', monospace", lineHeight:1.8}}>
+              <span style={{color:'#fbbf24'}}>⚠ Windows SmartScreen:</span> If a warning appears, click <strong style={{color:'#a1a1aa'}}>"More info" → "Run anyway"</strong>. This is standard for new unsigned apps. AdminZero is fully safe.
+            </p>
+          </div>
+        </section>
+
+        <div className="divider" style={{margin:'0 24px'}} />
+
+        {/* ── FEATURES ── */}
+        <section className="section" style={{maxWidth:'1100px', margin:'0 auto', padding:'96px 24px'}}>
+          <div style={{textAlign:'center', marginBottom:'64px'}}>
+            <div style={{display:'flex', justifyContent:'center', marginBottom:'16px'}}>
+              <span className="section-label-blue section-label">// Security Engine</span>
+            </div>
+            <h2 style={{fontFamily:"'Space Grotesk', sans-serif", fontSize:'clamp(28px, 4vw, 44px)', fontWeight:800, color:'#fff', letterSpacing:'-0.02em', margin:'0 0 14px'}}>
+              Enterprise Security.<br /><span className="grad-text-blue">Zero Cloud Risk.</span>
+            </h2>
+          </div>
+
+          <div className="features-grid" style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px'}}>
+            {[
+              { title:'AST Firewall', desc:"Parses every query's abstract syntax tree before it executes — catching injections that regex can't see.", icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, accent:'orange' },
+              { title:'Zero-Knowledge Vault', desc:'Credentials stored in your OS keychain. AdminZero itself cannot read your own passwords.', icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>, accent:'blue' },
+              { title:'Live Threat Monitor', desc:'See every blocked and allowed query in your local real-time dashboard with severity ratings.', icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>, accent:'orange' },
+              { title:'Offline First', desc:'AdminZero runs 100% offline. No telemetry. No cloud calls. Your data stays entirely on your machine.', icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>, accent:'blue' },
+              { title:'Stacked Query Guard', desc:'Detects and blocks multi-statement attacks — semicolon-stacked transactions that slip past basic filters.', icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>, accent:'orange' },
+              { title:'Metadata Table Shield', desc:'Automatically blocks queries targeting system tables like pg_tables, information_schema, and sqlite_master.', icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>, accent:'blue' },
+              { title:'CTE Attack Detection', desc:'Blocks recursive WITH clause exploits that attackers use to exfiltrate row-level data.', icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>, accent:'orange' },
+              { title:'Sub-4ms Latency', desc:'Firewall checking adds less than 4 milliseconds to any query. Completely invisible to end users.', icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>, accent:'blue' },
+            ].map(({ title, desc, icon, accent }) => (
+              <div key={title} className="feat-card">
+                <div className="icon-box" style={accent === 'blue' ? {background:'rgba(59,130,246,0.07)', border:'1px solid rgba(59,130,246,0.14)', marginBottom:'18px'} : {marginBottom:'18px'}}>
+                  {icon}
+                </div>
+                <h3 style={{fontSize:'13px', fontWeight:700, color:'#f4f4f5', marginBottom:'8px', fontFamily:"'Space Grotesk', sans-serif"}}>{title}</h3>
+                <p style={{fontSize:'11px', color:'#52525b', lineHeight:1.8}}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="divider" style={{margin:'0 24px'}} />
+
+        {/* ── PRICING ── */}
+        <section className="section" style={{maxWidth:'1100px', margin:'0 auto', padding:'96px 24px'}}>
+          <div style={{textAlign:'center', marginBottom:'64px'}}>
+            <div style={{display:'flex', justifyContent:'center', marginBottom:'16px'}}>
+              <span className="section-label">// Pricing</span>
+            </div>
+            <h2 style={{fontFamily:"'Space Grotesk', sans-serif", fontSize:'clamp(28px, 4vw, 44px)', fontWeight:800, color:'#fff', letterSpacing:'-0.02em', margin:'0 0 14px'}}>
+              Start Free. <span className="grad-text-orange">Scale When Ready.</span>
+            </h2>
+            <p style={{fontSize:'14px', color:'#52525b', maxWidth:'360px', margin:'0 auto', lineHeight:1.8}}>
+              No credit card needed. Cancel anytime.
+            </p>
+          </div>
+
+          <div className="pricing-grid" style={{display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px', maxWidth:'1000px', margin:'0 auto'}}>
+            {[
+              { name:'Developer', price:'₹0', period:'forever', badge:null, features:['Local DB support','500 queries / month','AST Firewall Core','Community Discord'], cta:'Download Free', href:'#download', featured:false },
+              { name:'Startup', price:'₹2,999', period:'/ month', badge:'Popular', features:['Postgres & MySQL','50,000 queries / month','Custom blocklists','Priority email support'], cta:'Get Started', href:'/portal', featured:true },
+              { name:'Scale', price:'₹14,999', period:'/ month', badge:null, features:['All databases','250,000 queries / month','Team dashboard','Dedicated support'], cta:'Upgrade Now', href:'/portal', featured:false },
+              { name:'Enterprise', price:'Custom', period:'annual quote', badge:null, features:['Unlimited queries','Private VPC deployment','SLA guarantee','White-glove onboarding'], cta:'Contact Us', href:'mailto:issakrajraj@gmail.com', featured:false },
+            ].map(({ name, price, period, badge, features, cta, href, featured }) => (
+              <div key={name} className={`price-card ${featured ? 'price-card-featured' : ''}`} style={{gap:'24px'}}>
+                {badge && (
+                  <div style={{position:'absolute', top:'-12px', right:'20px', padding:'4px 12px', borderRadius:'100px', background:'linear-gradient(135deg,#f97316,#fb923c)', color:'#000', fontSize:'9px', fontWeight:900, textTransform:'uppercase', letterSpacing:'0.15em'}}>
+                    {badge}
+                  </div>
+                )}
+                <div>
+                  <div style={{fontFamily:"'JetBrains Mono', monospace", fontSize:'11px', fontWeight:700, color: featured ? '#f97316' : '#52525b', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:'12px'}}>{name}</div>
+                  <div style={{display:'flex', alignItems:'baseline', gap:'6px', marginBottom:'20px'}}>
+                    <span style={{fontFamily:"'Space Grotesk', sans-serif", fontSize:'28px', fontWeight:800, color:'#fff', letterSpacing:'-0.03em'}}>{price}</span>
+                    <span style={{fontSize:'11px', color:'#3f3f46'}}>{period}</span>
+                  </div>
+                  <ul style={{listStyle:'none', padding:0, margin:0, display:'flex', flexDirection:'column', gap:'10px', marginBottom:'24px'}}>
+                    {features.map(f => (
+                      <li key={f} className="check-item">
+                        <div className="check-dot">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <a href={href} className="dl-btn" style={featured ? {
+                  background:'linear-gradient(135deg,#f97316,#fb923c)', color:'#000',
+                  boxShadow:'0 0 24px rgba(249,115,22,0.25)', fontWeight:800
+                } : {
+                  background:'rgba(255,255,255,0.04)', color:'#e4e4e7',
+                  border:'1px solid rgba(255,255,255,0.08)', fontWeight:700
+                }}>
+                  {cta}
+                </a>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── FINAL CTA ── */}
+        <section className="section" style={{maxWidth:'840px', margin:'0 auto 96px', padding:'0 24px', textAlign:'center'}}>
+          <div style={{padding:'72px 48px', borderRadius:'28px', position:'relative', overflow:'hidden', background:'rgba(249,115,22,0.05)', border:'1px solid rgba(249,115,22,0.18)', backdropFilter:'blur(24px)', boxShadow:'0 0 120px rgba(249,115,22,0.06)'}}>
+            <div style={{position:'absolute', top:0, left:'20%', right:'20%', height:'1px', background:'linear-gradient(90deg,transparent,rgba(249,115,22,0.7),transparent)'}} />
+            <div style={{position:'absolute', bottom:0, left:'20%', right:'20%', height:'1px', background:'linear-gradient(90deg,transparent,rgba(59,130,246,0.4),transparent)'}} />
+            {/* Big glow */}
+            <div style={{position:'absolute', top:'-80px', left:'50%', transform:'translateX(-50%)', width:'400px', height:'400px', background:'radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%)', pointerEvents:'none'}} />
+            <div style={{position:'relative'}}>
+              <h2 style={{fontFamily:"'Space Grotesk', sans-serif", fontSize:'clamp(26px, 4vw, 42px)', fontWeight:800, color:'#fff', letterSpacing:'-0.02em', margin:'0 0 16px', lineHeight:1.1}}>
+                Ready to Secure Your<br /><span className="grad-text-orange">AI Database Access?</span>
+              </h2>
+              <p style={{fontSize:'14px', color:'#52525b', marginBottom:'36px', lineHeight:1.8}}>
+                Join hundreds of developers who protect their databases with AdminZero every day. Free to start. No credit card.
+              </p>
+              <a href="#download" className="btn-primary" style={{margin:'0 auto', display:'inline-flex'}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download AdminZero Free
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <Footer />
+      </div>
+    </>
   );
 }
