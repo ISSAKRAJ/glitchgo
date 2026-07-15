@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Key, Shield, ShieldAlert, CheckCircle, Database, 
-  Terminal, Copy, AlertTriangle, Play, RefreshCw, BarChart2, Layers
+  Terminal, Copy, AlertTriangle, Play, RefreshCw, Download, Monitor, Laptop
 } from 'lucide-react';
 
 export default function AdminZeroTab({ user, supabase, userToken }) {
@@ -90,10 +90,9 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
     setPayLoading(true);
     setPayMessage(null);
 
-    // Call checkout / validation endpoint or mock success
+    // Mock success and apply credits
     setTimeout(async () => {
       try {
-        // Update user limits inside database for quick proof of concept
         const newMax = (workspace.max_queries || 500) + 10000;
         const { error } = await supabase
           .from('workspaces')
@@ -118,7 +117,7 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center p-12">
-        <RefreshCw className="animate-spin text-emerald-400 mb-2" size={32} />
+        <RefreshCw className="animate-spin text-brand-orange mb-2" size={32} />
         <span className="text-xs text-slate-500 font-mono">Retrieving active license configuration...</span>
       </div>
     );
@@ -139,21 +138,21 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
             <div>
               <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">Secure Data Plane Connection</span>
               <h2 className="text-xl font-bold text-white mt-1 flex items-center gap-2">
-                <Shield size={18} className="text-emerald-400" />
+                <Shield size={18} className="text-brand-blue" />
                 Active Agent License Key
               </h2>
             </div>
             <span className={`px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase border self-start sm:self-auto ${
               workspace.tier === 'free' 
                 ? 'bg-slate-950 border-slate-800 text-slate-400' 
-                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : 'bg-brand-orange/10 border-brand-orange/30 text-brand-orange shadow-[0_0_10px_rgba(249,115,22,0.05)]'
             }`}>
               {workspace.tier} tier
             </span>
           </div>
 
           <div className="bg-slate-950 border border-slate-850 p-4 rounded-2xl flex items-center justify-between mb-6">
-            <code className="text-xs sm:text-sm text-emerald-400 select-all font-mono tracking-wider truncate max-w-[80%] pr-4">
+            <code className="text-xs sm:text-sm text-brand-orange select-all font-mono tracking-wider truncate max-w-[85%] pr-4">
               {workspace.team_id}
             </code>
             <button 
@@ -161,7 +160,7 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
               className="p-2 hover:bg-slate-900 border border-slate-850 rounded-xl transition-all cursor-pointer text-slate-400 hover:text-white shrink-0"
               title="Copy License Key"
             >
-              {copied ? <span className="text-[10px] font-mono text-emerald-400 font-bold">Copied!</span> : <Copy size={14} />}
+              {copied ? <span className="text-[10px] font-mono text-brand-orange font-bold">Copied!</span> : <Copy size={14} />}
             </button>
           </div>
 
@@ -174,7 +173,7 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
             <div className="w-full bg-slate-950 rounded-full h-3 border border-slate-850 overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${
-                  usagePercentage > 90 ? 'bg-red-500' : usagePercentage > 65 ? 'bg-yellow-500' : 'bg-emerald-500'
+                  usagePercentage > 90 ? 'bg-red-500' : usagePercentage > 65 ? 'bg-yellow-500' : 'bg-brand-orange'
                 }`}
                 style={{ width: `${usagePercentage}%` }}
               />
@@ -186,13 +185,53 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
           </div>
         </div>
 
+        {/* Desktop Client App Installer Downloads */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+          <div>
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">Client Download Manager</span>
+            <h2 className="text-lg font-bold text-white mt-1">Download Dedicated Desktop Client</h2>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              Install the AdminZero GUI application on your host machine to secure database connections locally.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Windows */}
+            <button 
+              onClick={() => alert('Downloading AdminZero Setup.exe installer...')}
+              className="bg-slate-950 hover:bg-slate-900 border border-slate-850 hover:border-brand-blue p-4 rounded-2xl text-center space-y-2 transition-all cursor-pointer group"
+            >
+              <Monitor size={20} className="text-brand-blue mx-auto group-hover:scale-105 transition-transform" />
+              <span className="text-xs font-bold text-white block">Windows (.exe)</span>
+            </button>
+            
+            {/* macOS */}
+            <button 
+              onClick={() => alert('Downloading AdminZero macOS.dmg app installer...')}
+              className="bg-slate-950 hover:bg-slate-900 border border-slate-850 hover:border-brand-orange p-4 rounded-2xl text-center space-y-2 transition-all cursor-pointer group"
+            >
+              <Laptop size={20} className="text-brand-orange mx-auto group-hover:scale-105 transition-transform" />
+              <span className="text-xs font-bold text-white block">macOS (.dmg)</span>
+            </button>
+
+            {/* Linux */}
+            <button 
+              onClick={() => alert('Downloading AdminZero Linux.AppImage file...')}
+              className="bg-slate-950 hover:bg-slate-900 border border-slate-850 hover:border-indigo-500 p-4 rounded-2xl text-center space-y-2 transition-all cursor-pointer group"
+            >
+              <Terminal size={20} className="text-indigo-400 mx-auto group-hover:scale-105 transition-transform" />
+              <span className="text-xs font-bold text-white block">Linux (.AppImage)</span>
+            </button>
+          </div>
+        </div>
+
         {/* Local Agent setup instructions */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
           <div>
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">Deployment Manual</span>
-            <h2 className="text-lg font-bold text-white mt-1">Spin up Local Security Agent</h2>
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold">Alternative deployment Options</span>
+            <h2 className="text-base font-bold text-white mt-1">Spin up Local Proxy CLI</h2>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              Install the agent locally. It will connect to your database, parse queries inside your network boundaries, and report metadata back to this cloud dashboard.
+              Prefer headless deployment? Run the security gateway daemon in your terminal or background docker pools.
             </p>
           </div>
 
@@ -200,13 +239,13 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
           <div className="flex border-b border-slate-800 font-mono text-xs font-semibold gap-4">
             <button 
               onClick={() => setActiveTab('docker')}
-              className={`pb-2 border-b-2 cursor-pointer transition-colors ${activeTab === 'docker' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500'}`}
+              className={`pb-2 border-b-2 cursor-pointer transition-colors ${activeTab === 'docker' ? 'border-brand-orange text-white' : 'border-transparent text-slate-500'}`}
             >
               Docker
             </button>
             <button 
               onClick={() => setActiveTab('cli')}
-              className={`pb-2 border-b-2 cursor-pointer transition-colors ${activeTab === 'cli' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500'}`}
+              className={`pb-2 border-b-2 cursor-pointer transition-colors ${activeTab === 'cli' ? 'border-brand-orange text-white' : 'border-transparent text-slate-500'}`}
             >
               CLI / Daemon
             </button>
@@ -311,16 +350,16 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
               placeholder="e.g. 614039572834"
               required
               disabled={payLoading}
-              className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder-slate-650 focus:outline-none focus:border-emerald-500"
+              className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder-slate-655 focus:outline-none focus:border-brand-orange"
             />
             <button 
               type="submit"
               disabled={payLoading || !paymentUtr}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-950 text-slate-950 disabled:text-slate-500 font-extrabold py-2.5 rounded-xl text-xs border border-emerald-400/20 disabled:border-slate-850 transition-all cursor-pointer flex items-center justify-center space-x-2"
+              className="w-full bg-brand-orange hover:bg-opacity-95 text-white disabled:text-slate-500 font-extrabold py-2.5 rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center space-x-2 border-none shadow-[0_0_15px_rgba(249,115,22,0.15)]"
             >
               {payLoading ? (
                 <>
-                  <div className="h-3 w-3 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                  <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Verifying Payment...</span>
                 </>
               ) : (
@@ -332,7 +371,7 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
           {payMessage && (
             <div className={`p-3 rounded-xl border text-[11px] ${
               payMessage.type === 'success' 
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                ? 'bg-brand-orange/10 border-brand-orange/30 text-brand-orange' 
                 : 'bg-red-500/10 border-red-500/30 text-red-400'
             }`}>
               {payMessage.text}
@@ -366,13 +405,13 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
                     <td className="p-4 text-slate-200 select-all font-sans leading-relaxed max-w-lg">{log.user_prompt}</td>
                     <td className="p-4 whitespace-nowrap">
                       {log.status === 'success' ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded font-bold uppercase text-[9px]">
-                          <CheckCircle size={10} />
+                        <span className="inline-flex items-center gap-1 text-brand-orange bg-brand-orange/10 border border-brand-orange/30 px-2 py-0.5 rounded font-bold uppercase text-[9px]">
+                          <CheckCircle className="w-3 h-3" />
                           <span>success</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded font-bold uppercase text-[9px]">
-                          <ShieldAlert size={10} />
+                          <ShieldAlert className="w-3 h-3" />
                           <span>blocked</span>
                         </span>
                       )}
