@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+body {
+  font-family: 'Outfit', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Sidebar active navigation button style */
+.nav-active {
+  background-color: rgb(30, 41, 59) !important; /* slate-800 */
+  color: white !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Animation glows */
+.pulse-green {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.pulse-red {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}

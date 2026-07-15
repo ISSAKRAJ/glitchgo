@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AdminZero Local Gateway</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen select-none overflow-hidden">
+  
+  <div class="flex h-screen w-full relative">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0">
+      <div class="p-6 space-y-8">
+        <div class="flex items-center space-x-3">
+          <div class="h-8 w-8 rounded-lg bg-emerald-500 flex items-center justify-center text-slate-950 font-bold shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+            🛡️
+          </div>
+          <div>
+            <h1 class="text-sm font-black tracking-tight text-white uppercase font-mono">AdminZero</h1>
+            <span class="text-[9px] text-slate-500 font-mono uppercase tracking-wider block">Tauri Client</span>
+          </div>
+        </div>
+
+        <nav class="space-y-2 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <button id="nav-status" class="w-full text-left px-4 py-3 rounded-xl flex items-center space-x-3 bg-slate-800 text-white transition-all cursor-pointer border-none">
+            <span>🔌</span>
+            <span>Gateway Setup</span>
+          </button>
+          <button id="nav-firewall" class="w-full text-left px-4 py-3 rounded-xl flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer border-none">
+            <span>🔥</span>
+            <span>Firewall Rules</span>
+          </button>
+          <button id="nav-logs" class="w-full text-left px-4 py-3 rounded-xl flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all cursor-pointer border-none">
+            <span>📺</span>
+            <span>Telemetry Logs</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Sync Status Footer -->
+      <div class="p-4 border-t border-slate-850 bg-slate-950 flex flex-col space-y-2 text-[10px] font-mono">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500">License Status:</span>
+          <span id="license-badge" class="px-2 py-0.5 rounded bg-slate-900 text-slate-500 font-bold uppercase border border-slate-850">Unknown</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500">Local Port:</span>
+          <span class="text-emerald-400 font-bold">5001</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      
+      <!-- Top Title Bar -->
+      <header class="bg-slate-950 border-b border-slate-900 px-8 py-4 flex justify-between items-center shrink-0">
+        <div>
+          <span id="workspace-subtitle" class="text-[9px] text-slate-500 font-mono uppercase tracking-widest font-bold">SecOps Gateway Control</span>
+          <h2 id="workspace-title" class="text-base font-bold text-white mt-0.5">Local Server Status</h2>
+        </div>
+        <div class="flex items-center space-x-3">
+          <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" id="status-dot"></div>
+          <span class="text-xs text-slate-400 font-mono" id="status-text">Gateway Active</span>
+        </div>
+      </header>
+
+      <!-- View Area -->
+      <div class="flex-1 p-8">
+        
+        <!-- SECTION 1: GATEWAY SETUP (Active) -->
+        <section id="section-status" class="space-y-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6">
+            <h3 class="text-xs font-bold text-white font-mono uppercase tracking-wider">License Activation & Connections</h3>
+            
+            <form id="config-form" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold block">License Key</label>
+                  <input type="password" id="input-license" class="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" placeholder="Paste az_lic_ key" required />
+                </div>
+                
+                <div class="space-y-1">
+                  <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold block">Local DB Dialect</label>
+                  <select id="input-dialect" class="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500">
+                    <option value="postgres">PostgreSQL</option>
+                    <option value="mysql">MySQL</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold block">Database URI Connection string</label>
+                <input type="password" id="input-uri" class="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" placeholder="postgresql://user:password@localhost:5432/my_db" required />
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold block">Gemini API Key (Optional — for natural language SQL translations)</label>
+                <input type="password" id="input-apikey" class="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" placeholder="AI translations key" />
+              </div>
+
+              <div class="flex items-center space-x-4 pt-2">
+                <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer border-none">
+                  Save settings
+                </button>
+                <button type="button" id="btn-test" class="bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-350 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer border border-slate-850">
+                  Test database connection
+                </button>
+              </div>
+            </form>
+
+            <div id="status-message" class="hidden p-3.5 rounded-xl text-xs font-mono border"></div>
+          </div>
+
+          <!-- Credits & Plan stats card -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+              <h4 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Usage Quota Meter</h4>
+              <div class="space-y-2">
+                <div class="flex justify-between text-xs font-mono">
+                  <span class="text-slate-500 font-bold">Query Limit:</span>
+                  <span id="credits-text" class="text-slate-350">0 / 0 used</span>
+                </div>
+                <div class="w-full bg-slate-950 rounded-full h-3 border border-slate-850 overflow-hidden">
+                  <div id="credits-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-3 flex flex-col justify-between">
+              <div>
+                <h4 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Cloud Sync Plane</h4>
+                <p class="text-[10px] text-slate-500 leading-relaxed mt-1">This agent connects securely to our cloud to update plan quotas and log threat blocks.</p>
+              </div>
+              <button id="btn-sync" class="w-full bg-slate-950 border border-slate-800 hover:bg-slate-800 text-white font-bold py-2 rounded-xl text-xs transition-all cursor-pointer font-mono border border-slate-850">
+                Sync Key Status
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: FIREWALL CONFIG (Hidden) -->
+        <section id="section-firewall" class="hidden space-y-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6">
+            <div>
+              <h3 class="text-xs font-bold text-white font-mono uppercase tracking-wider">Deterministic Safety Rules</h3>
+              <p class="text-xs text-slate-400 mt-1">Configure what actions or tables the local AST security compiler firewall blocks.</p>
+            </div>
+
+            <div class="space-y-4">
+              <div class="flex items-center space-x-3 p-4 bg-slate-950 border border-slate-850 rounded-2xl">
+                <input type="checkbox" id="input-readonly" class="accent-emerald-500 h-4 w-4 rounded" checked />
+                <div>
+                  <label for="input-readonly" class="text-xs font-bold text-white font-mono cursor-pointer uppercase block">Enforce Read-Only Mode (Recommended)</label>
+                  <span class="text-[10px] text-slate-500 mt-1 block">Blocks any mutation commands (INSERT, UPDATE, DELETE, DROP, ALTER) at compiler level.</span>
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold block">Blacklisted Tables (Comma Separated)</label>
+                <input type="text" id="input-blocked" class="w-full bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-emerald-500" placeholder="e.g. users, admin_credentials, logs" />
+                <span class="text-[9px] text-slate-500 italic block">Attempts to read or modify these tables will result in an immediate 403 Forbidden cut-off.</span>
+              </div>
+              
+              <button id="btn-save-rules" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer border-none">
+                Save firewall rules
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3: TELEMETRY LOGS (Hidden) -->
+        <section id="section-logs" class="hidden space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+            <h3 class="text-xs font-bold text-white font-mono uppercase tracking-wider">Local Proxy Intercept Monitor</h3>
+            
+            <div class="border border-slate-850 bg-slate-950 rounded-2xl overflow-hidden overflow-y-auto max-h-[400px]">
+              <table class="w-full text-left border-collapse text-xs font-mono">
+                <thead>
+                  <tr class="bg-slate-900 border-b border-slate-850 text-slate-400 uppercase tracking-wider text-[9px] sticky top-0">
+                    <th class="p-3 font-bold">Timestamp</th>
+                    <th class="p-3 font-bold">Query / Prompt</th>
+                    <th class="p-3 font-bold">Generated SQL</th>
+                    <th class="p-3 font-bold">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="logs-tbody">
+                  <tr>
+                    <td colSpan="4" class="p-8 text-center text-slate-500 italic">
+                      Awaiting query logs... Set up database connection and route queries to port 5001.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

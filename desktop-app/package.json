@@ -1,0 +1,17 @@
+{
+  "name": "adminzero-desktop",
+  "version": "1.0.0",
+  "description": "Tauri desktop app client for AdminZero local AST security firewall",
+  "private": true,
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.5.3"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.11"
+  }
+}
