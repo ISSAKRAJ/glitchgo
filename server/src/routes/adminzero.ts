@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Client } from 'pg';
-import { saveConnection, getAllConnections, getAllWorkspaces, checkUtrExists, adminUpdateWorkspace, getWorkspace } from '../lib/db';
-import { supabase } from '../lib/supabase';
+import { saveConnection, getAllConnections, getAllWorkspaces, checkUtrExists, adminUpdateWorkspace, getWorkspace } from '../lib/db.js';
+import { supabase } from '../lib/supabase.js';
 import { GoogleGenAI } from '@google/genai';
 
 export const adminzeroRouter = Router();

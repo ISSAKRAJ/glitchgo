@@ -8,10 +8,10 @@ import {
   logQueryStart,
   logQuerySuccess,
   logQueryFailure
-} from './db';
-import { decrypt } from './aes';
+} from './db.js';
+import { decrypt } from './aes.js';
 import { parse } from 'pgsql-ast-parser';
-import { supabase } from './supabase';
+import { supabase } from './supabase.js';
 
 const SYSTEM_PROMPT = `You are an expert PostgreSQL database engineer and a strict read-only SQL generator. 
 Your ONLY job is to translate the user's natural language question into a valid, highly optimized PostgreSQL query based on the provided database schema.

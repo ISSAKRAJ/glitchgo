@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import { encrypt, decrypt } from './aes';
+import { supabase } from './supabase.js';
+import { encrypt, decrypt } from './aes.js';
 export async function saveWorkspace(teamId: string, botAccessToken: string, userId?: string): Promise<void> {
   const encryptedToken = encrypt(botAccessToken);
   const payload: any = { team_id: teamId.trim(), encrypted_bot_access_token: encryptedToken };

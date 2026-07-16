@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
-import { handleSlackMessage } from '../lib/text-to-sql';
-import { saveWorkspace, getWorkspaceToken, getConnection } from '../lib/db';
-import { supabase } from '../lib/supabase';
+import { handleSlackMessage } from '../lib/text-to-sql.js';
+import { saveWorkspace, getWorkspaceToken, getConnection } from '../lib/db.js';
+import { supabase } from '../lib/supabase.js';
 
 export const slackRouter = Router();
 
