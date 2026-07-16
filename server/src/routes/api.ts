@@ -95,8 +95,13 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
       db_url,
       db_dialect = 'postgres',
       blocked_tables = [],
-      mode = 'sql'
+      mode = 'sql',
+      features = {}
     } = req.body;
+    
+    const usePromptFirewall = features.use_prompt_firewall !== false;
+    const usePiiScrubber = features.use_pii_scrubber !== false;
+    const useAstFirewall = features.use_ast_firewall !== false;
 
     // ── 0. Basic validation ──────────────────────────────────────────────
     if (!license_key) {
@@ -134,28 +139,37 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     }
 
     // ── 3. Prompt Injection Firewall ─────────────────────────────────────
-    const promptScan = scanPrompt(prompt);
-    if (!promptScan.safe) {
-      const topThreat = promptScan.threats[0];
-      logAuditEvent({
-        ...auditEvent,
-        status: 'blocked',
-        threatType: `PROMPT_INJECTION:${topThreat.type}`
-      });
-      return res.status(403).json({
-        error: '[AdminZero Firewall] THREAT BLOCKED: Prompt injection attempt detected.',
-        code: 'PROMPT_INJECTION',
-        threatType: topThreat.type,
-        severity: topThreat.severity,
-        riskScore: promptScan.riskScore
-      });
+    if (usePromptFirewall) {
+      const promptScan = scanPrompt(prompt);
+      if (!promptScan.safe) {
+        const topThreat = promptScan.threats[0];
+        logAuditEvent({
+          ...auditEvent,
+          status: 'blocked',
+          threatType: `PROMPT_INJECTION:${topThreat.type}`
+        });
+        return res.status(403).json({
+          error: '[AdminZero Firewall] THREAT BLOCKED: Prompt injection attempt detected.',
+          code: 'PROMPT_INJECTION',
+          threatType: topThreat.type,
+          severity: topThreat.severity,
+          riskScore: promptScan.riskScore
+        });
+      }
     }
 
     // ── 4. PII Scrubber ──────────────────────────────────────────────────
-    const piiResult = scrubPII(prompt);
-    const sanitizedPrompt = piiResult.sanitized;
-    auditEvent.piiDetected = piiResult.count > 0;
-    auditEvent.piiTypes = piiResult.detectedTypes;
+    let sanitizedPrompt = prompt;
+    let piiScrubbed = false;
+    let piiTypesFound: string[] = [];
+    if (usePiiScrubber) {
+      const piiResult = scrubPII(prompt);
+      sanitizedPrompt = piiResult.sanitized;
+      piiScrubbed = piiResult.count > 0;
+      piiTypesFound = piiResult.detectedTypes;
+      auditEvent.piiDetected = piiScrubbed;
+      auditEvent.piiTypes = piiTypesFound;
+    }
 
     // ── 5. Resolve DB connection ─────────────────────────────────────────
     const resolvedDbUrl = db_url || workspace.db_url;
@@ -198,21 +212,23 @@ Rules:
     auditEvent.sql = generatedSQL;
 
     // ── 7. AST SQL Firewall ──────────────────────────────────────────────
-    try {
-      if (resolvedDialect === 'postgres') {
-        validateQuery(generatedSQL, resolvedBlockedTables);
-      } else {
-        validateQueryMySQL(generatedSQL, resolvedBlockedTables);
+    if (useAstFirewall) {
+      try {
+        if (resolvedDialect === 'postgres') {
+          validateQuery(generatedSQL, resolvedBlockedTables);
+        } else {
+          validateQueryMySQL(generatedSQL, resolvedBlockedTables);
+        }
+      } catch (firewallErr: any) {
+        logAuditEvent({
+          ...auditEvent,
+          status: 'blocked',
+          threatType: 'AST_FIREWALL',
+          executionMs: Date.now() - startTime
+        });
+        adminUpdateWorkspace(license_key, { threats_blocked: (workspace.threats_blocked || 0) + 1 });
+        return res.status(403).json({ error: firewallErr.message, code: 'AST_FIREWALL_BLOCKED', sql: generatedSQL });
       }
-    } catch (firewallErr: any) {
-      logAuditEvent({
-        ...auditEvent,
-        status: 'blocked',
-        threatType: 'AST_FIREWALL',
-        executionMs: Date.now() - startTime
-      });
-      adminUpdateWorkspace(license_key, { threats_blocked: (workspace.threats_blocked || 0) + 1 });
-      return res.status(403).json({ error: firewallErr.message, code: 'AST_FIREWALL_BLOCKED', sql: generatedSQL });
     }
 
     // ── 8. Database Execution ────────────────────────────────────────────
@@ -258,7 +274,7 @@ Rules:
     });
 
     res.set('X-AdminZero-Credits-Remaining', String(creditsMax - creditsUsed - 1));
-    res.set('X-AdminZero-PII-Scrubbed', String(piiResult.count > 0));
+    res.set('X-AdminZero-PII-Scrubbed', String(piiScrubbed));
 
     // ── 10. Return Response ──────────────────────────────────────────────
     return res.status(200).json({
@@ -270,8 +286,8 @@ Rules:
         executionMs,
         creditsUsed: creditsUsed + 1,
         creditsRemaining: creditsMax - creditsUsed - 1,
-        piiScrubbed: piiResult.count > 0,
-        piiTypesFound: piiResult.detectedTypes,
+        piiScrubbed: piiScrubbed,
+        piiTypesFound: piiTypesFound,
         rateLimit: { remaining: rateCheck.remaining, resetInSeconds: 60 }
       }
     });

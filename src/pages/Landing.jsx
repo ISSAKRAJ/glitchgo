@@ -473,75 +473,7 @@ export default function Landing() {
 
         <div className="div-line" />
 
-        {/* ══ DOWNLOAD CENTER ══ */}
-        <section id="download" className="sec" style={{padding:'88px 0'}}>
-          <div className="inner">
-            <div style={{textAlign:'center',marginBottom:'56px'}}>
-              <div style={{display:'flex',justifyContent:'center',marginBottom:'14px'}}><span className="sec-label">// Download</span></div>
-              <h2 className="h2">Choose Your <span className="grad-m">Platform</span></h2>
-              <p style={{fontSize:'13px',color:'#3f3f46',marginTop:'12px',maxWidth:'400px',margin:'12px auto 0',lineHeight:1.8}}>Create a free account to download. Your license key is auto-generated and usage is tracked from day one.</p>
-            </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'18px',maxWidth:'860px',margin:'0 auto'}}>
-              {/* Windows */}
-              <div className="dl-card">
-                <div className="dl-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--o2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                </div>
-                <div>
-                  <h3 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'12px',fontWeight:700,color:'#fff',letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'5px'}}>Windows</h3>
-                  <p style={{fontSize:'10px',color:'#3f3f46',marginBottom:'2px'}}>Windows 10 / 11 · x64</p>
-                  <p style={{fontSize:'9px',color:'#27272a',fontFamily:"'JetBrains Mono',monospace"}}>.NET Runtime included</p>
-                </div>
-                <a href="/signup?next=/portal" className="dl-btn dl-btn-s" style={{width:'100%'}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-                  Sign Up to Download
-                </a>
-              </div>
-
-              {/* macOS */}
-              <div className="dl-card">
-                <div className="dl-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--o2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
-                </div>
-                <div>
-                  <h3 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'12px',fontWeight:700,color:'#fff',letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'5px'}}>macOS</h3>
-                  <p style={{fontSize:'10px',color:'#3f3f46',marginBottom:'2px'}}>Apple Silicon + Intel · Universal</p>
-                  <p style={{fontSize:'9px',color:'#27272a',fontFamily:"'JetBrains Mono',monospace"}}>macOS 12 Monterey+</p>
-                </div>
-                <a href="/signup?next=/portal" className="dl-btn dl-btn-p" style={{width:'100%'}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-                  Sign Up to Download
-                </a>
-              </div>
-
-              {/* Linux */}
-              <div className="dl-card">
-                <div className="dl-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-                </div>
-                <div>
-                  <h3 style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'12px',fontWeight:700,color:'#fff',letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'5px'}}>Linux</h3>
-                  <p style={{fontSize:'10px',color:'#3f3f46',marginBottom:'2px'}}>Ubuntu / Debian / Arch</p>
-                  <p style={{fontSize:'9px',color:'#27272a',fontFamily:"'JetBrains Mono',monospace"}}>AppImage — no install needed</p>
-                </div>
-                <a href="/signup?next=/portal" className="dl-btn dl-btn-s" style={{width:'100%',borderColor:'rgba(59,130,246,0.16)',color:'#60a5fa'}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-                  Sign Up to Download
-                </a>
-              </div>
-            </div>
-
-            {/* Auth gate note */}
-            <div style={{textAlign:'center',marginTop:'28px',padding:'16px 20px',borderRadius:'12px',background:'rgba(234,108,18,0.04)',border:'1px solid rgba(234,108,18,0.1)',maxWidth:'540px',margin:'28px auto 0'}}>
-              <p style={{fontSize:'11px',color:'#52525b',fontFamily:"'JetBrains Mono',monospace",lineHeight:1.9}}>
-                <span style={{color:'rgba(234,108,18,0.7)'}}>🔑 Free account required.</span> Sign up in 30 seconds — your license key and download links appear instantly in your <a href="/portal" style={{color:'#ea6c12',textDecoration:'none',fontWeight:700}}>Client Portal</a>.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <div className="div-line" />
 
         {/* ══ FEATURES ══ */}
         <section className="sec" style={{padding:'88px 0'}}>

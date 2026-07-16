@@ -6,8 +6,8 @@ import Footer from '../../components/layout/Footer';
 const NAV = [
   { id: 'overview',     label: 'What is AdminZero?' },
   { id: 'howitworks',  label: 'How It Works' },
-  { id: 'install',     label: 'Installation' },
-  { id: 'connect',     label: 'Connect Your Database' },
+  { id: 'install', label: 'Integration' },
+  
   { id: 'firewall',    label: 'AST Firewall' },
   { id: 'threats',     label: 'Threats We Block' },
   { id: 'dashboard',   label: 'Threat Dashboard' },
@@ -46,13 +46,12 @@ export default function GuidePage() {
 
   const faqs = [
     { q: 'Does AdminZero send my database credentials to the cloud?', a: 'No. Your credentials are encrypted and stored in your operating system\'s native keychain (Windows Credential Manager / macOS Keychain / Linux Secret Service). AdminZero itself cannot read them in plaintext.' },
-    { q: 'Does AdminZero slow down my queries?', a: 'AdminZero adds less than 4 milliseconds to any query. In practice, this is completely invisible to end users and well within acceptable latency budgets.' },
+    { q: 'Does AdminZero slow down my queries?', a: 'AdminZero adds less than 5 milliseconds of overhead (excluding LLM generation time) to any query. In practice, this is completely invisible to end users and well within acceptable latency budgets.' },
     { q: 'Will AdminZero work with my database?', a: 'AdminZero currently supports PostgreSQL, MySQL, and SQLite. Support for MSSQL and MongoDB is on the roadmap for v2.6.' },
     { q: 'What happens when a query is blocked?', a: 'The query never reaches your database. AdminZero returns a structured error response to the AI agent, logs the incident in your local threat dashboard with a timestamp and threat type, and (if configured) sends you an alert.' },
     { q: 'Can I whitelist certain query types?', a: 'Yes. The Startup and Scale plans allow you to define custom whitelist rules — for example, allowing INSERT on specific tables or specific column patterns.' },
-    { q: 'Does AdminZero need an internet connection?', a: 'No. AdminZero operates fully offline. An internet connection is only needed to activate your license key on the first run.' },
-    { q: 'Windows showed a SmartScreen warning. Is the app safe?', a: 'Yes, completely. The warning appears because AdminZero is a new app without a Microsoft code-signing certificate (which costs ~$300/yr). Click "More info" → "Run anyway" to proceed. The source code is fully auditable.' },
-  ];
+    { q: 'Does AdminZero need an internet connection?', a: 'No. AdminZero operates as a fast Cloud API. It requires an internet connection to send queries to the Gateway. An internet connection is only needed to activate your license key on the first run.' },
+      ];
 
   return (
     <>
@@ -201,14 +200,7 @@ export default function GuidePage() {
                 {n.label}
               </button>
             ))}
-            <div style={{marginTop:'24px',padding:'14px',borderRadius:'12px',background:'rgba(234,108,18,0.04)',border:'1px solid rgba(234,108,18,0.1)'}}>
-              <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'9px',fontWeight:700,color:'rgba(234,108,18,0.5)',letterSpacing:'0.14em',textTransform:'uppercase',marginBottom:'8px'}}>Quick Download</p>
-              <a href="/#download" style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px',fontWeight:700,color:'#ea6c12',textDecoration:'none'}}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Download AdminZero →
-              </a>
-            </div>
-          </aside>
+            </aside>
 
           {/* ── CONTENT ── */}
           <main className="guide-content">
@@ -217,14 +209,14 @@ export default function GuidePage() {
             <div className={`guide-section ${active==='overview'?'visible':''}`}>
               <span className="sec-badge">01 / Overview</span>
               <h2 className="sec-h1">What is <span className="grad-o">AdminZero?</span></h2>
-              <p className="sec-lead">AdminZero is a local security gateway that sits between your AI agents (like ChatGPT plugins, LangChain agents, or any LLM-powered tool) and your database. It intercepts every SQL query before it reaches your DB and validates it against a set of hardened security rules.</p>
+              <p className="sec-lead">AdminZero is a Cloud API Security Gateway that sits between your AI agents (like ChatGPT plugins, LangChain agents, or custom LLMs) and your database. It intercepts every SQL query before it reaches your DB and validates it against a set of hardened security rules.</p>
 
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'32px'}}>
                 {[
                   {icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, t:'AST-Based Firewall', d:'Parses query abstract syntax trees — not just regex patterns. Catches deeply nested injection structures.', b:false},
                   {icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>, t:'Zero-Knowledge Vault', d:'Your DB credentials never leave your machine. Stored in your OS keychain with AES-256 encryption.', b:true},
                   {icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>, t:'Real-Time Dashboard', d:'Every blocked and allowed query logged locally — with severity, timestamp, and query content.', b:false},
-                  {icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>, t:'Offline First', d:'100% local operation. No cloud calls, no telemetry. AdminZero works even without internet after activation.', b:true},
+                  {icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>, t:"Flexible Feature Flags", d:"Toggle PII scrubbing, Prompt Injection, and AST firewalls on a per-request basis.", b:true},
                 ].map(({icon,t,d,b})=>(
                   <div key={t} className="card" style={{padding:'22px'}}>
                     <div className={`ib ${b?'ib-b':'ib-o'}`} style={{width:'38px',height:'38px',marginBottom:'14px'}}>{icon}</div>
@@ -267,12 +259,12 @@ export default function GuidePage() {
             <div className={`guide-section ${active==='howitworks'?'visible':''}`}>
               <span className="sec-badge">02 / Mechanism</span>
               <h2 className="sec-h1">How <span className="grad-o">It Works</span></h2>
-              <p className="sec-lead">AdminZero runs as a local proxy on your machine. Your AI agent sends SQL queries to AdminZero instead of directly to your database. AdminZero then validates, filters, and only forwards safe queries.</p>
+              <p className="sec-lead">AdminZero runs as a low-latency Cloud API Gateway. Your AI agent sends SQL queries to AdminZero instead of directly to your database. AdminZero then validates, filters, and only forwards safe queries.</p>
 
               <div className="step-grid" style={{marginBottom:'32px'}}>
                 {[
-                  {n:'01',t:'Query Received',d:"Your AI agent sends a SQL query to AdminZero's local gateway port. The query never directly touches your database at this stage."},
-                  {n:'02',t:'AST Parsing',d:'AdminZero uses pgsql-ast-parser to build an Abstract Syntax Tree (AST) of the query — a structural map of every clause, table reference, and operation type.'},
+                  {n:'01',t:'Query Received',d:"Your AI agent sends a natural language prompt to AdminZero's API endpoint. The query never directly touches your database at this stage."},
+                  {n:'02',t:'AST Parsing',d:'AdminZero uses Gemini text-to-SQL to generate queries, then parses them into an Abstract Syntax Tree (AST) of the query — a structural map of every clause, table reference, and operation type.'},
                   {n:'03',t:'Security Rule Checks',d:'The AST is checked against hardened rules: no DML (DELETE/INSERT/UPDATE/DROP), no stacked statements, no system table access, no recursive CTEs, no UNION-based exfiltration patterns.'},
                   {n:'04',t:'Decision',d:'BLOCKED: The query is rejected. AdminZero logs the threat and returns a structured error. The DB is never touched. ALLOWED: The query is forwarded to your database and the result is returned to the AI agent.'},
                   {n:'05',t:'Incident Logged',d:'Every decision — blocked or allowed — is written to your local encrypted threat log with a timestamp, query content (sanitized), threat type, and severity level.'},
@@ -288,98 +280,39 @@ export default function GuidePage() {
               </div>
             </div>
 
-            {/* ══════════════ INSTALL ══════════════ */}
+            {/* ══════════════ INTEGRATION ══════════════ */}
             <div className={`guide-section ${active==='install'?'visible':''}`}>
-              <span className="sec-badge">03 / Installation</span>
-              <h2 className="sec-h1"><span className="grad-o">Install</span> AdminZero</h2>
-              <p className="sec-lead">AdminZero has a native installer for every platform. No Docker, no npm, no server required — just download and run.</p>
+              <span className="sec-badge">03 / Integration</span>
+              <h2 className="sec-h1">API <span className="grad-o">Integration</span></h2>
+              <p className="sec-lead">AdminZero is a REST API. You don't need to install anything. Just send a POST request with your prompt, database credentials, and license key.</p>
 
-              {[
-                {
-                  os:'Windows', icon:'🪟',
-                  steps:[
-                    'Download AdminZero-Setup.exe from the Download page.',
-                    'If Windows SmartScreen appears, click "More info" → "Run anyway". This is normal for new unsigned apps.',
-                    'The installer will run. Accept the license and click Install.',
-                    'AdminZero will launch automatically after installation.',
-                    '.NET Runtime 4.8 is bundled — no separate install needed.',
-                  ],
-                  note:'AdminZero installs to %APPDATA%\\AdminZero by default.',
-                },
-                {
-                  os:'macOS', icon:'🍎',
-                  steps:[
-                    'Download AdminZero-Mac.dmg from the Download page.',
-                    'Open the .dmg file and drag AdminZero into your Applications folder.',
-                    'On first launch, right-click the app → Open to bypass Gatekeeper.',
-                    'AdminZero will request keychain access to store credentials securely — click Allow.',
-                  ],
-                  note:'Universal binary — runs natively on Apple Silicon (M1/M2/M3) and Intel.',
-                },
-                {
-                  os:'Linux', icon:'🐧',
-                  steps:[
-                    'Download AdminZero-Linux.AppImage from the Download page.',
-                    'Make the file executable: chmod +x AdminZero-Linux.AppImage',
-                    'Run it directly: ./AdminZero-Linux.AppImage',
-                    'No installation needed — the AppImage is self-contained.',
-                  ],
-                  note:'Tested on Ubuntu 22.04, Debian 12, Arch Linux, and Fedora 39.',
-                },
-              ].map(({os,icon,steps,note})=>(
-                <div key={os} className="card" style={{padding:'26px',marginBottom:'16px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'18px'}}>
-                    <span style={{fontSize:'22px'}}>{icon}</span>
-                    <h3 style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:'15px',fontWeight:700,color:'#fff'}}>{os}</h3>
-                  </div>
-                  <ol style={{listStyle:'none',display:'flex',flexDirection:'column',gap:'10px',marginBottom:'16px'}}>
-                    {steps.map((s,i)=>(
-                      <li key={i} style={{display:'flex',gap:'10px',alignItems:'flex-start',fontSize:'12px',color:'#52525b',lineHeight:1.8}}>
-                        <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'10px',fontWeight:700,color:'rgba(234,108,18,0.4)',padding:'2px 7px',borderRadius:'6px',background:'rgba(234,108,18,0.07)',border:'1px solid rgba(234,108,18,0.1)',flexShrink:0,marginTop:'1px'}}>{i+1}</span>
-                        {s}
-                      </li>
-                    ))}
-                  </ol>
-                  <div style={{padding:'10px 14px',borderRadius:'9px',background:'rgba(59,130,246,0.04)',border:'1px solid rgba(59,130,246,0.1)'}}>
-                    <p style={{fontSize:'11px',color:'#3f3f46',fontFamily:"'JetBrains Mono',monospace"}}>ℹ {note}</p>
-                  </div>
-                </div>
-              ))}
+              <div className="code-block" style={{marginBottom:'20px'}}>
+                <span className="comment">// POST https://adminzero-backend.onrender.com/api/v1/query</span>{'\n'}
+                <span className="keyword">const</span> response = <span className="keyword">await</span> fetch(<span className="string">'https://adminzero-backend.onrender.com/api/v1/query'</span>, {'{\n'}
+                {'  '}method: <span className="string">'POST'</span>,{'\n'}
+                {'  '}headers: {'{'} <span className="string">'Content-Type'</span>: <span className="string">'application/json'</span> {'}'},{'\n'}
+                {'  '}body: JSON.stringify({'{\n'}
+                {'    '}license_key: <span className="string">'YOUR_LICENSE_KEY'</span>,{'\n'}
+                {'    '}prompt: <span className="string">'Show me the top 5 users by revenue'</span>,{'\n'}
+                {'    '}db_url: <span className="string">'postgres://user:pass@host:5432/db'</span>,{'\n'}
+                {'    '}db_dialect: <span className="string">'postgres'</span>,{'\n'}
+                {'    '}features: {'{\n'}
+                {'      '}use_prompt_firewall: <span className="value">true</span>,{'\n'}
+                {'      '}use_pii_scrubber: <span className="value">true</span>,{'\n'}
+                {'      '}use_ast_firewall: <span className="value">true</span>{'\n'}
+                {'    }'}
+                {'  }'}){'\n'}
+                {'}'});{'\n'}
+                <span className="keyword">const</span> result = <span className="keyword">await</span> response.json();
+              </div>
+
+              <div className="card card-blue" style={{padding:'20px', marginBottom: '32px'}}>
+                <p style={{fontSize:'12px',fontWeight:700,color:'#60a5fa',marginBottom:'6px'}}>Flexible Feature Flags</p>
+                <p style={{fontSize:'11px',color:'#d4d4d8',lineHeight:1.8}}>You can turn off specific firewalls if you don't need them. For example, if you want to allow PII in queries, set <code>use_pii_scrubber: false</code>.</p>
+              </div>
             </div>
 
             {/* ══════════════ CONNECT DB ══════════════ */}
-            <div className={`guide-section ${active==='connect'?'visible':''}`}>
-              <span className="sec-badge">04 / Configuration</span>
-              <h2 className="sec-h1">Connect Your <span className="grad-o">Database</span></h2>
-              <p className="sec-lead">AdminZero uses your OS keychain to store credentials. They are encrypted at rest and never transmitted — not even to AdminZero's own servers.</p>
-
-              <div className="card card-orange" style={{padding:'26px',marginBottom:'20px'}}>
-                <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'9px',fontWeight:700,color:'rgba(234,108,18,0.5)',letterSpacing:'0.14em',textTransform:'uppercase',marginBottom:'16px'}}>// Supported Databases</p>
-                <div style={{display:'flex',flexWrap:'wrap',gap:'10px'}}>
-                  {['PostgreSQL 12+','MySQL 8+','SQLite 3+','MS SQL Server (v2.6 roadmap)','MongoDB (v2.6 roadmap)'].map(db=>(
-                    <span key={db} style={{padding:'5px 12px',borderRadius:'7px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',fontSize:'11px',color:'#71717a',fontFamily:"'JetBrains Mono',monospace"}}>{db}</span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="code-block" style={{marginBottom:'20px'}}>
-                <span className="comment"># PostgreSQL example</span>{'\n'}
-                <span className="keyword">HOST</span>     = <span className="string">localhost</span>{'\n'}
-                <span className="keyword">PORT</span>     = <span className="value">5432</span>{'\n'}
-                <span className="keyword">DATABASE</span> = <span className="string">my_app_db</span>{'\n'}
-                <span className="keyword">USER</span>     = <span className="string">db_readonly_user</span>{'\n'}
-                <span className="keyword">PASSWORD</span> = <span className="string">**** (stored in OS keychain)</span>{'\n'}
-                {'\n'}
-                <span className="comment"># AdminZero gateway port (your AI connects here)</span>{'\n'}
-                <span className="keyword">GATEWAY_PORT</span> = <span className="value">5001</span>
-              </div>
-
-              <div className="card card-red" style={{padding:'20px'}}>
-                <p style={{fontSize:'12px',color:'#f87171',fontWeight:700,marginBottom:'6px'}}>⚠ Security Recommendation</p>
-                <p style={{fontSize:'11px',color:'#52525b',lineHeight:1.8}}>Create a <strong style={{color:'#d4d4d8'}}>read-only database user</strong> specifically for AdminZero. Even with AdminZero's firewall active, using a read-only DB user adds a second layer of defence — the database itself will reject any write attempts at the driver level.</p>
-              </div>
-            </div>
-
             {/* ══════════════ FIREWALL ══════════════ */}
             <div className={`guide-section ${active==='firewall'?'visible':''}`}>
               <span className="sec-badge">05 / Firewall</span>

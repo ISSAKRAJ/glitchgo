@@ -11,7 +11,7 @@ const KB = {
   },
   what: {
     triggers: ['what is', 'what does', 'explain', 'about adminzero', 'about glitchgo', 'tell me', 'overview', 'adminzero'],
-    reply: () => `**AdminZero** is a local AI database security gateway built by **GlitchGo**.\n\nIt sits between your AI agents (LangChain, ChatGPT plugins, custom LLMs) and your database — intercepting every SQL query in real-time.\n\n🔑 **Core idea:**\nYour AI generates SQL → AdminZero validates it → Only safe queries reach your DB.\n\n✅ Blocks SQL injections\n✅ Runs 100% locally\n✅ Under 4ms overhead\n✅ No cloud access to your data\n\nWant to know about pricing, installation, or the firewall?`
+    reply: () => `**AdminZero** is a local AI database security gateway built by **GlitchGo**.\n\nIt sits between your AI agents (LangChain, ChatGPT plugins, custom LLMs) and your database — intercepting every SQL query in real-time.\n\n🔑 **Core idea:**\nYour AI generates SQL → AdminZero validates it → Only safe queries reach your DB.\n\n✅ Blocks SQL injections\n✅ Runs as a REST API\n✅ Under 4ms overhead\n✅ No cloud access to your data\n\nWant to know about pricing, installation, or the firewall?`
   },
   firewall: {
     triggers: ['firewall', 'ast', 'how does it work', 'how it works', 'block', 'detect', 'injection', 'security', 'protection', 'prevent'],
@@ -19,7 +19,7 @@ const KB = {
   },
   install: {
     triggers: ['install', 'download', 'setup', 'get started', 'start', 'how to install', 'exe', 'dmg', 'appimage'],
-    reply: () => `**Downloading AdminZero is free — but requires a free account.**\n\n🔑 **Step 1:** Create your free account at **glitchgo.tech/signup**\n📥 **Step 2:** Your download links appear in the **Client Portal** the moment you sign up\n🚀 **Step 3:** Pick your platform:\n\n🪟 **Windows** → .EXE installer (.NET Runtime included)\n🍎 **macOS** → .DMG (Apple Silicon + Intel universal)\n🐧 **Linux** → .AppImage (no install, just run)\n\nYour **license key is auto-generated** in the portal — just copy and paste it into the app on first launch.\n\nSign up free → **glitchgo.tech/signup**`
+    reply: () => `**Integrating AdminZero is free — but requires a free account.**\n\n🔑 **Step 1:** Create your free account at **glitchgo.tech/signup**\n📥 **Step 2:** Your API License Key will appear in the **Client Portal** the moment you sign up\n🚀 **Step 3:** Use the key in your API requests:\n\nJust send a POST request to "https://adminzero-backend.onrender.com/api/v1/query" with your prompt and license key!\n\nSign up free → **glitchgo.tech/signup**`
   },
   pricing: {
     triggers: ['price', 'pricing', 'plan', 'cost', 'how much', 'free', 'paid', 'subscription', 'rupee', 'inr', '₹', 'startup', 'enterprise', 'scale'],
@@ -27,11 +27,11 @@ const KB = {
   },
   database: {
     triggers: ['database', 'postgres', 'mysql', 'sqlite', 'db', 'connect', 'connection', 'credentials', 'supported'],
-    reply: () => `**Supported Databases:**\n\n✅ PostgreSQL 12+\n✅ MySQL 8+\n✅ SQLite 3+\n🔜 MS SQL Server (v2.6)\n🔜 MongoDB (v2.6)\n\n**Connecting is simple:**\n1. Open AdminZero after install\n2. Enter your DB host, port, name & credentials\n3. Credentials are encrypted in your **OS keychain** (never sent anywhere)\n4. Your AI connects to AdminZero's local gateway instead of your DB directly\n\n💡 **Tip:** Create a read-only DB user for AdminZero for maximum security — even if a query somehow slips through, the DB itself won't allow writes.`
+    reply: () => `**Supported Databases:**\n\n✅ PostgreSQL 12+\n✅ MySQL 8+\n✅ SQLite 3+\n🔜 MS SQL Server (v2.6)\n🔜 MongoDB (v2.6)\n\n**Connecting is simple:**\n1. Get your License Key from the portal\n2. Send a POST request to our API with your DB credentials (db_url) and prompt\n3. Your credentials are used ephemerally to execute the query and are never stored\n4. Your AI receives the clean database results directly!\n\n💡 **Tip:** Create a read-only DB user for AdminZero for maximum security — even if a query somehow slips through, the DB itself won't allow writes.`
   },
   privacy: {
     triggers: ['privacy', 'safe', 'data', 'cloud', 'send', 'offline', 'local', 'encrypt', 'secure', 'keychain'],
-    reply: () => `**AdminZero is built privacy-first:**\n\n🔒 **Zero cloud access** — Your DB credentials are stored in your OS keychain (Windows Credential Manager / macOS Keychain / Linux Secret Service). AdminZero cannot read them in plaintext.\n\n📵 **Fully offline** — AdminZero operates without internet after the first license activation.\n\n🚫 **No telemetry** — We don't collect query logs, usage stats, or any analytics.\n\n⚡ **Local only** — All firewall checks happen on your machine. Your queries never touch GlitchGo's servers.\n\nYour data is 100% yours, always.`
+    reply: () => `**AdminZero is built privacy-first:**\n\n🔒 **Ephemeral Execution** — Your DB credentials are only used in memory for the duration of the query. We do not store your credentials.\n\n⚡ **Fast Edge Network** — AdminZero operates as a fast Cloud API.\n\n🚫 **No telemetry** — We don't collect query logs, usage stats, or any analytics.\n\n🛡️ **API Security** — All firewall checks happen on our secure high-speed cluster.\n\nYour data is 100% yours, always.`
   },
   glitchgo: {
     triggers: ['glitchgo', 'company', 'who made', 'team', 'built by', 'india', 'msme', 'founder'],
