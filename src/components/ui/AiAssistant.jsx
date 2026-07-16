@@ -19,7 +19,7 @@ const KB = {
   },
   install: {
     triggers: ['install', 'download', 'setup', 'get started', 'start', 'how to install', 'exe', 'dmg', 'appimage'],
-    reply: () => `**Downloading AdminZero is free!**\n\n📥 **Pick your platform:**\n\n🪟 **Windows** → Download .EXE\n- Run the installer, click through setup\n- If SmartScreen appears → "More info" → "Run anyway"\n- .NET Runtime included\n\n🍎 **macOS** → Download .DMG\n- Drag to Applications, right-click → Open on first launch\n- Universal binary (Apple Silicon + Intel)\n\n🐧 **Linux** → Download .AppImage\n- chmod +x AdminZero-Linux.AppImage\n- ./AdminZero-Linux.AppImage\n- No install needed!\n\n👉 Head to the **Download section** on the homepage to grab your copy.`
+    reply: () => `**Downloading AdminZero is free — but requires a free account.**\n\n🔑 **Step 1:** Create your free account at **glitchgo.tech/signup**\n📥 **Step 2:** Your download links appear in the **Client Portal** the moment you sign up\n🚀 **Step 3:** Pick your platform:\n\n🪟 **Windows** → .EXE installer (.NET Runtime included)\n🍎 **macOS** → .DMG (Apple Silicon + Intel universal)\n🐧 **Linux** → .AppImage (no install, just run)\n\nYour **license key is auto-generated** in the portal — just copy and paste it into the app on first launch.\n\nSign up free → **glitchgo.tech/signup**`
   },
   pricing: {
     triggers: ['price', 'pricing', 'plan', 'cost', 'how much', 'free', 'paid', 'subscription', 'rupee', 'inr', '₹', 'startup', 'enterprise', 'scale'],

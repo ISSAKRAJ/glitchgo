@@ -479,7 +479,7 @@ export default function Landing() {
             <div style={{textAlign:'center',marginBottom:'56px'}}>
               <div style={{display:'flex',justifyContent:'center',marginBottom:'14px'}}><span className="sec-label">// Download</span></div>
               <h2 className="h2">Choose Your <span className="grad-m">Platform</span></h2>
-              <p style={{fontSize:'13px',color:'#3f3f46',marginTop:'12px',maxWidth:'340px',margin:'12px auto 0',lineHeight:1.8}}>All builds include the full AST firewall, credential vault, and threat dashboard.</p>
+              <p style={{fontSize:'13px',color:'#3f3f46',marginTop:'12px',maxWidth:'400px',margin:'12px auto 0',lineHeight:1.8}}>Create a free account to download. Your license key is auto-generated and usage is tracked from day one.</p>
             </div>
 
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'18px',maxWidth:'860px',margin:'0 auto'}}>
@@ -493,9 +493,9 @@ export default function Landing() {
                   <p style={{fontSize:'10px',color:'#3f3f46',marginBottom:'2px'}}>Windows 10 / 11 · x64</p>
                   <p style={{fontSize:'9px',color:'#27272a',fontFamily:"'JetBrains Mono',monospace"}}>.NET Runtime included</p>
                 </div>
-                <a href="/downloads/AdminZero-Setup.exe" download="AdminZero-Setup.exe" className="dl-btn dl-btn-s" style={{width:'100%'}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Download .EXE
+                <a href="/signup?next=/portal" className="dl-btn dl-btn-s" style={{width:'100%'}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                  Sign Up to Download
                 </a>
               </div>
 
@@ -509,9 +509,9 @@ export default function Landing() {
                   <p style={{fontSize:'10px',color:'#3f3f46',marginBottom:'2px'}}>Apple Silicon + Intel · Universal</p>
                   <p style={{fontSize:'9px',color:'#27272a',fontFamily:"'JetBrains Mono',monospace"}}>macOS 12 Monterey+</p>
                 </div>
-                <a href="/downloads/AdminZero-Mac.dmg" download="AdminZero-Mac.dmg" className="dl-btn dl-btn-p" style={{width:'100%'}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Download .DMG
+                <a href="/signup?next=/portal" className="dl-btn dl-btn-p" style={{width:'100%'}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                  Sign Up to Download
                 </a>
               </div>
 
@@ -525,17 +525,17 @@ export default function Landing() {
                   <p style={{fontSize:'10px',color:'#3f3f46',marginBottom:'2px'}}>Ubuntu / Debian / Arch</p>
                   <p style={{fontSize:'9px',color:'#27272a',fontFamily:"'JetBrains Mono',monospace"}}>AppImage — no install needed</p>
                 </div>
-                <a href="/downloads/AdminZero-Linux.AppImage" download="AdminZero-Linux.AppImage" className="dl-btn dl-btn-s" style={{width:'100%',borderColor:'rgba(59,130,246,0.16)',color:'#60a5fa'}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Download .AppImage
+                <a href="/signup?next=/portal" className="dl-btn dl-btn-s" style={{width:'100%',borderColor:'rgba(59,130,246,0.16)',color:'#60a5fa'}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                  Sign Up to Download
                 </a>
               </div>
             </div>
 
-            {/* SmartScreen note */}
-            <div style={{textAlign:'center',marginTop:'28px',padding:'13px 18px',borderRadius:'11px',background:'rgba(251,191,36,0.03)',border:'1px solid rgba(251,191,36,0.08)',maxWidth:'540px',margin:'28px auto 0'}}>
-              <p style={{fontSize:'10px',color:'#52525b',fontFamily:"'JetBrains Mono',monospace",lineHeight:1.8}}>
-                <span style={{color:'rgba(251,191,36,0.7)'}}>⚠ Windows Users:</span> If SmartScreen shows a warning, click <strong style={{color:'#71717a'}}>"More info" → "Run anyway"</strong>. Normal for new apps without a Microsoft code-signing cert.
+            {/* Auth gate note */}
+            <div style={{textAlign:'center',marginTop:'28px',padding:'16px 20px',borderRadius:'12px',background:'rgba(234,108,18,0.04)',border:'1px solid rgba(234,108,18,0.1)',maxWidth:'540px',margin:'28px auto 0'}}>
+              <p style={{fontSize:'11px',color:'#52525b',fontFamily:"'JetBrains Mono',monospace",lineHeight:1.9}}>
+                <span style={{color:'rgba(234,108,18,0.7)'}}>🔑 Free account required.</span> Sign up in 30 seconds — your license key and download links appear instantly in your <a href="/portal" style={{color:'#ea6c12',textDecoration:'none',fontWeight:700}}>Client Portal</a>.
               </p>
             </div>
           </div>

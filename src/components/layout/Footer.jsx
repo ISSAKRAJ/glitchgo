@@ -6,7 +6,7 @@ export default function Footer() {
 
   const links = {
     Product: [
-      { label: 'Download App', href: '/#download' },
+      { label: 'Download App', href: '/signup?next=/portal' },
       { label: 'How It Works', href: '/guide' },
       { label: 'Test Console', href: '/adminzero' },
       { label: 'System Status', href: '/status' },
