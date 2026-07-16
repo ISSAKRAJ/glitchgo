@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Key, Shield, ShieldAlert, CheckCircle, Database, 
-  Terminal, Copy, AlertTriangle, Play, RefreshCw, Download, Monitor, Laptop
+  Terminal, Copy, AlertTriangle, Play, RefreshCw, Download, Monitor, Laptop,
+  Globe, Zap, Eye, Lock
 } from 'lucide-react';
 
 export default function AdminZeroTab({ user, supabase, userToken }) {
@@ -13,6 +14,11 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
   const [paymentUtr, setPaymentUtr] = useState('');
   const [payLoading, setPayLoading] = useState(false);
   const [payMessage, setPayMessage] = useState(null);
+  const [dbUrl, setDbUrl] = useState('');
+  const [dbDialect, setDbDialect] = useState('postgres');
+  const [dbSaving, setDbSaving] = useState(false);
+  const [dbMessage, setDbMessage] = useState(null);
+  const [cloudTab, setCloudTab] = useState('sql');
 
   // Fetch or auto-create license workspace on load
   const fetchOrOnboardWorkspace = async () => {
@@ -77,6 +83,32 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
   useEffect(() => {
     fetchOrOnboardWorkspace();
   }, [user]);
+
+  useEffect(() => {
+    if (workspace) {
+      setDbUrl(workspace.db_url || '');
+      setDbDialect(workspace.db_dialect || 'postgres');
+    }
+  }, [workspace]);
+
+  const saveDbConfig = async () => {
+    if (!workspace) return;
+    setDbSaving(true); setDbMessage(null);
+    try {
+      const { error } = await supabase
+        .from('workspaces')
+        .update({ db_url: dbUrl, db_dialect: dbDialect })
+        .eq('team_id', workspace.team_id);
+      if (error) throw error;
+      setDbMessage({ type: 'success', text: 'Database configuration saved.' });
+      setWorkspace(prev => ({ ...prev, db_url: dbUrl, db_dialect: dbDialect }));
+    } catch (err) {
+      setDbMessage({ type: 'error', text: err.message || 'Failed to save.' });
+    } finally {
+      setDbSaving(false);
+      setTimeout(() => setDbMessage(null), 4000);
+    }
+  };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -181,6 +213,127 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
             <div className="flex justify-between items-center pt-1 text-[10px] text-zinc-500 font-mono">
               <span>{usagePercentage}% Limit reached</span>
               <span>{queryRemaining} credits remaining</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── CLOUD API CONFIGURATION ── */}
+        <div className="bg-[#050505] border border-zinc-900 rounded-3xl p-6 md:p-8 space-y-6 shadow-2xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <span className="text-[10px] text-brand-orange uppercase tracking-widest font-mono font-bold">⭐ New — No Install Required</span>
+              <h2 className="text-lg font-bold text-white mt-1 flex items-center gap-2">
+                <Globe size={18} className="text-brand-orange" />
+                Cloud API — Use Anywhere
+              </h2>
+              <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Connect your database once below. Then call our API from any device, server, or AI app — no desktop install needed.
+              </p>
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
+              {[['PII Scrubber','text-purple-400'],['Prompt Firewall','text-red-400'],['AST Firewall','text-brand-orange'],['Audit Trail','text-blue-400'],['Vector DB','text-emerald-400']].map(([f,c])=>(
+                <span key={f} className={`text-[9px] font-mono font-bold uppercase ${c} flex items-center gap-1`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current inline-block"/>{f}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* DB URL Config */}
+          <div className="space-y-3">
+            <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">Step 1 — Connect Your Database</span>
+            <div className="flex gap-2">
+              <select
+                value={dbDialect}
+                onChange={e => setDbDialect(e.target.value)}
+                className="bg-zinc-950 border border-zinc-850 text-xs text-zinc-300 font-mono rounded-xl px-3 py-2 focus:outline-none focus:border-brand-orange cursor-pointer"
+              >
+                <option value="postgres">PostgreSQL</option>
+                <option value="mysql">MySQL</option>
+              </select>
+              <input
+                type="password"
+                value={dbUrl}
+                onChange={e => setDbUrl(e.target.value)}
+                placeholder="postgresql://user:pass@host:5432/dbname"
+                className="flex-1 bg-zinc-950 border border-zinc-850 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder-zinc-700 focus:outline-none focus:border-brand-orange"
+              />
+              <button
+                onClick={saveDbConfig}
+                disabled={dbSaving || !dbUrl}
+                className="px-4 py-2 bg-brand-orange text-black text-xs font-extrabold rounded-xl hover:bg-opacity-90 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {dbSaving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+            {dbMessage && (
+              <p className={`text-[10px] font-mono ${dbMessage.type === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>{dbMessage.text}</p>
+            )}
+            <p className="text-[9px] text-zinc-600 font-mono">🔒 Stored encrypted. Used only to execute validated queries on your behalf. Never logged or shared.</p>
+          </div>
+
+          {/* Cloud API Code Snippet */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">Step 2 — Call the API</span>
+              <div className="flex border-b border-zinc-900 font-mono text-[9px] font-bold gap-3">
+                {[['sql','SQL Query'],['vector','Vector DB'],['passthrough','Raw SQL']].map(([k,l])=>(
+                  <button key={k} onClick={()=>setCloudTab(k)}
+                    className={`pb-1 border-b-2 cursor-pointer transition-colors ${
+                      cloudTab===k ? 'border-brand-orange text-white' : 'border-transparent text-zinc-500'
+                    }`}>{l}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-xl font-mono text-[10px] text-indigo-300 overflow-x-auto leading-relaxed relative">
+              {cloudTab === 'sql' && (
+                <pre>{`fetch('https://glitchgo.tech/api/v1/query', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    license_key: "${workspace?.team_id || 'your-license-key'}",
+    prompt: "Show me all orders from last week"
+    // db_url optional if saved above
+  })
+})
+// Returns: { status, sql, data, meta: { piiScrubbed, creditsRemaining } }`}</pre>
+              )}
+              {cloudTab === 'vector' && (
+                <pre>{`fetch('https://glitchgo.tech/api/v1/query/vector', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    license_key: "${workspace?.team_id || 'your-license-key'}",
+    query: "Find products similar to wireless headphones",
+    collection: "products",
+    top_k: 10
+  })
+})
+// Returns sanitizedQuery — pass to Pinecone/Weaviate/ChromaDB`}</pre>
+              )}
+              {cloudTab === 'passthrough' && (
+                <pre>{`fetch('https://glitchgo.tech/api/v1/query', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    license_key: "${workspace?.team_id || 'your-license-key'}",
+    prompt: "SELECT id, name FROM users WHERE active = true",
+    mode: "passthrough"  // skip Gemini, treat as raw SQL
+  })
+})`}</pre>
+              )}
+              <button
+                onClick={() => copyToClipboard(
+                  cloudTab === 'sql'
+                    ? `fetch('https://glitchgo.tech/api/v1/query', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ license_key: "${workspace?.team_id}", prompt: "Show me all orders from last week" }) })`
+                    : `fetch('https://glitchgo.tech/api/v1/query/vector', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ license_key: "${workspace?.team_id}", query: "your search query", collection: "your_collection" }) })`
+                )}
+                className="absolute right-3 top-3 p-1.5 hover:bg-slate-900 border border-slate-850 rounded text-slate-500 hover:text-white cursor-pointer"
+                title="Copy"
+              >
+                <Copy size={11} />
+              </button>
             </div>
           </div>
         </div>
