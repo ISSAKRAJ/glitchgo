@@ -366,7 +366,7 @@ export default function Landing() {
               <div style={{display:'inline-flex', alignItems:'center', gap:'9px', padding:'7px 16px', borderRadius:'100px', background:'rgba(234,108,18,0.06)', border:'1px solid rgba(234,108,18,0.14)', backdropFilter:'blur(10px)'}}>
                 <span className="pdot" style={{width:'7px',height:'7px',borderRadius:'50%',background:'var(--o)',display:'block',flexShrink:0}} />
                 <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'9px',fontWeight:700,color:'var(--o2)',letterSpacing:'0.16em',textTransform:'uppercase'}}>
-                  AdminZero v2.4 — Windows · macOS · Linux
+                  AdminZero Cloud SaaS — Data Privacy for AI
                 </span>
               </div>
             </div>
@@ -378,18 +378,18 @@ export default function Landing() {
               fontWeight:800, lineHeight:1.0, letterSpacing:'-0.03em',
               color:'#fff', margin:'0 0 22px'
             }}>
-              The Firewall That<br />
-              <span className="grad-m">Thinks Before Your AI.</span>
+              The Cloud API That<br />
+              <span className="grad-m">Secures Your AI Data.</span>
             </h1>
 
             <p className="fu d3" style={{fontSize:'clamp(13px,1.8vw,16px)',color:'#52525b',maxWidth:'480px',margin:'0 auto 36px',lineHeight:1.8,fontWeight:400}}>
-              AdminZero runs locally on your machine — intercepting every query your AI sends and blocking injections before they reach your database.
+              AdminZero is a Cloud API Gateway — instantly scrubbing PII, stopping prompt injections, and enforcing strict read-only SQL firewalls for DPDP compliance.
             </p>
 
             <div className="fu d4" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap',marginBottom:'52px'}}>
               <a href="/signup?next=/portal" className="btn-p">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Download Free
+                Get API Key Free
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </a>
               <a href="/guide" className="btn-g">
@@ -400,7 +400,7 @@ export default function Landing() {
 
             {/* Trust row */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'28px',flexWrap:'wrap'}}>
-              {['100% Local — data never leaves your machine','Free tier — no credit card','Sub-4ms query interception'].map(t => (
+              {['DPDP & SOC2 Compliant Audit Trails','Zero-Install Cloud SaaS','Aadhaar & PAN PII Scrubbing'].map(t => (
                 <div key={t} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px',color:'#3f3f46',fontWeight:500}}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--o)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   {t}
@@ -446,16 +446,16 @@ export default function Landing() {
             <div style={{textAlign:'center',marginBottom:'56px'}}>
               <div style={{display:'flex',justifyContent:'center',marginBottom:'14px'}}><span className="sec-label">// How It Works</span></div>
               <h2 className="h2">Setup in <span className="grad-o">Under 2 Minutes</span></h2>
-              <p style={{fontSize:'13px',color:'#3f3f46',marginTop:'12px',maxWidth:'340px',margin:'12px auto 0',lineHeight:1.8}}>No cloud setup. No DevOps. Just install, connect, and protect.</p>
+              <p style={{fontSize:'13px',color:'#3f3f46',marginTop:'12px',maxWidth:'340px',margin:'12px auto 0',lineHeight:1.8}}>No installation required. Just point your AI application to our secure Cloud API.</p>
             </div>
 
             <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',maxWidth:'840px',margin:'0 auto'}}>
               {[
-                {n:'01',t:'Download & Install',d:'Grab the installer for your OS. Double-click to install in under 2 minutes.',
+                {n:'01',t:'Get Your License Key',d:'Sign up and instantly generate your secure API key from the developer portal.',
                   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>},
-                {n:'02',t:'Connect Your Database',d:'Paste your DB credentials. They are encrypted by your OS keychain and never leave your machine.',
+                {n:'02',t:'Route AI Traffic',d:'Change your AI requests to hit /api/v1/query. AdminZero proxies and secures the request.',
                   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>},
-                {n:'03',t:'Activate the Gateway',d:'AdminZero now intercepts every query your AI sends — blocking dangerous ones in real-time.',
+                {n:'03',t:'Instant Protection',d:'PII is scrubbed, prompt injections are blocked, and safe SQL is executed automatically.',
                   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>},
               ].map(({n,t,d,icon})=>(
                 <div key={n} className="glass" style={{padding:'26px'}}>
@@ -552,14 +552,14 @@ export default function Landing() {
             </div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}}>
               {[
-                {t:'AST Firewall',d:"Parses every query's abstract syntax tree — catching injections regex can't see.",ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,b:false},
-                {t:'Zero-Knowledge Vault',d:'Credentials stored in your OS keychain. AdminZero itself cannot read your passwords.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,b:true},
-                {t:'Live Threat Monitor',d:'Every blocked injection logged in real-time with severity rating and query details.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,b:false},
-                {t:'Offline First',d:'100% offline operation. No telemetry, no cloud calls. Your data stays on your machine.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,b:true},
-                {t:'Stacked Query Guard',d:'Detects semicolon-stacked transaction attacks that slip past basic query filters.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,b:false},
+                {t:'Automatic PII Scrubber',d:"Strips Emails, Phone Numbers, Aadhaar, PAN, and Credit Cards before data hits the LLM.",ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,b:false},
+                {t:'Prompt Injection Firewall',d:'Detects role hijacks and instruction overrides before SQL generation.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,b:true},
+                {t:'Compliance Audit Trail',d:'Full tamper-evident logging of every query and PII event for DPDP and SOC2.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,b:false},
+                {t:'Vector DB Protection',d:'Intercepts and secures semantic search queries for Pinecone and ChromaDB.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,b:true},
+                {t:'AST SQL Guard',d:'Parses abstract syntax trees to block destructive queries (DROP, DELETE) that regex misses.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,b:false},
                 {t:'Metadata Shield',d:'Blocks queries targeting system tables — pg_tables, information_schema, sqlite_master.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,b:true},
-                {t:'CTE Attack Detection',d:'Blocks recursive WITH clause exploits used to exfiltrate row-level data.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,b:false},
-                {t:'Sub-4ms Latency',d:'Firewall check adds under 4ms to any query — completely invisible to end users.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,b:true},
+                {t:'AI API Gateway',d:'Centralize all AI traffic with rate limiting, token cost tracking, and SLA guarantees.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,b:false},
+                {t:'Cloud-Native Speed',d:'Edge-optimized routing ensures sub-10ms overhead on every intercepted query.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,b:true},
               ].map(({t,d,ic,b})=>(
                 <div key={t} className="feat">
                   <div className={`ib ${b?'ib-b':'ib-o'}`} style={{width:'38px',height:'38px',marginBottom:'16px'}}>{ic}</div>

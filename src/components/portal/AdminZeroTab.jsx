@@ -541,10 +541,19 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
 
       {/* FULL WIDTH: Recent logs and telemetry audits */}
       <div className="lg:col-span-3 bg-[#050505] border border-zinc-900 rounded-3xl p-6 md:p-8 space-y-6 shadow-2xl">
-        <div>
-          <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono font-bold">Control Plane Audits</span>
-          <h2 className="text-lg font-bold text-white mt-1">Live Intercept Telemetry</h2>
-          <p className="text-xs text-zinc-400 mt-2">Telemetry logs streamed from your local agent instances to the cloud firewall monitor.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono font-bold">Compliance & SOC2</span>
+            <h2 className="text-lg font-bold text-white mt-1">Live Audit Logs</h2>
+            <p className="text-xs text-zinc-400 mt-2">Tamper-evident logs of all queries routed through the Cloud Proxy, including PII events and blocked threats.</p>
+          </div>
+          <button
+            onClick={() => window.open(`/api/v1/logs?license_key=${workspace?.team_id}&format=csv`, '_blank')}
+            className="flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold rounded-xl transition-all border border-zinc-800"
+          >
+            <Download size={14} className="text-brand-orange" />
+            Export CSV
+          </button>
         </div>
 
         <div className="border border-zinc-900 bg-zinc-950 rounded-2xl overflow-hidden overflow-x-auto">
@@ -552,7 +561,9 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
             <thead>
               <tr className="bg-zinc-900 border-b border-zinc-800 text-zinc-400 uppercase tracking-wider text-[10px]">
                 <th className="p-4 font-bold">Timestamp</th>
-                <th className="p-4 font-bold">Query / Prompt</th>
+                <th className="p-4 font-bold">Prompt / Query</th>
+                <th className="p-4 font-bold">Generated SQL</th>
+                <th className="p-4 font-bold">PII Scrubbed</th>
                 <th className="p-4 font-bold">Status</th>
               </tr>
             </thead>
@@ -560,27 +571,44 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
               {recentLogs.length > 0 ? (
                 recentLogs.map(log => (
                   <tr key={log.id} className="border-b border-zinc-900 hover:bg-zinc-900/40">
-                    <td className="p-4 text-zinc-500 whitespace-nowrap">{new Date(log.created_at).toLocaleString()}</td>
-                    <td className="p-4 text-zinc-200 select-all font-sans leading-relaxed max-w-lg">{log.user_prompt}</td>
-                    <td className="p-4 whitespace-nowrap">
+                    <td className="p-4 text-zinc-500 whitespace-nowrap align-top">{new Date(log.created_at).toLocaleString()}</td>
+                    <td className="p-4 text-zinc-200 select-all font-sans leading-relaxed max-w-sm align-top">{log.user_prompt}</td>
+                    <td className="p-4 text-zinc-400 select-all leading-relaxed max-w-sm align-top text-[10px]">
+                      {log.generated_sql || '-'}
+                    </td>
+                    <td className="p-4 align-top">
+                      {log.pii_detected ? (
+                        <div className="flex flex-wrap gap-1">
+                          {(log.pii_types || ['PII']).map(t => (
+                            <span key={t} className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      ) : <span className="text-zinc-600">-</span>}
+                    </td>
+                    <td className="p-4 whitespace-nowrap align-top">
                       {log.status === 'success' ? (
                         <span className="inline-flex items-center gap-1 text-brand-orange bg-brand-orange/10 border border-brand-orange/30 px-2 py-0.5 rounded font-bold uppercase text-[9px]">
                           <CheckCircle className="w-3 h-3" />
-                          <span>success</span>
+                          <span>Passed</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded font-bold uppercase text-[9px]">
-                          <ShieldAlert className="w-3 h-3" />
-                          <span>blocked</span>
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className="inline-flex items-center gap-1 text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded font-bold uppercase text-[9px] w-max">
+                            <ShieldAlert className="w-3 h-3" />
+                            <span>Blocked</span>
+                          </span>
+                          {log.threat_type && <span className="text-[9px] text-red-500/70">{log.threat_type}</span>}
+                        </div>
                       )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="p-8 text-center text-zinc-500 italic">
-                    No query logs reported from local agent yet. Start your local container to stream telemetry!
+                  <td colSpan={5} className="p-8 text-center text-zinc-500 italic">
+                    No queries routed through the Cloud API yet. Start sending traffic to /api/v1/query!
                   </td>
                 </tr>
               )}
