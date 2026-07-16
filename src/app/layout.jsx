@@ -3,7 +3,7 @@ import AiAssistant from '../components/ui/AiAssistant';
 
 export const metadata = {
   title: {
-    default: 'AdminZero — AI Database Firewall by GlitchGo',
+    default: 'AdminZero — Cloud API Security Gateway',
     template: '%s | AdminZero by GlitchGo',
   },
   description:
