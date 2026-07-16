@@ -387,7 +387,7 @@ export default function Landing() {
             </p>
 
             <div className="fu d4" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap',marginBottom:'52px'}}>
-              <a href="#download" className="btn-p">
+              <a href="/signup?next=/portal" className="btn-p">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Download Free
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -583,7 +583,7 @@ export default function Landing() {
             </div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px',maxWidth:'980px',margin:'0 auto'}}>
               {[
-                {n:'Developer',p:'₹0',pd:'forever',f:['Local DB support','500 queries / mo','AST Firewall Core','Community Discord'],cta:'Download Free',href:'#download',hot:false},
+                {n:'Developer',p:'₹0',pd:'forever',f:['Local DB support','500 queries / mo','AST Firewall Core','Community Discord'],cta:'Get Started Free',href:'/signup?next=/portal',hot:false},
                 {n:'Startup',p:'₹2,999',pd:'/ month',f:['Postgres & MySQL','50,000 queries / mo','Custom blocklists','Email support'],cta:'Get Started',href:'/portal',hot:true},
                 {n:'Scale',p:'₹14,999',pd:'/ month',f:['All databases','250,000 queries / mo','Team dashboard','Priority support'],cta:'Upgrade Now',href:'/portal',hot:false},
                 {n:'Enterprise',p:'Custom',pd:'annual quote',f:['Unlimited queries','Private VPC deploy','SLA guarantee','Dedicated support'],cta:'Contact Us',href:'mailto:issakrajraj@gmail.com',hot:false},
@@ -759,9 +759,9 @@ export default function Landing() {
                 <p style={{fontSize:'13px',color:'#3f3f46',marginBottom:'32px',lineHeight:1.8}}>
                   Join developers who trust AdminZero to protect their databases from AI-driven attacks. No cloud. No subscription required to start.
                 </p>
-                <a href="#download" className="btn-p" style={{margin:'0 auto',display:'inline-flex'}}>
+                <a href="/signup?next=/portal" className="btn-p" style={{margin:'0 auto',display:'inline-flex'}}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Download AdminZero Free
+                  Get Started Free
                 </a>
               </div>
             </div>
