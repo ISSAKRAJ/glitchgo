@@ -6,7 +6,6 @@ export default function Footer() {
 
   const links = {
     Product: [
-      { label: 'Download App', href: '/signup?next=/portal' },
       { label: 'How It Works', href: '/guide' },
       { label: 'Test Console', href: '/adminzero' },
       { label: 'System Status', href: '/status' },
@@ -185,7 +184,7 @@ export default function Footer() {
               </a>
 
               <p className="footer-tagline">
-                Enterprise-grade AI query firewall that runs locally on your machine — protecting your database 24/7.
+                Cloud API Security Gateway that intercepts and blocks dangerous SQL injections from AI agents before they reach your database.
               </p>
 
               {/* MSME Badge */}

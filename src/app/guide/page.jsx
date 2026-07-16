@@ -8,9 +8,9 @@ const NAV = [
   { id: 'howitworks',  label: 'How It Works' },
   { id: 'install', label: 'Integration' },
   
-  { id: 'firewall',    label: 'AST Firewall' },
+  { id: 'firewall',    label: 'Cloud Security Features' },
   { id: 'threats',     label: 'Threats We Block' },
-  { id: 'dashboard',   label: 'Threat Dashboard' },
+  { id: 'dashboard',   label: 'Client Portal' },
   { id: 'faq',         label: 'FAQ' },
 ];
 
@@ -315,76 +315,35 @@ export default function GuidePage() {
             {/* ══════════════ CONNECT DB ══════════════ */}
             {/* ══════════════ FIREWALL ══════════════ */}
             <div className={`guide-section ${active==='firewall'?'visible':''}`}>
-              <span className="sec-badge">05 / Firewall</span>
-              <h2 className="sec-h1">The AST <span className="grad-o">Firewall</span></h2>
-              <p className="sec-lead">Unlike regex-based filters, AdminZero parses the full Abstract Syntax Tree of every query. This means it understands query <em>structure</em> — catching attacks that syntactically disguise themselves.</p>
+              <span className="sec-badge">05 / Security Features</span>
+              <h2 className="sec-h1">Cloud <span className="grad-o">Security Features</span></h2>
+              <p className="sec-lead">AdminZero isn't just a basic regex filter. It provides three layers of deterministic protection for your database, configured dynamically based on your security needs.</p>
 
-              {/* Live Demo */}
-              <div className="demo-wrap" style={{marginBottom:'28px'}}>
-                <div className="demo-topbar">
-                  <div className="demo-dot" style={{background:'#ef4444'}}/>
-                  <div className="demo-dot" style={{background:'#f59e0b'}}/>
-                  <div className="demo-dot" style={{background:'#22c55e'}}/>
-                  <span className="demo-title">AdminZero Firewall — Live Simulator</span>
-                </div>
-                <div className="demo-body">
-                  <p style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'9px',fontWeight:700,color:'rgba(234,108,18,0.5)',letterSpacing:'0.14em',textTransform:'uppercase',marginBottom:'10px'}}>// Enter any SQL query to test</p>
-                  <textarea
-                    className="demo-textarea"
-                    value={demoQuery}
-                    onChange={e=>setDemoQuery(e.target.value)}
-                    spellCheck={false}
-                  />
-                  <div style={{display:'flex',alignItems:'center',gap:'14px',flexWrap:'wrap'}}>
-                    <button className="demo-run" onClick={runDemo} disabled={demoLoading}>
-                      {demoLoading
-                        ? <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{animation:'spin 0.9s linear infinite'}}><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Scanning...</>
-                        : <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Run Firewall Check</>
-                      }
-                    </button>
-                    <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                      {[
-                        {l:'Safe SELECT', v:"SELECT id, email FROM users WHERE active = true LIMIT 20;"},
-                        {l:'DROP attack', v:"DROP TABLE users;"},
-                        {l:'Stacked', v:"SELECT 1; DELETE FROM orders;"},
-                        {l:'System table', v:"SELECT * FROM information_schema.tables"},
-                      ].map(({l,v})=>(
-                        <button key={l} onClick={()=>{setDemoQuery(v);setDemoResult(null);}} style={{padding:'6px 10px',borderRadius:'7px',background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',color:'#52525b',fontSize:'10px',cursor:'pointer',fontFamily:"'JetBrains Mono',monospace",transition:'all 0.15s'}}
-                          onMouseOver={e=>e.target.style.color='#d4d4d8'} onMouseOut={e=>e.target.style.color='#52525b'}>
-                          {l}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {demoResult && (
-                    <div className={`demo-result ${demoResult}`}>
-                      {demoResult==='allowed'
-                        ? <><div className="ib ib-g" style={{width:'36px',height:'36px',flexShrink:0}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-                          <div><div style={{fontSize:'12px',fontWeight:700,color:'#4ade80',marginBottom:'3px'}}>✓ Query Allowed</div><div style={{fontSize:'11px',color:'#3f3f46',fontFamily:"'JetBrains Mono',monospace"}}>AST check passed — no threats detected. Query would be forwarded to your database.</div></div></>
-                        : <><div className="ib ib-r" style={{width:'36px',height:'36px',flexShrink:0}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
-                          <div><div style={{fontSize:'12px',fontWeight:700,color:'#f87171',marginBottom:'3px'}}>✗ Query Blocked</div><div style={{fontSize:'11px',color:'#3f3f46',fontFamily:"'JetBrains Mono',monospace"}}>Threat detected by AST Firewall. Query rejected — your database was never contacted.</div></div></>
-                      }
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr',gap:'14px', marginBottom: '28px'}}>
                 {[
-                  {t:'DML Block',d:'DELETE, INSERT, UPDATE, DROP, TRUNCATE, ALTER — all blocked regardless of context.',c:'ib-r'},
-                  {t:'Stacked Guard',d:'Multiple statements joined by semicolons are detected and rejected.',c:'ib-r'},
-                  {t:'Metadata Shield',d:'Queries targeting pg_tables, information_schema, sqlite_master are blocked.',c:'ib-r'},
-                  {t:'CTE Protection',d:'Recursive WITH clauses used for data exfiltration are parsed and rejected.',c:'ib-r'},
+                  {t:'AST SQL Guard (+2 Credits)',d:'Parses the full Abstract Syntax Tree (AST) of the generated SQL to block structural anomalies like DML (DELETE, DROP, INSERT), Stacked Semicolons, and Metadata Table Snooping. Protects against attacks that regex misses.',c:'ib-r'},
+                  {t:'Prompt Injection Firewall (+1 Credit)',d:'Scans the raw natural language prompt from the end-user *before* it even reaches the SQL generator. Blocks malicious instructions and role hijacks ("Ignore previous instructions...").',c:'ib-o'},
+                  {t:'PII Scrubber (+1 Credit)',d:'Intercepts the returned JSON data and automatically redacts sensitive Personal Identifiable Information (PII) like emails, phone numbers, and credit cards before it reaches the AI agent.',c:'ib-b'},
+                  {t:'Base Compute Query (1 Credit)',d:'The baseline cost to route and translate a natural language prompt into a safe, read-only SELECT query.',c:'ib-g'},
                 ].map(({t,d,c})=>(
                   <div key={t} className="card" style={{padding:'18px'}}>
                     <div className={`ib ${c}`} style={{width:'32px',height:'32px',marginBottom:'12px'}}>
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     </div>
-                    <div style={{fontSize:'12px',fontWeight:700,color:'#f4f4f5',marginBottom:'6px',fontFamily:"'Space Grotesk',sans-serif"}}>{t}</div>
-                    <div style={{fontSize:'11px',color:'#3f3f46',lineHeight:1.8}}>{d}</div>
+                    <div style={{fontSize:'14px',fontWeight:700,color:'#f4f4f5',marginBottom:'6px',fontFamily:"'Space Grotesk',sans-serif"}}>{t}</div>
+                    <div style={{fontSize:'12px',color:'#a1a1aa',lineHeight:1.8}}>{d}</div>
                   </div>
                 ))}
+              </div>
+
+              {/* Link to Playground */}
+              <div className="demo-wrap" style={{marginBottom:'28px', padding: '24px', textAlign: 'center'}}>
+                <h3 style={{fontSize:'16px',fontWeight:700,color:'#fff',marginBottom:'12px',fontFamily:"'Space Grotesk',sans-serif"}}>Want to see these features in action?</h3>
+                <p style={{fontSize:'13px',color:'#a1a1aa',marginBottom:'20px'}}>Test all edge cases and threat interceptions in our Sandbox Simulator.</p>
+                <a href="/adminzero" style={{display:'inline-flex',alignItems:'center',gap:'8px',padding:'12px 24px',background:'#10b981',color:'#022c22',fontWeight:'bold',fontSize:'13px',borderRadius:'8px',textDecoration:'none',fontFamily:"'Inter',sans-serif"}}>
+                  Launch Interactive Playground
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
               </div>
             </div>
 
