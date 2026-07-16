@@ -124,7 +124,7 @@ export default function AdminTab({ user, supabase, userToken }) {
             <Database size={20} />
           </div>
           <div>
-            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold block">Total Telemetry Queries</span>
+            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono font-bold block">Total Compute Credits Used</span>
             <span className="text-xl font-bold text-white mt-1 block">
               {workspaces.reduce((acc, curr) => acc + (curr.query_count || 0), 0)}
             </span>

@@ -199,8 +199,8 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
           {/* Credits Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-zinc-500">Query Quota Balance:</span>
-              <span className="text-zinc-350">{workspace.query_count || 0} / {workspace.max_queries || 500} queries used</span>
+              <span className="text-zinc-500">Compute Credits Balance:</span>
+              <span className="text-zinc-350">{workspace.query_count || 0} / {workspace.max_queries || 500} Credits Used</span>
             </div>
             <div className="w-full bg-zinc-950 rounded-full h-3 border border-zinc-900 overflow-hidden">
               <div 
