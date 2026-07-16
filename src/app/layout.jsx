@@ -7,7 +7,7 @@ export const metadata = {
     template: '%s | AdminZero by GlitchGo',
   },
   description:
-    'AdminZero is a local AI database security gateway that intercepts and blocks dangerous SQL injections from AI agents before they reach your database. Runs 100% offline on Windows, macOS & Linux.',
+    'AdminZero is a Cloud API database security gateway that intercepts and blocks dangerous SQL injections from AI agents before they reach your database. Integrates effortlessly via REST API.',
   keywords: [
     'AI database security',
     'SQL injection prevention',
@@ -17,7 +17,7 @@ export const metadata = {
     'AST query firewall',
     'AdminZero',
     'GlitchGo',
-    'local database proxy',
+    'Cloud API Gateway',
     'PostgreSQL security',
     'LLM database protection',
   ],

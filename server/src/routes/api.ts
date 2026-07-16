@@ -103,6 +103,9 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     const usePiiScrubber = features.use_pii_scrubber !== false;
     const useAstFirewall = features.use_ast_firewall !== false;
 
+    // Calculate Compute Cost
+    const queryCost = 1 + (usePiiScrubber ? 1 : 0) + (usePromptFirewall ? 1 : 0) + (useAstFirewall ? 2 : 0);
+
     // ── 0. Basic validation ──────────────────────────────────────────────
     if (!license_key) {
       return res.status(401).json({ error: 'Missing license_key parameter.' });
@@ -133,9 +136,9 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
 
     const creditsUsed = workspace.query_count || 0;
     const creditsMax = workspace.max_queries || 500;
-    if (creditsUsed >= creditsMax) {
+    if (creditsUsed + queryCost > creditsMax) {
       logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'QUOTA_EXCEEDED' });
-      return res.status(402).json({ error: `Query quota exceeded (${creditsUsed}/${creditsMax}).`, code: 'QUOTA_EXCEEDED' });
+      return res.status(402).json({ error: `Insufficient compute credits. Request requires ${queryCost} credits, but only ${creditsMax - creditsUsed} remaining.`, code: 'QUOTA_EXCEEDED' });
     }
 
     // ── 3. Prompt Injection Firewall ─────────────────────────────────────
@@ -264,7 +267,7 @@ Rules:
     const executionMs = Date.now() - startTime;
 
     // ── 9. Deduct Credit + Log Success ──────────────────────────────────
-    adminUpdateWorkspace(license_key, { query_count: creditsUsed + 1 });
+    adminUpdateWorkspace(license_key, { query_count: creditsUsed + queryCost });
 
     logAuditEvent({
       ...auditEvent,
@@ -273,7 +276,7 @@ Rules:
       rowsReturned: Array.isArray(queryResult) ? queryResult.length : 1
     });
 
-    res.set('X-AdminZero-Credits-Remaining', String(creditsMax - creditsUsed - 1));
+    res.set('X-AdminZero-Credits-Remaining', String(creditsMax - creditsUsed - queryCost));
     res.set('X-AdminZero-PII-Scrubbed', String(piiScrubbed));
 
     // ── 10. Return Response ──────────────────────────────────────────────
@@ -284,10 +287,11 @@ Rules:
       meta: {
         rowsReturned: Array.isArray(queryResult) ? queryResult.length : 1,
         executionMs,
-        creditsUsed: creditsUsed + 1,
-        creditsRemaining: creditsMax - creditsUsed - 1,
+        creditsUsed: creditsUsed + queryCost,
+        creditsRemaining: creditsMax - creditsUsed - queryCost,
         piiScrubbed: piiScrubbed,
         piiTypesFound: piiTypesFound,
+        queryCost: queryCost,
         rateLimit: { remaining: rateCheck.remaining, resetInSeconds: 60 }
       }
     });

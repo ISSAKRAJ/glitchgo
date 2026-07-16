@@ -15,7 +15,7 @@ const KB = {
   },
   firewall: {
     triggers: ['firewall', 'ast', 'how does it work', 'how it works', 'block', 'detect', 'injection', 'security', 'protection', 'prevent'],
-    reply: () => `**The AST Firewall** is AdminZero's core engine.\n\nUnlike regex filters, it parses the full **Abstract Syntax Tree** of every SQL query — understanding query *structure*, not just text patterns.\n\n🔴 **What it blocks:**\n• DELETE / DROP / TRUNCATE / INSERT / UPDATE\n• Stacked semicolon attacks (SELECT 1; DROP TABLE users)\n• System table scans (pg_tables, information_schema)\n• Recursive CTE exploits (WITH RECURSIVE...)\n• UNION-based data exfiltration\n\n⚡ **Speed:** < 4ms per query\n🧠 **Intelligence:** Structural AST analysis — not just keyword matching\n\nYour database is never contacted when a query is blocked.`
+    reply: () => `**The AST Firewall** is AdminZero's core engine.\n\nUnlike regex filters, it parses the full **Abstract Syntax Tree** of every SQL query.\n\n**Flexible Security Features:**\nYou can toggle features on/off per request to save Compute Credits:\n\n🛡️ **AST SQL Guard (+2 Credits):** Blocks destructive queries (DELETE/DROP) and stacked semicolons.\n🧠 **Prompt Injection Firewall (+1 Credit):** Detects role hijacks before SQL generation.\n🕵️ **PII Scrubber (+1 Credit):** Strips emails, phone numbers, and CCs from the generated query.\n\nEvery base query costs 1 Credit. A fully secured query costs 5 Credits.`
   },
   install: {
     triggers: ['install', 'download', 'setup', 'get started', 'start', 'how to install', 'exe', 'dmg', 'appimage'],
@@ -23,7 +23,7 @@ const KB = {
   },
   pricing: {
     triggers: ['price', 'pricing', 'plan', 'cost', 'how much', 'free', 'paid', 'subscription', 'rupee', 'inr', '₹', 'startup', 'enterprise', 'scale'],
-    reply: () => `**AdminZero Pricing Plans:**\n\n🆓 **Developer** — ₹0 forever\n• Local DB support\n• 500 queries / month\n• AST Firewall Core\n• Community Discord\n\n🚀 **Startup** — ₹2,999 / month\n• Postgres & MySQL\n• 50,000 queries / month\n• Custom blocklists\n• Email support\n\n📈 **Scale** — ₹14,999 / month\n• All databases\n• 250,000 queries / month\n• Team dashboard\n• Priority support\n\n🏢 **Enterprise** — Custom pricing\n• Unlimited queries\n• Private VPC deployment\n• SLA guarantee\n• Dedicated onboarding\n\nAll plans include the full AST Firewall. No credit card needed to start!`
+    reply: () => `**AdminZero Feature-Based Pricing:**\n\nWe use a **Compute Credit** system. Base query = 1 Credit. Enable extra features to consume more (PII = +1, Prompt Firewall = +1, AST Guard = +2). A fully secured query is 5 Credits.\n\n🆓 **Developer** — ₹0 forever\n• 2,500 Credits / month\n• Community Discord\n\n🚀 **Startup** — ₹2,999 / month\n• 250,000 Credits / month\n• Custom blocklists\n\n📈 **Scale** — ₹14,999 / month\n• 1,250,000 Credits / month\n• Priority support\n\n🏢 **Enterprise** — Custom pricing\n• Unlimited Credits\n• Private VPC deployment\n\nNo credit card needed to start!`
   },
   database: {
     triggers: ['database', 'postgres', 'mysql', 'sqlite', 'db', 'connect', 'connection', 'credentials', 'supported'],
