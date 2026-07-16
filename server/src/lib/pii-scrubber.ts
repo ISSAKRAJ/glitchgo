@@ -63,18 +63,22 @@ export function scrubPII(text: string): PIIResult {
   let count = 0;
 
   for (const { type, regex, mask } of PII_PATTERNS) {
-    const resetRegex = new RegExp(regex.source, regex.flags);
-    const matches = sanitized.match(resetRegex);
-    if (matches && matches.length > 0) {
+    let typeCount = 0;
+    // String.replace implicitly resets lastIndex on global regexes
+    sanitized = sanitized.replace(regex, () => {
+      typeCount++;
+      return mask;
+    });
+    
+    if (typeCount > 0) {
       detectedTypes.add(type);
-      count += matches.length;
-      sanitized = sanitized.replace(resetRegex, mask);
+      count += typeCount;
     }
   }
 
   return {
     sanitized,
-    detectedTypes: [...detectedTypes],
+    detectedTypes: Array.from(detectedTypes),
     count
   };
 }
@@ -85,8 +89,6 @@ export function scrubPII(text: string): PIIResult {
  */
 export function containsPII(text: string): boolean {
   if (!text) return false;
-  return PII_PATTERNS.some(({ regex }) => {
-    const r = new RegExp(regex.source, regex.flags);
-    return r.test(text);
-  });
+  // String.match with a global regex ignores lastIndex and is stateless
+  return PII_PATTERNS.some(({ regex }) => text.match(regex) !== null);
 }

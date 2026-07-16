@@ -18,6 +18,13 @@ export const apiRouter = Router();
 const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
 const RATE_LIMIT_PER_MINUTE = 30;
 
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap.entries()) {
+    if (now - entry.windowStart > 60_000) rateLimitMap.delete(key);
+  }
+}, 300000).unref();
+
 function checkRateLimit(licenseKey: string) {
   const now = Date.now();
   const window = 60_000; // 1 minute
@@ -105,7 +112,7 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     // ── 1. Rate Limiting ───────────────────────────────
     const rateCheck = checkRateLimit(license_key);
     if (!rateCheck.allowed) {
-      await logAuditEvent({ ...auditEvent, status: 'rate_limited', threatType: 'RATE_LIMIT_EXCEEDED' });
+      logAuditEvent({ ...auditEvent, status: 'rate_limited', threatType: 'RATE_LIMIT_EXCEEDED' });
       res.set('X-RateLimit-Remaining', '0');
       res.set('X-RateLimit-Reset', '60');
       return res.status(429).json({ error: 'Rate limit exceeded. Maximum 30 requests per minute.', code: 'RATE_LIMITED' });
@@ -115,14 +122,14 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     // ── 2. License Key Validation + Credit Check ─────────────────────────
     const workspace = await getWorkspace(license_key);
     if (!workspace) {
-      await logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'INVALID_LICENSE' });
+      logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'INVALID_LICENSE' });
       return res.status(401).json({ error: 'Invalid or unregistered license key.', code: 'INVALID_LICENSE' });
     }
 
     const creditsUsed = workspace.query_count || 0;
     const creditsMax = workspace.max_queries || 500;
     if (creditsUsed >= creditsMax) {
-      await logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'QUOTA_EXCEEDED' });
+      logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'QUOTA_EXCEEDED' });
       return res.status(402).json({ error: `Query quota exceeded (${creditsUsed}/${creditsMax}).`, code: 'QUOTA_EXCEEDED' });
     }
 
@@ -130,7 +137,7 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     const promptScan = scanPrompt(prompt);
     if (!promptScan.safe) {
       const topThreat = promptScan.threats[0];
-      await logAuditEvent({
+      logAuditEvent({
         ...auditEvent,
         status: 'blocked',
         threatType: `PROMPT_INJECTION:${topThreat.type}`
@@ -198,13 +205,13 @@ Rules:
         validateQueryMySQL(generatedSQL, resolvedBlockedTables);
       }
     } catch (firewallErr: any) {
-      await logAuditEvent({
+      logAuditEvent({
         ...auditEvent,
         status: 'blocked',
         threatType: 'AST_FIREWALL',
         executionMs: Date.now() - startTime
       });
-      await adminUpdateWorkspace(license_key, { threats_blocked: (workspace.threats_blocked || 0) + 1 });
+      adminUpdateWorkspace(license_key, { threats_blocked: (workspace.threats_blocked || 0) + 1 });
       return res.status(403).json({ error: firewallErr.message, code: 'AST_FIREWALL_BLOCKED', sql: generatedSQL });
     }
 
@@ -229,7 +236,7 @@ Rules:
         await connection.end();
       }
     } catch (dbErr: any) {
-      await logAuditEvent({
+      logAuditEvent({
         ...auditEvent,
         status: 'db_error',
         threatType: 'DB_EXECUTION_ERROR',
@@ -241,9 +248,9 @@ Rules:
     const executionMs = Date.now() - startTime;
 
     // ── 9. Deduct Credit + Log Success ──────────────────────────────────
-    await adminUpdateWorkspace(license_key, { query_count: creditsUsed + 1 });
+    adminUpdateWorkspace(license_key, { query_count: creditsUsed + 1 });
 
-    await logAuditEvent({
+    logAuditEvent({
       ...auditEvent,
       status: 'success',
       executionMs,
@@ -271,7 +278,7 @@ Rules:
 
   } catch (err: any) {
     console.error('[AdminZero /v1/query] Unhandled error:', err);
-    await logAuditEvent({ ...auditEvent, status: 'error', threatType: 'INTERNAL_ERROR' });
+    logAuditEvent({ ...auditEvent, status: 'error', threatType: 'INTERNAL_ERROR' });
     return res.status(500).json({ error: 'Internal server error.', code: 'INTERNAL_ERROR' });
   }
 });
