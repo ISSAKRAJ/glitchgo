@@ -5,7 +5,6 @@ import { Callout } from '@tremor/react';
 import { 
   Terminal, 
   ShieldAlert, 
-  CheckCircle, 
   Server,
   Zap,
   Info,

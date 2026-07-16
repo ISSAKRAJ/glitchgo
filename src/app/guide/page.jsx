@@ -16,24 +16,7 @@ const NAV = [
 
 export default function GuidePage() {
   const [active, setActive] = useState('overview');
-  const [demoQuery, setDemoQuery] = useState("SELECT * FROM users WHERE id = 1;");
-  const [demoResult, setDemoResult] = useState(null);
-  const [demoLoading, setDemoLoading] = useState(false);
 
-  const runDemo = () => {
-    setDemoLoading(true);
-    setDemoResult(null);
-    setTimeout(() => {
-      setDemoLoading(false);
-      const q = demoQuery.trim().toUpperCase();
-      const blocked =
-        /DELETE\s|DROP\s|INSERT\s|UPDATE\s|TRUNCATE\s|ALTER\s/i.test(q) ||
-        /pg_tables|information_schema|sqlite_master|pg_shadow/i.test(demoQuery) ||
-        /;\s*SELECT|;\s*DROP|;\s*DELETE/i.test(demoQuery) ||
-        /WITH\s+RECURSIVE/i.test(demoQuery);
-      setDemoResult(blocked ? 'blocked' : 'allowed');
-    }, 1100);
-  };
 
   const threats = [
     { name: 'DELETE / DROP / TRUNCATE', ex: 'DELETE FROM users WHERE 1=1', why: 'Wipes entire tables. No AI agent should ever be able to do this.' },
