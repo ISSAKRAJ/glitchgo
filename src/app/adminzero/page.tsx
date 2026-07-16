@@ -121,8 +121,45 @@ export default function DemoPlayground() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans p-6 pb-24">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#040404] text-[#d4d4d8] font-sans p-6 pb-24 relative overflow-hidden">
+      <style>{`
+        .bg-wrap { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .orb { position: absolute; border-radius: 50%; will-change: transform; }
+        .o1 {
+          width: 800px; height: 800px; top: -250px; left: 50%; transform: translateX(-50%);
+          background: radial-gradient(circle, rgba(234,108,18,0.07) 0%, transparent 65%);
+          filter: blur(100px); animation: f1 16s ease-in-out infinite;
+        }
+        .o2 {
+          width: 600px; height: 600px; bottom: 5%; right: -100px;
+          background: radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 65%);
+          filter: blur(120px); animation: f2 20s ease-in-out infinite;
+        }
+        .o3 {
+          width: 450px; height: 450px; top: 45%; left: -80px;
+          background: radial-gradient(circle, rgba(234,108,18,0.05) 0%, transparent 65%);
+          filter: blur(100px); animation: f3 24s ease-in-out infinite;
+        }
+        @keyframes f1 { 0%,100%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(-30px);} }
+        @keyframes f2 { 0%,100%{transform:translate(0,0);} 50%{transform:translate(-30px,-40px);} }
+        @keyframes f3 { 0%,100%{transform:translate(0,0);} 50%{transform:translate(20px,-30px);} }
+        .bg-grid {
+          position: fixed; inset: 0; z-index: 0; pointer-events: none;
+          background-image: linear-gradient(rgba(255,255,255,0.014) 1px,transparent 1px),
+                            linear-gradient(90deg,rgba(255,255,255,0.014) 1px,transparent 1px);
+          background-size: 72px 72px;
+          mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 20%, transparent 100%);
+        }
+      `}</style>
+      
+      <div className="bg-wrap">
+        <div className="orb o1"></div>
+        <div className="orb o2"></div>
+        <div className="orb o3"></div>
+        <div className="bg-grid"></div>
+      </div>
+
+      <div className="max-w-6xl mx-auto space-y-6 relative z-10">
         
         <header className="border-b border-slate-800 pb-4 mb-8">
           <div className="flex items-center gap-3">
