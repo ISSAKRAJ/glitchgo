@@ -1,9 +1,4 @@
 import { Router, Request, Response } from 'express';
-import { randomUUID } from 'node:crypto';
-import { encryptConnectionString, decryptConnectionString } from '../lib/crypto.js';
-import { ConnectorFactory, ConnectionConfig } from '../lib/connectors/factory.js';
-import { profileSchema, SemanticSchema } from '../lib/semantic-profiler.js';
-import { askDatabase } from '../lib/ai-pipeline.js';
 import { supabase } from '../lib/supabase.js';
 import { 
   getWorkspace, 
@@ -60,18 +55,6 @@ async function logAuditEvent(event: any) {
   }
 }
 
-
-interface StoreEntry {
-  dbId: string;
-  dialect: 'postgres' | 'mysql';
-  encryptedData: string;
-  iv: string;
-  authTag: string;
-  schema: SemanticSchema;
-}
-
-const dbStore = new Map<string, StoreEntry>();
-
 /**
  * Helper to authenticate Super Admin request
  */
@@ -89,37 +72,6 @@ async function authenticateSuperAdmin(req: Request): Promise<boolean> {
     return false;
   }
 }
-
-/**
- * POST /api/onboard
- */
-apiRouter.post('/onboard', async (req: Request, res: Response) => {
-  try {
-    const { dialect, connectionString } = req.body;
-    if (!dialect || !connectionString) {
-      return res.status(400).json({ status: 'error', message: 'Missing parameters.' });
-    }
-    const encrypted = encryptConnectionString(connectionString);
-    const config: ConnectionConfig = { dialect, connectionString };
-    const testResult = await ConnectorFactory.testConnection(config);
-    if (!testResult.success) {
-      return res.status(400).json({ status: 'error', message: `Database connection test failed: ${testResult.error}` });
-    }
-    const schema = await profileSchema(config);
-    const dbId = randomUUID();
-    dbStore.set(dbId, {
-      dbId,
-      dialect,
-      encryptedData: encrypted.encryptedData,
-      iv: encrypted.iv,
-      authTag: encrypted.authTag,
-      schema
-    });
-    return res.status(200).json({ status: 'success', dbId, schema });
-  } catch (err: any) {
-    return res.status(500).json({ status: 'error', message: err.message || 'Internal Server Error' });
-  }
-});
 
 /**
  * POST /v1/query

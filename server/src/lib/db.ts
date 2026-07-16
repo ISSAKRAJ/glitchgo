@@ -35,25 +35,7 @@ export async function getWorkspaceToken(teamId: string): Promise<string | null> 
   if (!data || !data.encrypted_bot_access_token) return null;
   return decrypt(data.encrypted_bot_access_token);
 }
-export async function saveConnection(id: string, clientName: string, pgUrl: string, schemaHint: string, userId?: string): Promise<void> {
-  const encryptedUrl = encrypt(pgUrl);
-  const payload: any = { id: id.trim(), client_name: clientName.trim(), encrypted_pg_url: encryptedUrl, schema_hint: schemaHint?.trim() || '' };
-  if (userId) { payload.user_id = userId; }
-  const { error } = await supabase.from('connections').upsert(payload, { onConflict: 'id' });
-  if (error) { console.error('Error saving connection to Supabase:', error); throw error; }
-}
-export async function getConnection(id: string) {
-  const { data, error } = await supabase.from('connections').select('*').eq('id', id.trim()).single();
-  if (error) { if (error.code === 'PGRST116') return null; console.error('Error fetching connection from Supabase:', error); throw error; }
-  return data;
-}
-export async function getAllConnections(userId?: string) {
-  let query = supabase.from('connections').select('*');
-  if (userId) { query = query.eq('user_id', userId); }
-  const { data, error } = await query.order('created_at', { ascending: false });
-  if (error) { console.error('Error fetching connections list from Supabase:', error); throw error; }
-  return data || [];
-}
+
 export async function checkUtrExists(utr: string): Promise<boolean> {
   const { data, error } = await supabase.from('workspaces').select('team_id').eq('stripe_subscription_id', utr.trim()).limit(1);
   if (error) { console.error('Error checking UTR uniqueness in Supabase:', error); throw error; }

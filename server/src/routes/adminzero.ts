@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Client } from 'pg';
-import { saveConnection, getAllConnections, getAllWorkspaces, checkUtrExists, adminUpdateWorkspace, getWorkspace } from '../lib/db.js';
+import { getAllWorkspaces, checkUtrExists, adminUpdateWorkspace, getWorkspace } from '../lib/db.js';
 import { supabase } from '../lib/supabase.js';
 import { GoogleGenAI } from '@google/genai';
 
@@ -21,75 +21,6 @@ async function getUserIdFromRequest(req: Request): Promise<string | null> {
   }
 }
 
-/**
- * GET /api/adminzero/connections
- * Lists all registered database connections.
- */
-adminzeroRouter.get('/connections', async (req: Request, res: Response) => {
-  try {
-    const userId = req.query.userId as string || undefined;
-    const connections = await getAllConnections(userId);
-    return res.json(connections);
-  } catch (error: any) {
-    console.error('Error fetching connections:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-/**
- * POST /api/adminzero/connections
- * Registers or updates a database connection mapping.
- */
-adminzeroRouter.post('/connections', async (req: Request, res: Response) => {
-  try {
-    const { id, clientName, pgUrl, schemaHint, userId } = req.body;
-    
-    if (!id || !clientName || !pgUrl) {
-      return res.status(400).json({ error: 'Missing required parameters (id, clientName, pgUrl)' });
-    }
-    
-    await saveConnection(id, clientName, pgUrl, schemaHint || '', userId || undefined);
-    return res.json({ success: true });
-  } catch (error: any) {
-    console.error('Error saving connection:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-/**
- * POST /api/adminzero/connections/test
- * Tests a PostgreSQL URL connection for validity.
- */
-adminzeroRouter.post('/connections/test', async (req: Request, res: Response) => {
-  try {
-    const { pgUrl } = req.body;
-    
-    if (!pgUrl) {
-      return res.status(400).json({ error: 'Missing PostgreSQL URL parameter pgUrl' });
-    }
-    
-    console.log('Testing PostgreSQL connection...');
-    const pgClient = new Client({
-      connectionString: pgUrl.trim(),
-      connectionTimeoutMillis: 5000,
-      ssl: { rejectUnauthorized: false }
-    });
-    
-    try {
-      await pgClient.connect();
-      const result = await pgClient.query('SELECT 1 as connected;');
-      if (result.rows[0]?.connected === 1) {
-        return res.json({ success: true, message: 'PostgreSQL connection test succeeded.' });
-      }
-      throw new Error('Connection probe failed.');
-    } finally {
-      await pgClient.end();
-    }
-  } catch (error: any) {
-    console.error('PostgreSQL connection test failed:', error.message);
-    return res.status(400).json({ error: error.message });
-  }
-});
 
 /**
  * GET /api/adminzero/workspaces
