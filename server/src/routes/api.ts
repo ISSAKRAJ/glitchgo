@@ -10,8 +10,56 @@ import {
   getAllWorkspaces, 
   adminUpdateWorkspace 
 } from '../lib/db.js';
+import { scrubPII } from '../lib/pii-scrubber.js';
+import { scanPrompt } from '../lib/prompt-firewall.js';
+import { validateQuery, validateQueryMySQL } from '../lib/ast-firewall.js';
+import { GoogleGenAI } from '@google/genai';
+import pg from 'pg';
+import mysql from 'mysql2/promise';
 
 export const apiRouter = Router();
+
+// In-memory rate limiter: licenseKey → { count, windowStart }
+const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
+const RATE_LIMIT_PER_MINUTE = 30;
+
+function checkRateLimit(licenseKey: string) {
+  const now = Date.now();
+  const window = 60_000; // 1 minute
+  const entry = rateLimitMap.get(licenseKey);
+
+  if (!entry || now - entry.windowStart > window) {
+    rateLimitMap.set(licenseKey, { count: 1, windowStart: now });
+    return { allowed: true, remaining: RATE_LIMIT_PER_MINUTE - 1 };
+  }
+
+  if (entry.count >= RATE_LIMIT_PER_MINUTE) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  entry.count += 1;
+  return { allowed: true, remaining: RATE_LIMIT_PER_MINUTE - entry.count };
+}
+
+async function logAuditEvent(event: any) {
+  try {
+    await supabase.from('query_logs').insert([{
+      workspace_id: event.licenseKey,
+      user_prompt: event.prompt?.substring(0, 1000),
+      generated_sql: event.sql?.substring(0, 2000),
+      status: event.status,
+      threat_type: event.threatType || null,
+      pii_detected: event.piiDetected || false,
+      pii_types: event.piiTypes || [],
+      execution_ms: event.executionMs || 0,
+      rows_returned: event.rowsReturned || 0,
+      created_at: new Date().toISOString()
+    }]);
+  } catch (err: any) {
+    console.error('[AdminZero] Audit log write failed:', err.message);
+  }
+}
+
 
 interface StoreEntry {
   dbId: string;
@@ -74,29 +122,205 @@ apiRouter.post('/onboard', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/query
+ * POST /v1/query
+ * AdminZero Cloud API Gateway for Render
  */
-apiRouter.post('/query', async (req: Request, res: Response) => {
+apiRouter.post('/v1/query', async (req: Request, res: Response) => {
+  const startTime = Date.now();
+  const auditEvent = { status: 'unknown', prompt: '', sql: '', piiDetected: false, piiTypes: [] as string[], licenseKey: '', threatType: '', executionMs: 0, rowsReturned: 0 };
+
   try {
-    const { dbId, question } = req.body;
-    if (!dbId || !question) {
-      return res.status(400).json({ status: 'error', message: 'Missing parameters.' });
+    const {
+      prompt,
+      license_key,
+      db_url,
+      db_dialect = 'postgres',
+      blocked_tables = [],
+      mode = 'sql'
+    } = req.body;
+
+    // ── 0. Basic validation ──────────────────────────────────────────────
+    if (!license_key) {
+      return res.status(401).json({ error: 'Missing license_key parameter.' });
     }
-    const entry = dbStore.get(dbId);
-    if (!entry) {
-      return res.status(404).json({ status: 'error', message: 'Config not found.' });
+    if (!prompt) {
+      return res.status(400).json({ error: 'Missing prompt in request body.' });
     }
-    const connectionString = decryptConnectionString({
-      encryptedData: entry.encryptedData,
-      iv: entry.iv,
-      authTag: entry.authTag
+
+    auditEvent.licenseKey = license_key;
+    auditEvent.prompt = prompt;
+
+    // ── 1. Rate Limiting ───────────────────────────────
+    const rateCheck = checkRateLimit(license_key);
+    if (!rateCheck.allowed) {
+      await logAuditEvent({ ...auditEvent, status: 'rate_limited', threatType: 'RATE_LIMIT_EXCEEDED' });
+      res.set('X-RateLimit-Remaining', '0');
+      res.set('X-RateLimit-Reset', '60');
+      return res.status(429).json({ error: 'Rate limit exceeded. Maximum 30 requests per minute.', code: 'RATE_LIMITED' });
+    }
+    res.set('X-RateLimit-Remaining', String(rateCheck.remaining));
+
+    // ── 2. License Key Validation + Credit Check ─────────────────────────
+    const workspace = await getWorkspace(license_key);
+    if (!workspace) {
+      await logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'INVALID_LICENSE' });
+      return res.status(401).json({ error: 'Invalid or unregistered license key.', code: 'INVALID_LICENSE' });
+    }
+
+    const creditsUsed = workspace.query_count || 0;
+    const creditsMax = workspace.max_queries || 500;
+    if (creditsUsed >= creditsMax) {
+      await logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'QUOTA_EXCEEDED' });
+      return res.status(402).json({ error: `Query quota exceeded (${creditsUsed}/${creditsMax}).`, code: 'QUOTA_EXCEEDED' });
+    }
+
+    // ── 3. Prompt Injection Firewall ─────────────────────────────────────
+    const promptScan = scanPrompt(prompt);
+    if (!promptScan.safe) {
+      const topThreat = promptScan.threats[0];
+      await logAuditEvent({
+        ...auditEvent,
+        status: 'blocked',
+        threatType: `PROMPT_INJECTION:${topThreat.type}`
+      });
+      return res.status(403).json({
+        error: '[AdminZero Firewall] THREAT BLOCKED: Prompt injection attempt detected.',
+        code: 'PROMPT_INJECTION',
+        threatType: topThreat.type,
+        severity: topThreat.severity,
+        riskScore: promptScan.riskScore
+      });
+    }
+
+    // ── 4. PII Scrubber ──────────────────────────────────────────────────
+    const piiResult = scrubPII(prompt);
+    const sanitizedPrompt = piiResult.sanitized;
+    auditEvent.piiDetected = piiResult.count > 0;
+    auditEvent.piiTypes = piiResult.detectedTypes;
+
+    // ── 5. Resolve DB connection ─────────────────────────────────────────
+    const resolvedDbUrl = db_url || workspace.db_url;
+    const resolvedDialect = db_dialect || workspace.db_dialect || 'postgres';
+    const resolvedBlockedTables = blocked_tables.length > 0
+      ? blocked_tables
+      : (workspace.blocked_tables || '').split(',').map((t: string) => t.trim()).filter(Boolean);
+
+    if (!resolvedDbUrl) {
+      return res.status(400).json({ error: 'No database URL configured.', code: 'NO_DB_URL' });
+    }
+
+    // ── 6. Text-to-SQL via Gemini ────────────────────────────────────────
+    let generatedSQL = sanitizedPrompt; 
+
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey && mode === 'sql') {
+      try {
+        const ai = new GoogleGenAI({ apiKey: geminiKey });
+        const systemInstruction = `You are a secure ${resolvedDialect} SQL compiler. 
+Convert the user's natural language question into a safe, read-only SQL SELECT query.
+Rules:
+- Output ONLY the raw SQL. No markdown, no backticks, no explanation.
+- Only SELECT statements are allowed.
+- Never generate INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, or GRANT statements.
+- If the question cannot be answered with a SELECT, respond with: SELECT 'Query not allowed' as error;`;
+
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: sanitizedPrompt,
+          config: { systemInstruction }
+        });
+
+        generatedSQL = (response.text || '').trim().replace(/^```sql\s*/i, '').replace(/```$/, '').trim();
+      } catch (geminiErr: any) {
+        console.error('[AdminZero] Gemini error:', geminiErr.message);
+      }
+    }
+
+    auditEvent.sql = generatedSQL;
+
+    // ── 7. AST SQL Firewall ──────────────────────────────────────────────
+    try {
+      if (resolvedDialect === 'postgres') {
+        validateQuery(generatedSQL, resolvedBlockedTables);
+      } else {
+        validateQueryMySQL(generatedSQL, resolvedBlockedTables);
+      }
+    } catch (firewallErr: any) {
+      await logAuditEvent({
+        ...auditEvent,
+        status: 'blocked',
+        threatType: 'AST_FIREWALL',
+        executionMs: Date.now() - startTime
+      });
+      await adminUpdateWorkspace(license_key, { threats_blocked: (workspace.threats_blocked || 0) + 1 });
+      return res.status(403).json({ error: firewallErr.message, code: 'AST_FIREWALL_BLOCKED', sql: generatedSQL });
+    }
+
+    // ── 8. Database Execution ────────────────────────────────────────────
+    let queryResult: any = [];
+    try {
+      if (resolvedDialect === 'postgres') {
+        const { Client } = pg;
+        const client = new Client({
+          connectionString: resolvedDbUrl,
+          connectionTimeoutMillis: 8000,
+          ssl: resolvedDbUrl.includes('localhost') ? false : { rejectUnauthorized: false }
+        });
+        await client.connect();
+        const dbRes = await client.query(generatedSQL);
+        queryResult = dbRes.rows;
+        await client.end();
+      } else {
+        const connection = await mysql.createConnection(resolvedDbUrl);
+        const [rows] = await connection.execute(generatedSQL);
+        queryResult = rows;
+        await connection.end();
+      }
+    } catch (dbErr: any) {
+      await logAuditEvent({
+        ...auditEvent,
+        status: 'db_error',
+        threatType: 'DB_EXECUTION_ERROR',
+        executionMs: Date.now() - startTime
+      });
+      return res.status(500).json({ error: `Database execution failed: ${dbErr.message}`, code: 'DB_ERROR', sql: generatedSQL });
+    }
+
+    const executionMs = Date.now() - startTime;
+
+    // ── 9. Deduct Credit + Log Success ──────────────────────────────────
+    await adminUpdateWorkspace(license_key, { query_count: creditsUsed + 1 });
+
+    await logAuditEvent({
+      ...auditEvent,
+      status: 'success',
+      executionMs,
+      rowsReturned: Array.isArray(queryResult) ? queryResult.length : 1
     });
-    const config: ConnectionConfig = { id: entry.dbId, dialect: entry.dialect, connectionString };
-    const result = await askDatabase(question, config, entry.schema, ['hr_salaries', 'admin_passwords']);
-    return res.status(200).json({ status: 'success', sql: result.sql, data: result.data });
+
+    res.set('X-AdminZero-Credits-Remaining', String(creditsMax - creditsUsed - 1));
+    res.set('X-AdminZero-PII-Scrubbed', String(piiResult.count > 0));
+
+    // ── 10. Return Response ──────────────────────────────────────────────
+    return res.status(200).json({
+      status: 'success',
+      sql: generatedSQL,
+      data: queryResult,
+      meta: {
+        rowsReturned: Array.isArray(queryResult) ? queryResult.length : 1,
+        executionMs,
+        creditsUsed: creditsUsed + 1,
+        creditsRemaining: creditsMax - creditsUsed - 1,
+        piiScrubbed: piiResult.count > 0,
+        piiTypesFound: piiResult.detectedTypes,
+        rateLimit: { remaining: rateCheck.remaining, resetInSeconds: 60 }
+      }
+    });
+
   } catch (err: any) {
-    const isFirewallBlock = err.message && err.message.startsWith('AST Firewall Blocked Query');
-    return res.status(isFirewallBlock ? 400 : 500).json({ status: 'error', message: err.message || 'Internal Server Error' });
+    console.error('[AdminZero /v1/query] Unhandled error:', err);
+    await logAuditEvent({ ...auditEvent, status: 'error', threatType: 'INTERNAL_ERROR' });
+    return res.status(500).json({ error: 'Internal server error.', code: 'INTERNAL_ERROR' });
   }
 });
 
@@ -219,3 +443,73 @@ apiRouter.post('/admin/workspaces/update', async (req: Request, res: Response) =
     return res.status(500).json({ success: false, error: err.message || 'Internal Server Error' });
   }
 });
+
+/**
+ * GET /v1/logs
+ * Returns full query audit logs for a license key, or a CSV if format=csv
+ */
+apiRouter.get('/v1/logs', async (req: Request, res: Response) => {
+  try {
+    const licenseKey = req.query.license_key as string;
+    const format = req.query.format as string;
+    const status = req.query.status as string;
+    const threatType = req.query.threat_type as string;
+    const piiOnly = req.query.pii_only === 'true';
+    const limit = Math.min(parseInt((req.query.limit as string) || '50'), 1000);
+    const offset = parseInt((req.query.offset as string) || '0');
+
+    if (!licenseKey) {
+      return res.status(400).json({ error: 'Missing license_key query param.' });
+    }
+
+    const workspace = await getWorkspace(licenseKey);
+    if (!workspace) {
+      return res.status(401).json({ error: 'Invalid license key.' });
+    }
+
+    let query = supabase
+      .from('query_logs')
+      .select('*', { count: 'exact' })
+      .eq('workspace_id', licenseKey)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (status) query = query.eq('status', status);
+    if (threatType) query = query.eq('threat_type', threatType);
+    if (piiOnly) query = query.eq('pii_detected', true);
+
+    const { data: logs, error: logsError, count } = await query;
+
+    if (logsError) {
+      return res.status(500).json({ error: 'Failed to fetch logs.' });
+    }
+
+    if (format === 'csv') {
+      const headers = ['Timestamp', 'Prompt', 'SQL', 'Status', 'Threat Type', 'PII Detected', 'PII Types', 'Rows', 'Exec Ms'];
+      const rows = (logs || []).map(l => [
+        l.created_at,
+        `"${(l.user_prompt || '').replace(/"/g, "'")}"`,
+        `"${(l.generated_sql || '').replace(/"/g, "'")}"`,
+        l.status,
+        l.threat_type || '',
+        l.pii_detected ? 'YES' : 'NO',
+        (l.pii_types || []).join(';'),
+        l.rows_returned || 0,
+        l.execution_ms || 0
+      ]);
+
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="adminzero-audit-${licenseKey}-${Date.now()}.csv"`);
+      return res.send(csv);
+    }
+
+    return res.status(200).json({ logs: logs || [], total: count || 0 });
+
+  } catch (err) {
+    console.error('[AdminZero /v1/logs] Error:', err);
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+

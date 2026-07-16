@@ -25,6 +25,10 @@ const nextConfig = {
       {
         source: '/api/adminzero/:path*',
         destination: `${apiHost}/api/adminzero/:path*`
+      },
+      {
+        source: '/api/v1/:path*',
+        destination: `${apiHost}/api/v1/:path*`
       }
     ];
   }

@@ -147,3 +147,33 @@ export async function validateQuery(
     }
   };
 }
+
+/**
+ * MySQL/generic regex-based validation fallback.
+ * @param sql
+ * @param forbiddenTables
+ */
+export function validateQueryMySQL(sql: string, forbiddenTables: string[] = []): { safe: boolean; auditData: any } {
+  const upper = sql.toUpperCase();
+
+  const writeKeywords = [
+    'INSERT ', 'UPDATE ', 'DELETE ', 'DROP ', 'ALTER ', 'CREATE ',
+    'TRUNCATE ', 'REPLACE ', 'GRANT ', 'REVOKE ', 'EXECUTE '
+  ];
+  if (writeKeywords.some(kw => upper.includes(kw))) {
+    throw new Error('[AdminZero SecOps] THREAT BLOCKED: Write/mutation commands are forbidden under read-only policy.');
+  }
+
+  const sensitiveNames = ['INFORMATION_SCHEMA', 'PG_CATALOG', 'MYSQL', 'SYS', 'PERFORMANCE_SCHEMA'];
+  if (sensitiveNames.some(t => upper.includes(t))) {
+    throw new Error('[AdminZero SecOps] THREAT BLOCKED: Administrative schema access denied.');
+  }
+
+  for (const table of forbiddenTables) {
+    if (upper.includes(table.toUpperCase())) {
+      throw new Error(`[AdminZero SecOps] THREAT BLOCKED: Restricted table access attempt on '${table}'.`);
+    }
+  }
+
+  return { safe: true, auditData: { timestamp: Date.now(), dialect: 'mysql' } };
+}
