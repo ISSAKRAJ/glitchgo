@@ -19,6 +19,7 @@ export default function AdminZeroTab({ user, supabase }) {
   const [cloudTab, setCloudTab] = useState('sql');
   const [features, setFeatures] = useState({ ast: true, prompt: true, pii: true });
   const [configSaving, setConfigSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   // API Key States
   const [apiKeys, setApiKeys] = useState([]);
@@ -81,6 +82,7 @@ export default function AdminZeroTab({ user, supabase }) {
         }
       } catch (err) {
         console.error('Error loading license keys:', err);
+        setErrorMsg(err.message || String(err));
       } finally {
         setIsLoading(false);
       }
@@ -253,6 +255,11 @@ export default function AdminZeroTab({ user, supabase }) {
       <div className="flex flex-col items-center justify-center p-12">
         <ShieldAlert className="text-red-500 mb-2" size={32} />
         <span className="text-xs text-slate-500 font-mono">Could not load workspace configuration.</span>
+        {errorMsg && (
+          <span className="text-[10px] text-red-400 font-mono mt-4 bg-red-950/20 border border-red-900/30 px-3 py-1.5 rounded-xl max-w-md text-center">
+            Error details: {errorMsg}
+          </span>
+        )}
       </div>
     );
   }
