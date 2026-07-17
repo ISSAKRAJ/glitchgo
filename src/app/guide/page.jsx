@@ -28,13 +28,13 @@ export default function GuidePage() {
   ];
 
   const faqs = [
-    { q: 'Does AdminZero send my database credentials to the cloud?', a: 'No. Your credentials are encrypted and stored in your operating system\'s native keychain (Windows Credential Manager / macOS Keychain / Linux Secret Service). AdminZero itself cannot read them in plaintext.' },
-    { q: 'Does AdminZero slow down my queries?', a: 'AdminZero adds less than 5 milliseconds of overhead (excluding LLM generation time) to any query. In practice, this is completely invisible to end users and well within acceptable latency budgets.' },
-    { q: 'Will AdminZero work with my database?', a: 'AdminZero currently supports PostgreSQL, MySQL, and SQLite. Support for MSSQL and MongoDB is on the roadmap for v2.6.' },
-    { q: 'What happens when a query is blocked?', a: 'The query never reaches your database. AdminZero returns a structured error response to the AI agent, logs the incident in your local threat dashboard with a timestamp and threat type, and (if configured) sends you an alert.' },
-    { q: 'Can I whitelist certain query types?', a: 'Yes. The Startup and Scale plans allow you to define custom whitelist rules — for example, allowing INSERT on specific tables or specific column patterns.' },
-    { q: 'Does AdminZero need an internet connection?', a: 'No. AdminZero operates as a fast Cloud API. It requires an internet connection to send queries to the Gateway. An internet connection is only needed to activate your license key on the first run.' },
-      ];
+    { q: 'Do I need to connect my database connection string with AdminZero?', a: 'No, it is optional. If you want AdminZero to automatically run the safe translated query and return raw results, you can connect your database credentials (stored securely using AES-256). If you want to handle database execution locally, leave it blank; AdminZero will still scan, translate, and return the safe SQL query string for you to execute locally.' },
+    { q: 'What AI model is used for SQL query translations?', a: 'AdminZero is powered by the Google Gemini 2.5 Flash model. It is optimized for high-speed, secure, and context-aware natural language to SQL translation.' },
+    { q: 'How does the API Key and Compute Credit system work?', a: 'Authenticate all queries using your generated secret keys (e.g. Bearer az_sk_live_...). Every query consumes compute credits depending on the features enabled: Base translation is 1 credit, Prompt Firewall is +1 credit, PII Scrubber is +1 credit, and AST Guard is +2 credits. DB execution does not cost extra credits.' },
+    { q: 'Does AdminZero send my database credentials in plaintext?', a: 'No. Any database connection URL saved in the client portal is encrypted using AES-256 on the server before being stored in the database. It is decrypted only in memory to execute allowed queries, and never logged.' },
+    { q: 'Does AdminZero slow down my queries?', a: 'No. The security scans and AST parsing add less than 5 milliseconds of overhead. Combined with the fast inference of Gemini 2.5 Flash, the response times are highly optimized for live agents.' },
+    { q: 'Will AdminZero work with my database?', a: 'AdminZero currently supports PostgreSQL and MySQL databases. Support for MSSQL and MongoDB is currently on the roadmap.' }
+  ];
 
   return (
     <>
@@ -267,31 +267,39 @@ export default function GuidePage() {
             <div className={`guide-section ${active==='install'?'visible':''}`}>
               <span className="sec-badge">03 / Integration</span>
               <h2 className="sec-h1">API <span className="grad-o">Integration</span></h2>
-              <p className="sec-lead">AdminZero is a REST API. You don't need to install anything. Just send a POST request with your prompt, database credentials, and license key.</p>
+              <p className="sec-lead">AdminZero is hosted as a Cloud API. Authenticate your requests using standard Bearer Token authorization headers.</p>
 
               <div className="code-block" style={{marginBottom:'20px'}}>
-                <span className="comment">// POST https://adminzero-backend.onrender.com/api/v1/query</span>{'\n'}
-                <span className="keyword">const</span> response = <span className="keyword">await</span> fetch(<span className="string">'https://adminzero-backend.onrender.com/api/v1/query'</span>, {'{\n'}
+                <span className="comment">// POST https://glitchgo.tech/api/v1/query</span>{'\n'}
+                <span className="keyword">const</span> response = <span className="keyword">await</span> fetch(<span className="string">'https://glitchgo.tech/api/v1/query'</span>, {'{\n'}
                 {'  '}method: <span className="string">'POST'</span>,{'\n'}
-                {'  '}headers: {'{'} <span className="string">'Content-Type'</span>: <span className="string">'application/json'</span> {'}'},{'\n'}
+                {'  '}headers: {'{\n'}
+                {'    '}<span className="string">'Content-Type'</span>: <span className="string">'application/json'</span>,{'\n'}
+                {'    '}<span className="string">'Authorization'</span>: <span className="string">'Bearer az_sk_live_your_secret_key'</span>{'\n'}
+                {'  }'},{'\n'}
                 {'  '}body: JSON.stringify({'{\n'}
-                {'    '}license_key: <span className="string">'YOUR_LICENSE_KEY'</span>,{'\n'}
                 {'    '}prompt: <span className="string">'Show me the top 5 users by revenue'</span>,{'\n'}
-                {'    '}db_url: <span className="string">'postgres://user:pass@host:5432/db'</span>,{'\n'}
+                {'    '}db_url: <span className="string">'postgres://user:pass@host:5432/db'</span>, <span className="comment">// Optional (Option B)</span>{'\n'}
                 {'    '}db_dialect: <span className="string">'postgres'</span>,{'\n'}
                 {'    '}features: {'{\n'}
                 {'      '}use_prompt_firewall: <span className="value">true</span>,{'\n'}
                 {'      '}use_pii_scrubber: <span className="value">true</span>,{'\n'}
                 {'      '}use_ast_firewall: <span className="value">true</span>{'\n'}
-                {'    }'}
+                {'    }'}{'\n'}
                 {'  }'}){'\n'}
                 {'}'});{'\n'}
                 <span className="keyword">const</span> result = <span className="keyword">await</span> response.json();
               </div>
 
-              <div className="card card-blue" style={{padding:'20px', marginBottom: '32px'}}>
-                <p style={{fontSize:'12px',fontWeight:700,color:'#60a5fa',marginBottom:'6px'}}>Flexible Feature Flags</p>
-                <p style={{fontSize:'11px',color:'#d4d4d8',lineHeight:1.8}}>You can turn off specific firewalls if you don't need them. For example, if you want to allow PII in queries, set <code>use_pii_scrubber: false</code>.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" style={{marginBottom:'32px'}}>
+                <div className="card" style={{padding:'20px'}}>
+                  <p style={{fontSize:'12px',fontWeight:700,color:'#f97316',marginBottom:'6px'}}>Option A — Translation & Security Only</p>
+                  <p style={{fontSize:'11px',color:'#d4d4d8',lineHeight:1.8}}>Do not provide a <code>db_url</code>. The API translates your prompt and runs the security scanners, then returns the safe SQL string to you. You execute the SQL yourself locally.</p>
+                </div>
+                <div className="card" style={{padding:'20px'}}>
+                  <p style={{fontSize:'12px',fontWeight:700,color:'#f97316',marginBottom:'6px'}}>Option B — Full Execution proxy</p>
+                  <p style={{fontSize:'11px',color:'#d4d4d8',lineHeight:1.8}}>Connect your database connection string in the client portal (stored encrypted). The API translates, verifies, connects to your database to execute, and returns raw cleaned results to your agent.</p>
+                </div>
               </div>
             </div>
 
