@@ -19,6 +19,8 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
   const [dbSaving, setDbSaving] = useState(false);
   const [dbMessage, setDbMessage] = useState(null);
   const [cloudTab, setCloudTab] = useState('sql');
+  const [features, setFeatures] = useState({ ast: true, prompt: true, pii: true });
+  const [configSaving, setConfigSaving] = useState(false);
 
   // Fetch or auto-create license workspace on load
   const fetchOrOnboardWorkspace = async () => {
@@ -88,6 +90,11 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
     if (workspace) {
       setDbUrl(workspace.db_url || '');
       setDbDialect(workspace.db_dialect || 'postgres');
+      setFeatures({
+        ast: workspace.config_ast !== false,
+        prompt: workspace.config_prompt !== false,
+        pii: workspace.config_pii !== false
+      });
     }
   }, [workspace]);
 
@@ -107,6 +114,34 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
     } finally {
       setDbSaving(false);
       setTimeout(() => setDbMessage(null), 4000);
+    }
+  };
+
+  const handleToggle = async (key) => {
+    if (!workspace) return;
+    const nextState = !features[key];
+    setFeatures(prev => ({ ...prev, [key]: nextState }));
+    
+    try {
+      setConfigSaving(true);
+      const updatePayload = {};
+      if (key === 'ast') updatePayload.config_ast = nextState;
+      if (key === 'prompt') updatePayload.config_prompt = nextState;
+      if (key === 'pii') updatePayload.config_pii = nextState;
+      
+      const { error } = await supabase
+        .from('workspaces')
+        .update(updatePayload)
+        .eq('team_id', workspace.team_id);
+        
+      if (error) throw error;
+      setWorkspace(prev => ({ ...prev, ...updatePayload }));
+    } catch (err) {
+      console.error('Failed to save config:', err);
+      // Revert on error
+      setFeatures(prev => ({ ...prev, [key]: !nextState }));
+    } finally {
+      setConfigSaving(false);
     }
   };
 
@@ -227,21 +262,56 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
                 Cloud API — Use Anywhere
               </h2>
               <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                Connect your database once below. Then call our API from any device, server, or AI app — no desktop install needed.
+                Configure your API security layers below. These settings apply to all requests sent via this License Key.
               </p>
             </div>
-            <div className="flex flex-col gap-1 shrink-0">
-              {[['PII Scrubber','text-purple-400'],['Prompt Firewall','text-red-400'],['AST Firewall','text-brand-orange'],['Audit Trail','text-blue-400'],['Vector DB','text-emerald-400']].map(([f,c])=>(
-                <span key={f} className={`text-[9px] font-mono font-bold uppercase ${c} flex items-center gap-1`}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current inline-block"/>{f}
-                </span>
-              ))}
+          </div>
+
+          {/* Features Toggles */}
+          <div className="space-y-4">
+            <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest flex justify-between">
+              <span>Step 1 — Firewall Configuration</span>
+              {configSaving && <span className="text-brand-orange animate-pulse">Saving...</span>}
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label className="flex flex-col bg-zinc-950 border border-zinc-900 rounded-xl p-4 cursor-pointer hover:border-zinc-800 transition-colors group">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-bold text-slate-200 group-hover:text-brand-orange transition-colors">AST SQL Guard</span>
+                  <div className={`w-8 h-4 rounded-full flex items-center p-0.5 transition-colors ${features.ast ? 'bg-brand-orange' : 'bg-slate-700'}`}>
+                    <div className={`w-3 h-3 rounded-full bg-white transition-transform ${features.ast ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+                <span className="text-[9px] text-zinc-500 font-mono">Blocks DML (DROP/DELETE) & stacked queries (+2 Credits)</span>
+                <input type="checkbox" className="hidden" checked={features.ast} onChange={() => handleToggle('ast')} />
+              </label>
+
+              <label className="flex flex-col bg-zinc-950 border border-zinc-900 rounded-xl p-4 cursor-pointer hover:border-zinc-800 transition-colors group">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-bold text-slate-200 group-hover:text-brand-orange transition-colors">Prompt Firewall</span>
+                  <div className={`w-8 h-4 rounded-full flex items-center p-0.5 transition-colors ${features.prompt ? 'bg-brand-orange' : 'bg-slate-700'}`}>
+                    <div className={`w-3 h-3 rounded-full bg-white transition-transform ${features.prompt ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+                <span className="text-[9px] text-zinc-500 font-mono">Blocks jailbreaks & role hijacking (+1 Credit)</span>
+                <input type="checkbox" className="hidden" checked={features.prompt} onChange={() => handleToggle('prompt')} />
+              </label>
+
+              <label className="flex flex-col bg-zinc-950 border border-zinc-900 rounded-xl p-4 cursor-pointer hover:border-zinc-800 transition-colors group">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-bold text-slate-200 group-hover:text-brand-orange transition-colors">PII Scrubber</span>
+                  <div className={`w-8 h-4 rounded-full flex items-center p-0.5 transition-colors ${features.pii ? 'bg-brand-orange' : 'bg-slate-700'}`}>
+                    <div className={`w-3 h-3 rounded-full bg-white transition-transform ${features.pii ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+                <span className="text-[9px] text-zinc-500 font-mono">Auto-redacts sensitive data in API responses (+1 Credit)</span>
+                <input type="checkbox" className="hidden" checked={features.pii} onChange={() => handleToggle('pii')} />
+              </label>
             </div>
           </div>
 
           {/* DB URL Config */}
           <div className="space-y-3">
-            <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">Step 1 — Connect Your Database</span>
+            <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">Step 2 — Connect Your Database</span>
             <div className="flex gap-2">
               <select
                 value={dbDialect}
@@ -275,7 +345,7 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
           {/* Cloud API Code Snippet */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">Step 2 — Call the API</span>
+              <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">Step 3 — Call the API</span>
               <div className="flex border-b border-zinc-900 font-mono text-[9px] font-bold gap-3">
                 {[['sql','SQL Query'],['vector','Vector DB'],['passthrough','Raw SQL']].map(([k,l])=>(
                   <button key={k} onClick={()=>setCloudTab(k)}

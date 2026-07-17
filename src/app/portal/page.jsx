@@ -57,6 +57,7 @@ export default function PortalPage() {
 
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
+        await supabase.auth.signOut();
         router.push('/signin?next=/portal');
         return;
       }
@@ -122,12 +123,45 @@ export default function PortalPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 text-white font-sans relative overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-[#040404] text-white font-sans relative overflow-hidden">
       <Navbar />
 
-      {/* Decorative glows */}
-      <div className="absolute top-1/4 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <style>{`
+        .bg-wrap { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .orb { position: absolute; border-radius: 50%; will-change: transform; }
+        .o1 {
+          width: 800px; height: 800px; top: -250px; left: 50%; transform: translateX(-50%);
+          background: radial-gradient(circle, rgba(234,108,18,0.07) 0%, transparent 65%);
+          filter: blur(100px); animation: f1 16s ease-in-out infinite;
+        }
+        .o2 {
+          width: 600px; height: 600px; bottom: 5%; right: -100px;
+          background: radial-gradient(circle, rgba(59,130,246,0.07) 0%, transparent 65%);
+          filter: blur(120px); animation: f2 20s ease-in-out infinite;
+        }
+        .o3 {
+          width: 450px; height: 450px; top: 45%; left: -80px;
+          background: radial-gradient(circle, rgba(234,108,18,0.05) 0%, transparent 65%);
+          filter: blur(100px); animation: f3 24s ease-in-out infinite;
+        }
+        @keyframes f1 { 0%,100%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(-30px);} }
+        @keyframes f2 { 0%,100%{transform:translate(0,0);} 50%{transform:translate(-30px,-40px);} }
+        @keyframes f3 { 0%,100%{transform:translate(0,0);} 50%{transform:translate(20px,-30px);} }
+        .bg-grid {
+          position: fixed; inset: 0; z-index: 0; pointer-events: none;
+          background-image: linear-gradient(rgba(255,255,255,0.014) 1px,transparent 1px),
+                            linear-gradient(90deg,rgba(255,255,255,0.014) 1px,transparent 1px);
+          background-size: 72px 72px;
+          mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 20%, transparent 100%);
+        }
+      `}</style>
+      
+      <div className="bg-wrap">
+        <div className="orb o1"></div>
+        <div className="orb o2"></div>
+        <div className="orb o3"></div>
+        <div className="bg-grid"></div>
+      </div>
 
       <main className="flex-1 w-full pt-32 pb-24 relative z-10">
         <div className="max-w-7xl mx-auto px-6">
