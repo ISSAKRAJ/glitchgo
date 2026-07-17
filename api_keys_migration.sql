@@ -3,9 +3,19 @@
 -- Run this in your Supabase SQL Editor
 -- =======================================================================
 
--- 1. Fix insert policy for workspaces (Resolves dashboard onboarding bug)
+-- 1. Fix RLS policies for workspaces table (Ensures dashboard onboarding and loading works)
+DROP POLICY IF EXISTS "Users can read own workspaces" ON workspaces;
+DROP POLICY IF EXISTS "Users can insert own workspaces" ON workspaces;
+DROP POLICY IF EXISTS "Users can update own workspaces" ON workspaces;
+
+CREATE POLICY "Users can read own workspaces" ON workspaces
+  FOR SELECT USING (auth.uid() = user_id);
+
 CREATE POLICY "Users can insert own workspaces" ON workspaces
   FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own workspaces" ON workspaces
+  FOR UPDATE USING (auth.uid() = user_id);
 
 -- 2. Create the api_keys table to store multiple API keys per workspace
 CREATE TABLE IF NOT EXISTS api_keys (
