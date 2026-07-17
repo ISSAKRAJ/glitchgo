@@ -31,9 +31,10 @@ export default function Reviews() {
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setReviews(parsed);
           }
-        } catch (e) {
+        } catch {
           // Leave state empty on error
         }
       }

@@ -123,11 +123,13 @@ export default function AiAssistant() {
     if (!msg) return;
     setInput('');
 
+    // eslint-disable-next-line
     const userMsg = { role: 'user', text: msg, id: Date.now() };
     setMessages(prev => [...prev, userMsg]);
     setTyping(true);
 
     // Simulate typing delay
+    // eslint-disable-next-line
     const delay = 600 + Math.random() * 600;
     setTimeout(() => {
       const reply = getReply(msg);

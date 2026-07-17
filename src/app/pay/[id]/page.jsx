@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -25,7 +25,7 @@ export default function PayPage() {
   const [payError, setPayError] = useState("");
   const [paySuccess, setPaySuccess] = useState("");
 
-  const fetchTicket = async () => {
+  const fetchTicket = useCallback(async () => {
     if (!ticketId) return;
     try {
       setLoading(true);
@@ -44,11 +44,11 @@ export default function PayPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ticketId]);
 
   useEffect(() => {
     fetchTicket();
-  }, [ticketId]);
+  }, [fetchTicket]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];

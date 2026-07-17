@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Clock, Search, Loader2, CheckCircle2, ChevronRight, FileText, Download, 
@@ -29,7 +29,7 @@ export default function DashboardTab({ user, supabase }) {
   const [payError, setPayError] = useState("");
   const [paySuccess, setPaySuccess] = useState("");
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     if (!user?.email) return;
     setLoading(true);
     setError('');
@@ -48,11 +48,11 @@ export default function DashboardTab({ user, supabase }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, supabase]);
 
   useEffect(() => {
     fetchTickets();
-  }, [user]);
+  }, [fetchTickets]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];

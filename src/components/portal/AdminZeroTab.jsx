@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Key, Shield, ShieldAlert, CheckCircle, Database, 
-  Terminal, Copy, AlertTriangle, Play, RefreshCw, Download, Monitor, Laptop,
-  Globe, Zap, Eye, Lock
+  Shield, ShieldAlert, CheckCircle,
+  Copy, RefreshCw, Download,
+  Globe
 } from 'lucide-react';
 
-export default function AdminZeroTab({ user, supabase, userToken }) {
+export default function AdminZeroTab({ user, supabase }) {
   const [workspace, setWorkspace] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [recentLogs, setRecentLogs] = useState([]);
-  const [activeTab, setActiveTab] = useState('docker');
   const [paymentUtr, setPaymentUtr] = useState('');
   const [payLoading, setPayLoading] = useState(false);
   const [payMessage, setPayMessage] = useState(null);
@@ -22,69 +21,67 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
   const [features, setFeatures] = useState({ ast: true, prompt: true, pii: true });
   const [configSaving, setConfigSaving] = useState(false);
 
-  // Fetch or auto-create license workspace on load
-  const fetchOrOnboardWorkspace = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('workspaces')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        setWorkspace(data[0]);
-        fetchLogs(data[0].team_id);
-      } else {
-        // Auto-generate license key (team_id)
-        const newLicenseKey = `az_lic_${Math.random().toString(36).substring(2, 9)}${Math.random().toString(36).substring(2, 9)}`;
-        const { data: insertedData, error: insertError } = await supabase
-          .from('workspaces')
-          .insert([
-            {
-              team_id: newLicenseKey,
-              user_id: user.id,
-              tier: 'free',
-              max_queries: 500,
-              query_count: 0
-            }
-          ])
-          .select();
-
-        if (insertError) throw insertError;
-        if (insertedData) {
-          setWorkspace(insertedData[0]);
-          fetchLogs(insertedData[0].team_id);
-        }
-      }
-    } catch (err) {
-      console.error('Error loading license keys:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchLogs = async (licenseKey) => {
-    try {
-      const { data, error } = await supabase
-        .from('query_logs')
-        .select('*')
-        .eq('workspace_id', licenseKey)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      if (!error && data) {
-        setRecentLogs(data);
-      }
-    } catch (err) {
-      console.error('Error fetching logs:', err);
-    }
-  };
-
   useEffect(() => {
+    const fetchLogs = async (licenseKey) => {
+      try {
+        const { data, error } = await supabase
+          .from('query_logs')
+          .select('*')
+          .eq('workspace_id', licenseKey)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (!error && data) {
+          setRecentLogs(data);
+        }
+      } catch (err) {
+        console.error('Error fetching logs:', err);
+      }
+    };
+
+    const fetchOrOnboardWorkspace = async () => {
+      if (!user) return;
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('workspaces')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setWorkspace(data[0]);
+          fetchLogs(data[0].team_id);
+        } else {
+          const newLicenseKey = `az_lic_${Math.random().toString(36).substring(2, 9)}${Math.random().toString(36).substring(2, 9)}`;
+          const { data: insertedData, error: insertError } = await supabase
+            .from('workspaces')
+            .insert([
+              {
+                team_id: newLicenseKey,
+                user_id: user.id,
+                tier: 'free',
+                max_queries: 500,
+                query_count: 0
+              }
+            ])
+            .select();
+
+          if (insertError) throw insertError;
+          if (insertedData) {
+            setWorkspace(insertedData[0]);
+            fetchLogs(insertedData[0].team_id);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading license keys:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchOrOnboardWorkspace();
-  }, [user]);
+  }, [user, supabase]);
 
   useEffect(() => {
     if (workspace) {
@@ -173,7 +170,7 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
         } else {
           setPayMessage({ type: 'error', text: 'Database error applying credits.' });
         }
-      } catch (err) {
+      } catch {
         setPayMessage({ type: 'error', text: 'Error applying UPI credits.' });
       } finally {
         setPayLoading(false);
@@ -190,6 +187,14 @@ export default function AdminZeroTab({ user, supabase, userToken }) {
     );
   }
 
+  if (!workspace) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12">
+        <ShieldAlert className="text-red-500 mb-2" size={32} />
+        <span className="text-xs text-slate-500 font-mono">Could not load workspace configuration.</span>
+      </div>
+    );
+  }
   const queryRemaining = Math.max(0, (workspace.max_queries || 0) - (workspace.query_count || 0));
   const usagePercentage = Math.min(100, Math.round(((workspace.query_count || 0) / (workspace.max_queries || 1)) * 100));
 

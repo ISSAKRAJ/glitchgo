@@ -26,6 +26,7 @@ export default function Landing() {
       if (!error && data) setReviews(data);
     } catch (e) {
       // silently fail if table doesn't exist yet
+      console.debug(e);
     }
   };
 

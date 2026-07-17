@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Users, Key, ShieldCheck, Database, RefreshCw, Edit2, Save, X, PlusCircle, AlertCircle
 } from 'lucide-react';
 
-export default function AdminTab({ user, supabase, userToken }) {
+export default function AdminTab({ userToken }) {
   const [workspaces, setWorkspaces] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -15,7 +15,7 @@ export default function AdminTab({ user, supabase, userToken }) {
   const [editQueryCount, setEditQueryCount] = useState(0);
   const [saveLoading, setSaveLoading] = useState(false);
 
-  const fetchWorkspaces = async () => {
+  const fetchWorkspaces = useCallback(async () => {
     setIsLoading(true);
     setErrorMsg(null);
     try {
@@ -33,13 +33,13 @@ export default function AdminTab({ user, supabase, userToken }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userToken]);
 
   useEffect(() => {
     if (userToken) {
       fetchWorkspaces();
     }
-  }, [userToken]);
+  }, [userToken, fetchWorkspaces]);
 
   const startEdit = (ws) => {
     setEditingId(ws.team_id);
