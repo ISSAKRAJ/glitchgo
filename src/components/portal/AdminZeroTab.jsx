@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, ShieldAlert, CheckCircle,
   Copy, RefreshCw, Download,
-  Globe
+  Globe, Key, Plus, Trash, AlertTriangle
 } from 'lucide-react';
 
 export default function AdminZeroTab({ user, supabase }) {
   const [workspace, setWorkspace] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
   const [recentLogs, setRecentLogs] = useState([]);
   const [paymentUtr, setPaymentUtr] = useState('');
   const [payLoading, setPayLoading] = useState(false);
@@ -20,6 +19,12 @@ export default function AdminZeroTab({ user, supabase }) {
   const [cloudTab, setCloudTab] = useState('sql');
   const [features, setFeatures] = useState({ ast: true, prompt: true, pii: true });
   const [configSaving, setConfigSaving] = useState(false);
+
+  // API Key States
+  const [apiKeys, setApiKeys] = useState([]);
+  const [keyName, setKeyName] = useState('');
+  const [newlyGeneratedKey, setNewlyGeneratedKey] = useState(null);
+  const [keysLoading, setKeysLoading] = useState(false);
 
   useEffect(() => {
     const fetchLogs = async (licenseKey) => {
@@ -92,8 +97,65 @@ export default function AdminZeroTab({ user, supabase }) {
         prompt: workspace.config_prompt !== false,
         pii: workspace.config_pii !== false
       });
+
+      const fetchKeys = async () => {
+        setKeysLoading(true);
+        try {
+          const { data, error } = await supabase
+            .from('api_keys')
+            .select('*')
+            .eq('workspace_id', workspace.team_id)
+            .order('created_at', { ascending: false });
+          if (!error && data) {
+            setApiKeys(data);
+          }
+        } catch (err) {
+          console.error('Error fetching API keys:', err);
+        } finally {
+          setKeysLoading(false);
+        }
+      };
+      fetchKeys();
     }
-  }, [workspace]);
+  }, [workspace, supabase]);
+
+  const handleCreateKey = async (e) => {
+    e.preventDefault();
+    if (!workspace || !keyName.trim()) return;
+    const generatedVal = `az_sk_live_${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 10)}`;
+    try {
+      const { data, error } = await supabase
+        .from('api_keys')
+        .insert([{
+          workspace_id: workspace.team_id,
+          key_value: generatedVal,
+          name: keyName.trim(),
+          status: 'active'
+        }])
+        .select();
+      if (error) throw error;
+      if (data) {
+        setApiKeys(prev => [data[0], ...prev]);
+        setNewlyGeneratedKey(generatedVal);
+        setKeyName('');
+      }
+    } catch (err) {
+      console.error('Error creating API key:', err);
+    }
+  };
+
+  const handleRevokeKey = async (keyId) => {
+    try {
+      const { error } = await supabase
+        .from('api_keys')
+        .update({ status: 'revoked' })
+        .eq('id', keyId);
+      if (error) throw error;
+      setApiKeys(prev => prev.map(k => k.id === keyId ? { ...k, status: 'revoked' } : k));
+    } catch (err) {
+      console.error('Error revoking API key:', err);
+    }
+  };
 
   const saveDbConfig = async () => {
     if (!workspace) return;
@@ -144,8 +206,6 @@ export default function AdminZeroTab({ user, supabase }) {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleManualPayment = async (e) => {
@@ -204,14 +264,14 @@ export default function AdminZeroTab({ user, supabase }) {
       {/* LEFT & MID COLUMNS: License details & setup instructions */}
       <div className="lg:col-span-2 space-y-6">
         
-        {/* Active License Details */}
-        <div className="bg-[#050505] border border-zinc-900 rounded-3xl p-6 md:p-8 relative shadow-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        {/* Active Workspace Metadata & Credits */}
+        <div className="bg-[#050505] border border-zinc-900 rounded-3xl p-6 md:p-8 relative shadow-2xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-900">
             <div>
-              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono font-bold">Secure Data Plane Connection</span>
-              <h2 className="text-xl font-bold text-white mt-1 flex items-center gap-2">
+              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono font-bold">Secure SaaS Control Plane</span>
+              <h2 className="text-lg font-bold text-white mt-1 flex items-center gap-2">
                 <Shield size={18} className="text-brand-orange" />
-                Active Agent License Key
+                Active Environment Details
               </h2>
             </div>
             <span className={`px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase border self-start sm:self-auto ${
@@ -223,17 +283,18 @@ export default function AdminZeroTab({ user, supabase }) {
             </span>
           </div>
 
-          <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl flex items-center justify-between mb-6">
-            <code className="text-xs sm:text-sm text-brand-orange select-all font-mono tracking-wider truncate max-w-[85%] pr-4">
-              {workspace.team_id}
-            </code>
-            <button 
-              onClick={() => copyToClipboard(workspace.team_id)}
-              className="p-2 hover:bg-zinc-900 border border-zinc-850 rounded-xl transition-all cursor-pointer text-zinc-500 hover:text-white shrink-0"
-              title="Copy License Key"
-            >
-              {copied ? <span className="text-[10px] font-mono text-brand-orange font-bold">Copied!</span> : <Copy size={14} />}
-            </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+            <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl">
+              <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold block mb-1">Workspace ID</span>
+              <code className="text-brand-orange break-all select-all font-semibold tracking-wider">{workspace.team_id}</code>
+            </div>
+            <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl">
+              <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-bold block mb-1">Status</span>
+              <span className="text-emerald-400 font-semibold flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Linked & Active
+              </span>
+            </div>
           </div>
 
           {/* Credits Bar */}
@@ -254,6 +315,129 @@ export default function AdminZeroTab({ user, supabase }) {
               <span>{usagePercentage}% Limit reached</span>
               <span>{queryRemaining} credits remaining</span>
             </div>
+          </div>
+        </div>
+
+        {/* ── API KEY GENERATION & MANAGEMENT ── */}
+        <div className="bg-[#050505] border border-zinc-900 rounded-3xl p-6 md:p-8 space-y-6 shadow-2xl relative">
+          <div>
+            <span className="text-[10px] text-brand-orange uppercase tracking-widest font-mono font-bold">Developer Access Credentials</span>
+            <h2 className="text-lg font-bold text-white mt-1 flex items-center gap-2">
+              <Key size={18} className="text-brand-orange" />
+              SaaS API Keys
+            </h2>
+            <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+              Use these secret keys to authenticate your AI agents and database queries to the Cloud Gateway. Keep keys confidential.
+            </p>
+          </div>
+
+          {/* Create key form */}
+          <form onSubmit={handleCreateKey} className="flex gap-2">
+            <input
+              type="text"
+              value={keyName}
+              onChange={e => setKeyName(e.target.value)}
+              placeholder="e.g. Production Key, Agent Scraper..."
+              className="flex-1 bg-zinc-950 border border-zinc-850 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder-zinc-700 focus:outline-none focus:border-brand-orange"
+              required
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 bg-brand-orange text-black text-xs font-extrabold rounded-xl hover:bg-opacity-90 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+            >
+              <Plus size={14} />
+              Generate API Key
+            </button>
+          </form>
+
+          {/* Newly Generated Key Warning Box */}
+          {newlyGeneratedKey && (
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 space-y-3 relative overflow-hidden animate-fade-in">
+              <div className="flex items-start gap-2 text-amber-500">
+                <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-xs font-bold block">Save your Secret Key!</span>
+                  <span className="text-[10px] text-zinc-400 leading-relaxed mt-0.5 block">
+                    For security reasons, you will not be able to view this key again. Copy it now and store it in a password manager.
+                  </span>
+                </div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-900 p-2.5 rounded-xl flex items-center justify-between">
+                <code className="text-xs text-brand-orange font-mono select-all break-all pr-4">{newlyGeneratedKey}</code>
+                <button
+                  onClick={() => copyToClipboard(newlyGeneratedKey)}
+                  className="p-1.5 hover:bg-zinc-900 border border-zinc-850 rounded-lg text-slate-400 hover:text-white transition-all shrink-0 cursor-pointer"
+                >
+                  <Copy size={12} />
+                </button>
+              </div>
+              <button
+                onClick={() => setNewlyGeneratedKey(null)}
+                className="text-[10px] font-mono text-zinc-500 hover:text-zinc-300 block font-bold cursor-pointer pt-1"
+              >
+                Dismiss Key Notice
+              </button>
+            </div>
+          )}
+
+          {/* API Keys List */}
+          <div className="space-y-3">
+            <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">Active Keys</span>
+            {keysLoading ? (
+              <div className="flex items-center gap-2 text-zinc-500 py-2 text-xs font-mono">
+                <RefreshCw size={12} className="animate-spin" /> Retrieving keys...
+              </div>
+            ) : apiKeys.length === 0 ? (
+              <div className="text-xs text-zinc-600 italic py-2 font-mono">No API keys generated yet. Create one above to get started.</div>
+            ) : (
+              <div className="border border-zinc-900 rounded-2xl overflow-hidden bg-zinc-950/20">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-zinc-900 bg-zinc-950/40 text-zinc-500 text-[10px] uppercase font-bold tracking-wider">
+                        <th className="py-2.5 px-4">Name</th>
+                        <th className="py-2.5 px-4">Key</th>
+                        <th className="py-2.5 px-4">Status</th>
+                        <th className="py-2.5 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-900">
+                      {apiKeys.map(k => (
+                        <tr key={k.id} className="hover:bg-zinc-950/40 text-zinc-300">
+                          <td className="py-3 px-4 font-semibold text-white">{k.name}</td>
+                          <td className="py-3 px-4 text-[11px] text-zinc-500">
+                            {k.key_value.slice(0, 10)}••••••••{k.key_value.slice(-6)}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                              k.status === 'active' 
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                            }`}>
+                              {k.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            {k.status === 'active' ? (
+                              <button
+                                onClick={() => handleRevokeKey(k.id)}
+                                className="p-1 bg-red-500/5 hover:bg-red-500/15 border border-red-500/10 hover:border-red-500/35 rounded-lg text-red-400 cursor-pointer transition-all inline-flex items-center gap-1 text-[10px]"
+                                title="Revoke Key"
+                              >
+                                <Trash size={10} />
+                                Revoke
+                              </button>
+                            ) : (
+                              <span className="text-zinc-650 italic text-[10px]">Revoked</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -365,11 +549,13 @@ export default function AdminZeroTab({ user, supabase }) {
               {cloudTab === 'sql' && (
                 <pre>{`fetch('https://glitchgo.tech/api/v1/query', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${apiKeys.find(k => k.status === 'active')?.key_value || 'az_sk_live_your_secret_key'}'
+  },
   body: JSON.stringify({
-    license_key: "${workspace?.team_id || 'your-license-key'}",
     prompt: "Show me all orders from last week"
-    // db_url optional if saved above
+    // db_url optional if saved in Step 2 above
   })
 })
 // Returns: { status, sql, data, meta: { piiScrubbed, creditsRemaining } }`}</pre>
@@ -377,9 +563,11 @@ export default function AdminZeroTab({ user, supabase }) {
               {cloudTab === 'vector' && (
                 <pre>{`fetch('https://glitchgo.tech/api/v1/query/vector', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${apiKeys.find(k => k.status === 'active')?.key_value || 'az_sk_live_your_secret_key'}'
+  },
   body: JSON.stringify({
-    license_key: "${workspace?.team_id || 'your-license-key'}",
     query: "Find products similar to wireless headphones",
     collection: "products",
     top_k: 10
@@ -390,9 +578,11 @@ export default function AdminZeroTab({ user, supabase }) {
               {cloudTab === 'passthrough' && (
                 <pre>{`fetch('https://glitchgo.tech/api/v1/query', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${apiKeys.find(k => k.status === 'active')?.key_value || 'az_sk_live_your_secret_key'}'
+  },
   body: JSON.stringify({
-    license_key: "${workspace?.team_id || 'your-license-key'}",
     prompt: "SELECT id, name FROM users WHERE active = true",
     mode: "passthrough"  // skip Gemini, treat as raw SQL
   })
@@ -401,8 +591,8 @@ export default function AdminZeroTab({ user, supabase }) {
               <button
                 onClick={() => copyToClipboard(
                   cloudTab === 'sql'
-                    ? `fetch('https://glitchgo.tech/api/v1/query', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ license_key: "${workspace?.team_id}", prompt: "Show me all orders from last week" }) })`
-                    : `fetch('https://glitchgo.tech/api/v1/query/vector', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ license_key: "${workspace?.team_id}", query: "your search query", collection: "your_collection" }) })`
+                    ? `fetch('https://glitchgo.tech/api/v1/query', { method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer ${apiKeys.find(k => k.status === 'active')?.key_value || 'az_sk_live_your_secret_key'}'}, body: JSON.stringify({ prompt: "Show me all orders from last week" }) })`
+                    : `fetch('https://glitchgo.tech/api/v1/query/vector', { method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer ${apiKeys.find(k => k.status === 'active')?.key_value || 'az_sk_live_your_secret_key'}'}, body: JSON.stringify({ query: "your search query", collection: "your_collection" }) })`
                 )}
                 className="absolute right-3 top-3 p-1.5 hover:bg-slate-900 border border-slate-850 rounded text-slate-500 hover:text-white cursor-pointer"
                 title="Copy"

@@ -504,49 +504,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <div className="div-line" />
 
-        {/* ══ PRICING ══ */}
-        <section className="sec" style={{padding:'88px 0'}}>
-          <div className="inner">
-            <div style={{textAlign:'center',marginBottom:'56px'}}>
-              <div style={{display:'flex',justifyContent:'center',marginBottom:'14px'}}><span className="sec-label">// Pricing</span></div>
-              <h2 className="h2">Start Free. <span className="grad-o">Scale When Ready.</span></h2>
-              <p style={{fontSize:'13px',color:'#3f3f46',marginTop:'12px'}}>No credit card. Cancel anytime.</p>
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px',maxWidth:'980px',margin:'0 auto'}}>
-              {[
-                {n:'Developer',p:'₹0',pd:'forever',f:['Local DB support','2,500 credits / mo','AST Firewall Core','Community Discord'],cta:'Get Started Free',href:'/signup?next=/portal',hot:false},
-                {n:'Startup',p:'₹2,999',pd:'/ month',f:['Postgres & MySQL','250,000 credits / mo','Custom blocklists','Email support'],cta:'Get Started',href:'/portal',hot:true},
-                {n:'Scale',p:'₹14,999',pd:'/ month',f:['All databases','1,250,000 credits / mo','Team dashboard','Priority support'],cta:'Upgrade Now',href:'/portal',hot:false},
-                {n:'Enterprise',p:'Custom',pd:'annual quote',f:['Unlimited credits','Private VPC deploy','SLA guarantee','Dedicated support'],cta:'Contact Us',href:'mailto:issakrajraj@gmail.com',hot:false},
-              ].map(({n,p,pd,f,cta,href,hot})=>(
-                <div key={n} className={`price ${hot?'price-hot':''}`}>
-                  <div>
-                    <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'9px',fontWeight:700,letterSpacing:'0.14em',textTransform:'uppercase',color:hot?'var(--o2)':'#3f3f46',marginBottom:'10px'}}>{n}</div>
-                    <div style={{display:'flex',alignItems:'baseline',gap:'5px',marginBottom:'18px'}}>
-                      <span style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:'26px',fontWeight:800,color:'#fff',letterSpacing:'-0.03em'}}>{p}</span>
-                      <span style={{fontSize:'10px',color:'#27272a'}}>{pd}</span>
-                    </div>
-                    <ul style={{listStyle:'none',display:'flex',flexDirection:'column',gap:'9px',marginBottom:'20px'}}>
-                      {f.map(i=>(
-                        <li key={i} className="chk">
-                          <div className="chk-dot"><svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="var(--o2)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-                          {i}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <a href={href} className="dl-btn" style={hot?{background:'linear-gradient(135deg,#ea6c12,#f08030)',color:'#fff',boxShadow:'0 0 18px rgba(234,108,18,0.2)',fontFamily:"'Space Grotesk',sans-serif",fontWeight:800,fontSize:'11px',letterSpacing:'0.07em',textTransform:'uppercase',textDecoration:'none',justifyContent:'center'}:{background:'rgba(255,255,255,0.03)',color:'#71717a',border:'1px solid var(--bdr)',fontFamily:"'Space Grotesk',sans-serif",fontWeight:700,fontSize:'11px',letterSpacing:'0.07em',textTransform:'uppercase',textDecoration:'none',justifyContent:'center'}}>
-                    {cta}
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <div className="div-line" />
 
         {/* ══ REVIEWS ══ */}
         <section className="sec" style={{padding:'88px 0'}}>

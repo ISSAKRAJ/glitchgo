@@ -106,19 +106,54 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     // Calculate Compute Cost
     const queryCost = 1 + (usePiiScrubber ? 1 : 0) + (usePromptFirewall ? 1 : 0) + (useAstFirewall ? 2 : 0);
 
-    // ── 0. Basic validation ──────────────────────────────────────────────
-    if (!license_key) {
-      return res.status(401).json({ error: 'Missing license_key parameter.' });
+    // ── 0. Authentication Resolution ─────────────────────────────────────
+    let apiKey = '';
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      apiKey = authHeader.substring(7).trim();
+    } else if (license_key) {
+      apiKey = String(license_key).trim();
+    }
+
+    if (!apiKey) {
+      return res.status(401).json({ error: 'Missing authentication credentials. Provide Bearer Token in Authorization header or license_key in body.' });
     }
     if (!prompt) {
       return res.status(400).json({ error: 'Missing prompt in request body.' });
     }
 
-    auditEvent.licenseKey = license_key;
+    let workspaceId = '';
+    let apiKeyRecord: any = null;
+
+    if (apiKey.startsWith('az_sk_live_')) {
+      const { data, error: keyErr } = await supabase
+        .from('api_keys')
+        .select('*')
+        .eq('key_value', apiKey)
+        .single();
+        
+      if (keyErr || !data) {
+        logAuditEvent({ ...auditEvent, licenseKey: 'unknown', status: 'blocked', threatType: 'INVALID_API_KEY' });
+        return res.status(401).json({ error: 'Invalid or unregistered API Key.', code: 'INVALID_API_KEY' });
+      }
+      
+      if (data.status !== 'active') {
+        logAuditEvent({ ...auditEvent, licenseKey: data.workspace_id, status: 'blocked', threatType: 'REVOKED_API_KEY' });
+        return res.status(401).json({ error: 'This API Key has been revoked.', code: 'REVOKED_API_KEY' });
+      }
+      
+      workspaceId = data.workspace_id;
+      apiKeyRecord = data;
+    } else {
+      // Backward compatibility: Treat directly as license key/team_id
+      workspaceId = apiKey;
+    }
+
+    auditEvent.licenseKey = workspaceId;
     auditEvent.prompt = prompt;
 
     // ── 1. Rate Limiting ───────────────────────────────
-    const rateCheck = checkRateLimit(license_key);
+    const rateCheck = checkRateLimit(workspaceId);
     if (!rateCheck.allowed) {
       logAuditEvent({ ...auditEvent, status: 'rate_limited', threatType: 'RATE_LIMIT_EXCEEDED' });
       res.set('X-RateLimit-Remaining', '0');
@@ -127,11 +162,22 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     }
     res.set('X-RateLimit-Remaining', String(rateCheck.remaining));
 
-    // ── 2. License Key Validation + Credit Check ─────────────────────────
-    const workspace = await getWorkspace(license_key);
+    // ── 2. Workspace Validation + Credit Check ───────────────────────────
+    const workspace = await getWorkspace(workspaceId);
     if (!workspace) {
       logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'INVALID_LICENSE' });
-      return res.status(401).json({ error: 'Invalid or unregistered license key.', code: 'INVALID_LICENSE' });
+      return res.status(401).json({ error: 'Invalid or unregistered workspace.', code: 'INVALID_LICENSE' });
+    }
+
+    // Update last_used_at in the background (non-blocking)
+    if (apiKeyRecord) {
+      supabase
+        .from('api_keys')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('id', apiKeyRecord.id)
+        .then(({ error }) => {
+          if (error) console.error('Error updating last_used_at for api_key:', error);
+        });
     }
 
     const creditsUsed = workspace.query_count || 0;
@@ -429,7 +475,36 @@ apiRouter.post('/admin/workspaces/update', async (req: Request, res: Response) =
  */
 apiRouter.get('/v1/logs', async (req: Request, res: Response) => {
   try {
-    const licenseKey = req.query.license_key as string;
+    let licenseKey = req.query.license_key as string;
+    const authHeader = req.headers.authorization;
+    let apiKey = '';
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      apiKey = authHeader.substring(7).trim();
+    }
+
+    let workspaceId = '';
+    if (apiKey && apiKey.startsWith('az_sk_live_')) {
+      const { data, error: keyErr } = await supabase
+        .from('api_keys')
+        .select('workspace_id, status')
+        .eq('key_value', apiKey)
+        .single();
+      if (!keyErr && data && data.status === 'active') {
+        workspaceId = data.workspace_id;
+      }
+    } else if (licenseKey) {
+      workspaceId = licenseKey;
+    }
+
+    if (!workspaceId) {
+      return res.status(401).json({ error: 'Missing or invalid authentication. Provide Bearer Token or license_key query param.' });
+    }
+
+    const workspace = await getWorkspace(workspaceId);
+    if (!workspace) {
+      return res.status(401).json({ error: 'Invalid or unregistered workspace.' });
+    }
+
     const format = req.query.format as string;
     const status = req.query.status as string;
     const threatType = req.query.threat_type as string;
@@ -437,19 +512,10 @@ apiRouter.get('/v1/logs', async (req: Request, res: Response) => {
     const limit = Math.min(parseInt((req.query.limit as string) || '50'), 1000);
     const offset = parseInt((req.query.offset as string) || '0');
 
-    if (!licenseKey) {
-      return res.status(400).json({ error: 'Missing license_key query param.' });
-    }
-
-    const workspace = await getWorkspace(licenseKey);
-    if (!workspace) {
-      return res.status(401).json({ error: 'Invalid license key.' });
-    }
-
     let query = supabase
       .from('query_logs')
       .select('*', { count: 'exact' })
-      .eq('workspace_id', licenseKey)
+      .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -480,7 +546,7 @@ apiRouter.get('/v1/logs', async (req: Request, res: Response) => {
       const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
 
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename="adminzero-audit-${licenseKey}-${Date.now()}.csv"`);
+      res.setHeader('Content-Disposition', `attachment; filename="adminzero-audit-${workspaceId}-${Date.now()}.csv"`);
       return res.send(csv);
     }
 

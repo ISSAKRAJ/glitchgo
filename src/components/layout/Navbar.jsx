@@ -37,6 +37,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: 'Product', href: '/' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'Guide', href: '/guide' },
     { label: 'Console', href: '/adminzero' },
   ];
