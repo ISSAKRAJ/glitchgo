@@ -29,3 +29,7 @@ CREATE POLICY "Users can manage own api keys" ON api_keys
       SELECT team_id FROM workspaces WHERE user_id = auth.uid()
     )
   );
+
+-- 5. Make encrypted_bot_access_token nullable on workspaces table
+-- (Allows Cloud API-only workspaces to be created without Slack tokens)
+ALTER TABLE workspaces ALTER COLUMN encrypted_bot_access_token DROP NOT NULL;

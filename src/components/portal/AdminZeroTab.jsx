@@ -67,7 +67,8 @@ export default function AdminZeroTab({ user, supabase }) {
                 user_id: user.id,
                 tier: 'free',
                 max_queries: 500,
-                query_count: 0
+                query_count: 0,
+                encrypted_bot_access_token: '000000000000000000000000:00000000000000000000000000000000:00000000'
               }
             ])
             .select();
