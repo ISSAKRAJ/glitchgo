@@ -74,7 +74,7 @@ async function authenticateSuperAdmin(req: Request): Promise<boolean> {
     const { data: { user }, error } = await supabase.auth.getUser(token);
     if (error || !user) return false;
     
-    return user.email === 'issakrajraj@gmail.com';
+    return ['issakrajraj@gmail.com', 'issakraj.123@gmail.com'].includes(user.email || '');
   } catch (err) {
     return false;
   }

@@ -25,7 +25,7 @@ export default function PortalPage() {
   // Active Tab State: 'dashboard' | 'settings' | 'admin'
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  const isSuperAdmin = user?.email === 'issakrajraj@gmail.com';
+  const isSuperAdmin = ['issakrajraj@gmail.com', 'issakraj.123@gmail.com'].includes(user?.email);
 
   useEffect(() => {
     const checkSession = async () => {

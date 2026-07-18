@@ -33,7 +33,7 @@ export default function Navbar() {
     window.location.href = '/';
   };
 
-  const isSuperAdmin = user?.email === 'issakrajraj@gmail.com';
+  const isSuperAdmin = ['issakrajraj@gmail.com', 'issakraj.123@gmail.com'].includes(user?.email);
 
   const navLinks = [
     { label: 'Product', href: '/' },
