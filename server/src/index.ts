@@ -13,9 +13,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Configure allowed origins (supports comma-separated list of URLs)
+const defaultOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://glitchgo.tech',
+  'https://www.glitchgo.tech'
+];
 const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-  : ['http://localhost:3000'];
+  ? [...process.env.FRONTEND_URL.split(',').map(url => url.trim()), ...defaultOrigins]
+  : defaultOrigins;
 
 // Enable CORS so multiple frontend domains can communicate with the backend
 app.use(cors({
