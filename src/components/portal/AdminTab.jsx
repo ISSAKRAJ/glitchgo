@@ -21,7 +21,7 @@ export default function AdminTab({ userToken }) {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const res = await fetch('/api/admin/workspaces', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/workspaces`, {
         headers: { 'Authorization': `Bearer ${userToken}` }
       });
       const result = await res.json();
@@ -57,7 +57,7 @@ export default function AdminTab({ userToken }) {
   const handleUpdate = async (teamId) => {
     setSaveLoading(true);
     try {
-      const res = await fetch('/api/admin/workspaces/update', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/workspaces/update`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
