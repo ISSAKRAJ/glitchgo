@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  Users, Key, ShieldCheck, Database, RefreshCw, Edit2, Save, X, PlusCircle, AlertCircle
+  Users, Key, ShieldCheck, Database, RefreshCw, Edit2, Save, X, PlusCircle, AlertCircle,
+  ChevronDown, ChevronRight, CheckCircle, XCircle
 } from 'lucide-react';
 
 export default function AdminTab({ userToken }) {
@@ -8,6 +9,7 @@ export default function AdminTab({ userToken }) {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
   
   // Edit Form Fields
   const [editTier, setEditTier] = useState('free');
@@ -156,6 +158,7 @@ export default function AdminTab({ userToken }) {
           <table className="w-full text-left border-collapse text-xs font-mono">
             <thead>
               <tr className="bg-slate-900 border-b border-slate-850 text-slate-400 uppercase tracking-wider text-[10px]">
+                <th className="p-4 pl-6 w-10"></th>
                 <th className="p-4 font-bold">User Email</th>
                 <th className="p-4 font-bold">License Key (Team ID)</th>
                 <th className="p-4 font-bold">Plan Tier</th>
@@ -166,94 +169,184 @@ export default function AdminTab({ userToken }) {
             <tbody>
               {workspaces.length > 0 ? (
                 workspaces.map(ws => (
-                  <tr key={ws.team_id} className="border-b border-slate-850 hover:bg-slate-900/30">
-                    <td className="p-4 text-slate-200 font-semibold select-all max-w-[200px] truncate" title={ws.email}>
-                      {ws.email}
-                    </td>
-                    <td className="p-4 text-slate-400 select-all font-mono">
-                      {ws.team_id}
-                    </td>
-                    <td className="p-4 whitespace-nowrap">
-                      {editingId === ws.team_id ? (
-                        <select 
-                          value={editTier}
-                          onChange={(e) => setEditTier(e.target.value)}
-                          className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white"
-                        >
-                          <option value="free">free</option>
-                          <option value="startup">startup</option>
-                          <option value="scale">scale</option>
-                          <option value="enterprise">enterprise</option>
-                        </select>
-                      ) : (
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${
-                          ws.tier === 'free' 
-                            ? 'bg-slate-950 border-slate-800 text-slate-500' 
-                            : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                        }`}>
-                          {ws.tier || 'free'}
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 whitespace-nowrap">
-                      {editingId === ws.team_id ? (
-                        <div className="flex items-center space-x-2">
-                          <input 
-                            type="number" 
-                            value={editQueryCount}
-                            onChange={(e) => setEditQueryCount(Number(e.target.value))}
-                            className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-20 text-center"
-                            placeholder="Usage"
-                          />
-                          <span className="text-slate-600">/</span>
-                          <input 
-                            type="number" 
-                            value={editMaxQueries}
-                            onChange={(e) => setEditMaxQueries(Number(e.target.value))}
-                            className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-20 text-center"
-                            placeholder="Limit"
-                          />
-                        </div>
-                      ) : (
-                        <span className="text-slate-350 font-bold">
-                          {ws.query_count || 0} / {ws.max_queries || 500}
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 whitespace-nowrap">
-                      {editingId === ws.team_id ? (
-                        <div className="flex items-center space-x-2">
-                          <button 
-                            onClick={() => handleUpdate(ws.team_id)}
-                            disabled={saveLoading}
-                            className="p-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded cursor-pointer"
-                            title="Save Changes"
-                          >
-                            <Save size={12} />
-                          </button>
-                          <button 
-                            onClick={cancelEdit}
-                            className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 rounded cursor-pointer"
-                            title="Cancel"
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
-                      ) : (
+                  <React.Fragment key={ws.team_id}>
+                    <tr className="border-b border-slate-850 hover:bg-slate-900/30">
+                      <td className="p-4 pl-6 w-10 text-center">
                         <button 
-                          onClick={() => startEdit(ws)}
-                          className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 rounded cursor-pointer flex items-center space-x-1"
+                          onClick={() => setExpandedId(expandedId === ws.team_id ? null : ws.team_id)}
+                          className="text-slate-500 hover:text-white transition-all cursor-pointer"
                         >
-                          <Edit2 size={12} />
-                          <span className="text-[10px]">Edit</span>
+                          {expandedId === ws.team_id ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                         </button>
-                      )}
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="p-4 text-slate-200 font-semibold select-all max-w-[200px] truncate" title={ws.email}>
+                        {ws.email}
+                      </td>
+                      <td className="p-4 text-slate-400 select-all font-mono">
+                        {ws.team_id}
+                      </td>
+                      <td className="p-4 whitespace-nowrap">
+                        {editingId === ws.team_id ? (
+                          <select 
+                            value={editTier}
+                            onChange={(e) => setEditTier(e.target.value)}
+                            className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white"
+                          >
+                            <option value="free">free</option>
+                            <option value="startup">startup</option>
+                            <option value="scale">scale</option>
+                            <option value="enterprise">enterprise</option>
+                          </select>
+                        ) : (
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${
+                            ws.tier === 'free' 
+                              ? 'bg-slate-950 border-slate-800 text-slate-500' 
+                              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                          }`}>
+                            {ws.tier || 'free'}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 whitespace-nowrap">
+                        {editingId === ws.team_id ? (
+                          <div className="flex items-center space-x-2">
+                            <input 
+                              type="number" 
+                              value={editQueryCount}
+                              onChange={(e) => setEditQueryCount(Number(e.target.value))}
+                              className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-20 text-center"
+                              placeholder="Usage"
+                            />
+                            <span className="text-slate-600">/</span>
+                            <input 
+                              type="number" 
+                              value={editMaxQueries}
+                              onChange={(e) => setEditMaxQueries(Number(e.target.value))}
+                              className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-20 text-center"
+                              placeholder="Limit"
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-slate-350 font-bold">
+                            {ws.query_count || 0} / {ws.max_queries || 500}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 whitespace-nowrap">
+                        {editingId === ws.team_id ? (
+                          <div className="flex items-center space-x-2">
+                            <button 
+                              onClick={() => handleUpdate(ws.team_id)}
+                              disabled={saveLoading}
+                              className="p-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded cursor-pointer"
+                              title="Save Changes"
+                            >
+                              <Save size={12} />
+                            </button>
+                            <button 
+                              onClick={cancelEdit}
+                              className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 rounded cursor-pointer"
+                              title="Cancel"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => startEdit(ws)}
+                            className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 rounded cursor-pointer flex items-center space-x-1"
+                          >
+                            <Edit2 size={12} />
+                            <span className="text-[10px]">Edit</span>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {expandedId === ws.team_id && (
+                      <tr className="bg-slate-950/40 border-b border-slate-850">
+                        <td colSpan={6} className="p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-zinc-400">
+                            
+                            {/* User details & DB Config */}
+                            <div className="space-y-4">
+                              <h4 className="text-white text-xs font-bold uppercase tracking-wider text-brand-orange border-b border-zinc-850 pb-2">
+                                Account & Database Details
+                              </h4>
+                              <div className="space-y-2 text-[10px]">
+                                <div>
+                                  <span className="text-slate-500 block text-[9px] uppercase tracking-wider">User ID:</span>
+                                  <span className="text-slate-300 block select-all break-all">{ws.user_id}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 block text-[9px] uppercase tracking-wider">Created At:</span>
+                                  <span className="text-slate-300 block">{ws.user_created_at ? new Date(ws.user_created_at).toLocaleString() : 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 block text-[9px] uppercase tracking-wider">Last Sign-In:</span>
+                                  <span className="text-slate-300 block">{ws.last_sign_in_at ? new Date(ws.last_sign_in_at).toLocaleString() : 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 block text-[9px] uppercase tracking-wider">Database Connection:</span>
+                                  {ws.db_url ? (
+                                    <div className="space-y-1 mt-1">
+                                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold uppercase tracking-wider">
+                                        <CheckCircle size={10} /> Connected ({ws.db_dialect})
+                                      </span>
+                                      <code className="block p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-[9px] break-all select-all text-slate-500 max-h-[60px] overflow-y-auto">
+                                        {ws.db_url}
+                                      </code>
+                                    </div>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-500 text-[9px] font-bold uppercase tracking-wider mt-1">
+                                      <XCircle size={10} /> Not Configured
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* API Keys List */}
+                            <div className="space-y-4">
+                              <h4 className="text-white text-xs font-bold uppercase tracking-wider text-brand-orange border-b border-zinc-850 pb-2">
+                                Workspace API Credentials
+                              </h4>
+                              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                                {ws.api_keys && ws.api_keys.length > 0 ? (
+                                  ws.api_keys.map((k, idx) => (
+                                    <div key={idx} className="bg-zinc-950 border border-zinc-900 p-2.5 rounded-xl flex flex-col gap-1 text-[10px]">
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-white font-bold text-xs truncate max-w-[150px]">{k.name}</span>
+                                        <span className={`px-1.5 py-0.5 rounded-[4px] text-[8px] font-bold uppercase ${
+                                          k.status === 'active' 
+                                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' 
+                                            : 'bg-red-500/15 text-red-400 border border-red-500/20'
+                                        }`}>
+                                          {k.status}
+                                        </span>
+                                      </div>
+                                      <code className="text-slate-400 select-all break-all bg-zinc-900/50 p-1.5 rounded-lg border border-zinc-850 text-[9px]">
+                                        {k.key_value}
+                                      </code>
+                                      <span className="text-[8px] text-zinc-650">Created: {new Date(k.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="text-slate-600 italic text-[10px] text-center py-6">
+                                    No API Keys generated for this workspace yet.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-500 italic">
+                  <td colSpan={6} className="p-8 text-center text-slate-500 italic">
                     No workspaces or licenses found in database.
                   </td>
                 </tr>

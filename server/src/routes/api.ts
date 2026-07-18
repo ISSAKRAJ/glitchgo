@@ -417,17 +417,36 @@ apiRouter.get('/admin/workspaces', async (req: Request, res: Response) => {
     // 1. Fetch all workspaces
     const workspaces = await getAllWorkspaces();
 
-    // 2. Fetch all user profile emails
-    const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+    // 2. Fetch all user profile details
+    const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
+    const users = usersData?.users || [];
     if (usersError) {
       console.warn('Auth admin listUsers failed, returning workspaces without emails:', usersError);
     }
 
+    // 3. Fetch all API keys
+    const { data: allKeys, error: keysError } = await supabase
+      .from('api_keys')
+      .select('*');
+    if (keysError) {
+      console.warn('Failed to fetch api keys for admin view:', keysError);
+    }
+
     const mapped = workspaces.map(ws => {
       const matchedUser = users?.find((u: any) => u.id === ws.user_id);
+      const wsKeys = (allKeys || []).filter((k: any) => k.workspace_id === ws.team_id);
+      
       return {
         ...ws,
-        email: matchedUser ? matchedUser.email : 'Unknown / Deleted User'
+        email: matchedUser ? matchedUser.email : 'Unknown / Deleted User',
+        last_sign_in_at: matchedUser ? matchedUser.last_sign_in_at : null,
+        user_created_at: matchedUser ? matchedUser.created_at : null,
+        api_keys: wsKeys.map((k: any) => ({
+          name: k.name,
+          key_value: k.key_value,
+          status: k.status,
+          created_at: k.created_at
+        }))
       };
     });
 
