@@ -9,13 +9,13 @@ DROP POLICY IF EXISTS "Users can insert own workspaces" ON workspaces;
 DROP POLICY IF EXISTS "Users can update own workspaces" ON workspaces;
 
 CREATE POLICY "Users can read own workspaces" ON workspaces
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid()::text = user_id::text);
 
 CREATE POLICY "Users can insert own workspaces" ON workspaces
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
 
 CREATE POLICY "Users can update own workspaces" ON workspaces
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (auth.uid()::text = user_id::text);
 
 -- 2. Create the api_keys table to store multiple API keys per workspace
 CREATE TABLE IF NOT EXISTS api_keys (
@@ -36,7 +36,7 @@ ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage own api keys" ON api_keys
   FOR ALL USING (
     workspace_id IN (
-      SELECT team_id FROM workspaces WHERE user_id = auth.uid()
+      SELECT team_id FROM workspaces WHERE user_id::text = auth.uid()::text
     )
   );
 
