@@ -8,7 +8,6 @@ export default function Footer() {
     Product: [
       { label: 'How It Works', href: '/guide' },
       { label: 'Test Console', href: '/adminzero' },
-      { label: 'System Status', href: '/status' },
     ],
     Company: [
       { label: 'About GlitchGo', href: '/' },
@@ -114,17 +113,7 @@ export default function Footer() {
         .footer-link:hover { color: #d4d4d8; }
         .footer-link-orange:hover { color: #ea6c12; }
 
-        /* ── EMPLOYEE LOGIN ── */
-        .emp-link {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 7px 12px; border-radius: 9px; margin-top: 4px;
-          background: rgba(234,108,18,0.05); border: 1px solid rgba(234,108,18,0.12);
-          font-size: 11px; font-weight: 700; color: rgba(234,108,18,0.6);
-          text-decoration: none; letter-spacing: 0.04em;
-          font-family: 'JetBrains Mono', monospace;
-          transition: all 0.2s;
-        }
-        .emp-link:hover { background: rgba(234,108,18,0.09); border-color: rgba(234,108,18,0.22); color: #ea6c12; }
+
 
         /* ── BOTTOM BAR ── */
         .footer-bottom {
@@ -196,13 +185,7 @@ export default function Footer() {
                 </div>
               </div>
 
-              {/* Employee login */}
-              <div style={{marginTop:'14px'}}>
-                <a href="/dashboard" className="emp-link">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                  Employee Login
-                </a>
-              </div>
+
             </div>
 
             {/* Link Columns */}
