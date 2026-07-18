@@ -9,7 +9,6 @@ export default function AdminZeroTab({ user, supabase }) {
   const [workspace, setWorkspace] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [recentLogs, setRecentLogs] = useState([]);
-  const [paymentUtr, setPaymentUtr] = useState('');
   const [payLoading, setPayLoading] = useState(false);
   const [payMessage, setPayMessage] = useState(null);
   const [dbUrl, setDbUrl] = useState('');
@@ -218,39 +217,40 @@ export default function AdminZeroTab({ user, supabase }) {
     scale: { label: 'Scale Pack', cost: 1999, credits: 500000, desc: '+500,000 query credits' },
   };
 
-  const handleManualPayment = async (e) => {
-    e.preventDefault();
-    if (!paymentUtr) return;
+  const handlePurchaseTopUp = async () => {
     setPayLoading(true);
     setPayMessage(null);
+    try {
+      let priceId = '';
+      if (selectedPack === 'starter') {
+        priceId = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_STARTER_VARIANT_ID || 'starter_placeholder';
+      } else if (selectedPack === 'growth') {
+        priceId = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_GROWTH_VARIANT_ID || 'growth_placeholder';
+      } else if (selectedPack === 'scale') {
+        priceId = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_SCALE_VARIANT_ID || 'scale_placeholder';
+      }
 
-    const selectedPackDetails = packs[selectedPack];
-    setTimeout(async () => {
-      try {
-        const newMax = (workspace.max_queries || 500) + selectedPackDetails.credits;
-        let newTier = workspace.tier || 'free';
-        if (selectedPack === 'starter' && newTier === 'free') newTier = 'pro';
-        if (selectedPack === 'growth') newTier = 'pro';
-        if (selectedPack === 'scale') newTier = 'team';
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          team_id: workspace.team_id,
+          price_id: priceId
+        })
+      });
 
-        const { error } = await supabase
-          .from('workspaces')
-          .update({ max_queries: newMax, tier: newTier })
-          .eq('team_id', workspace.team_id);
-
-        if (!error) {
-          setWorkspace(prev => ({ ...prev, max_queries: newMax, tier: newTier }));
-          setPayMessage({ type: 'success', text: `UPI verified successfully. Added +${selectedPackDetails.credits.toLocaleString()} query credits!` });
-          setPaymentUtr('');
-        } else {
-          setPayMessage({ type: 'error', text: 'Database error applying credits.' });
-        }
-      } catch {
-        setPayMessage({ type: 'error', text: 'Error applying UPI credits.' });
-      } finally {
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setPayMessage({ type: 'error', text: data.error || 'Failed to generate checkout link.' });
         setPayLoading(false);
       }
-    }, 1500);
+    } catch (err) {
+      console.error('Checkout redirect error:', err);
+      setPayMessage({ type: 'error', text: 'Network error generating checkout link.' });
+      setPayLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -662,62 +662,35 @@ export default function AdminZeroTab({ user, supabase }) {
             </div>
           </div>
 
-          {/* UPI Address Box */}
-          <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl space-y-3">
-            <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">Pay via UPI App</span>
-            <div className="text-xs font-bold text-white font-mono flex items-center justify-between bg-zinc-900 p-2.5 rounded-xl border border-zinc-850 select-all">
-              <span>7013017818@naviaxis</span>
-              <button 
-                onClick={() => copyToClipboard('7013017818@naviaxis')}
-                className="text-[9px] bg-zinc-950 border border-zinc-800 text-slate-400 hover:text-white px-2 py-0.5 rounded cursor-pointer transition-all"
-              >
-                Copy ID
-              </button>
-            </div>
-            <p className="text-[9px] text-zinc-500 italic leading-relaxed font-mono">
-              Open your BHIM, GPay, PhonePe, or Paytm app. Send <strong className="text-white">₹{packs[selectedPack].cost}</strong> to the UPI ID above.
-            </p>
-          </div>
-
-          {/* UTR Input Form */}
-          <form onSubmit={handleManualPayment} className="space-y-3">
-            <label className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">
-              Submit UPI UTR / Transaction ID
-            </label>
-            <input 
-              type="text" 
-              value={paymentUtr}
-              onChange={(e) => setPaymentUtr(e.target.value)}
-              placeholder="e.g. 614039572834"
-              required
-              disabled={payLoading}
-              className="w-full bg-zinc-950 border border-zinc-850 rounded-xl px-3 py-2 text-xs font-mono text-white placeholder-slate-655 focus:outline-none focus:border-brand-orange"
-            />
+          {/* Secure Payment Gateway Checkout */}
+          <div className="space-y-4">
+            {payMessage && (
+              <div className={`p-3 text-[10px] font-mono rounded-xl border ${
+                payMessage.type === 'success' 
+                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                  : 'bg-red-500/10 border-red-500/20 text-red-400'
+              }`}>
+                {payMessage.text}
+              </div>
+            )}
             <button 
-              type="submit"
-              disabled={payLoading || !paymentUtr}
-              className="w-full bg-brand-orange hover:bg-opacity-95 text-black disabled:text-slate-500 font-extrabold py-2.5 rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center space-x-2 border-none shadow-[0_0_15px_rgba(249,115,22,0.15)]"
+              onClick={handlePurchaseTopUp}
+              disabled={payLoading}
+              className="w-full bg-brand-orange hover:bg-opacity-95 text-black disabled:text-slate-500 font-extrabold py-3.5 rounded-xl text-xs transition-all cursor-pointer flex items-center justify-center space-x-2 border-none shadow-[0_0_15px_rgba(249,115,22,0.15)] font-mono"
             >
               {payLoading ? (
                 <>
-                  <div className="h-3 w-3 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <span>Verifying Payment...</span>
+                  <div className="h-3.5 w-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  <span>Generating Checkout Link...</span>
                 </>
               ) : (
-                <span>Submit transaction</span>
+                <span>Proceed to Secure Checkout</span>
               )}
             </button>
-          </form>
-
-          {payMessage && (
-            <div className={`p-3 rounded-xl border text-[11px] ${
-              payMessage.type === 'success' 
-                ? 'bg-brand-orange/10 border-brand-orange/30 text-brand-orange' 
-                : 'bg-red-500/10 border-red-500/30 text-red-400'
-            }`}>
-              {payMessage.text}
-            </div>
-          )}
+            <p className="text-[9.5px] text-zinc-500 text-center leading-relaxed font-mono mt-3">
+              Payments are processed securely via Lemon Squeezy gateway. Credits are applied automatically to your license within seconds of checkout success.
+            </p>
+          </div>
         </div>
       </div>
 

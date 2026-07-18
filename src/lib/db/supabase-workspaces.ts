@@ -359,3 +359,33 @@ export async function logQueryFailure(queryId: number): Promise<void> {
     throw error;
   }
 }
+
+/**
+ * Adds query credits to a workspace for a one-time purchase.
+ */
+export async function addWorkspaceCredits(
+  teamId: string,
+  creditsToAdd: number,
+  newTier?: string
+): Promise<void> {
+  const current = await getWorkspace(teamId);
+  if (!current) {
+    throw new Error(`Workspace ${teamId} not found.`);
+  }
+
+  const newMax = (current.max_queries || 500) + creditsToAdd;
+  const updatePayload: any = { max_queries: newMax };
+  if (newTier) {
+    updatePayload.tier = newTier;
+  }
+
+  const { error } = await supabase
+    .from('workspaces')
+    .update(updatePayload)
+    .eq('team_id', teamId.trim());
+
+  if (error) {
+    console.error('Error adding credits to workspace:', error);
+    throw error;
+  }
+}

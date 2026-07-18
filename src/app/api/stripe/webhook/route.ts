@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { updateWorkspaceSubscription, resetWorkspaceSubscription } from '../../../../lib/db/supabase-workspaces';
+import { updateWorkspaceSubscription, resetWorkspaceSubscription, addWorkspaceCredits } from '../../../../lib/db/supabase-workspaces';
 import { supabase } from '../../../../lib/supabase';
 
 export async function POST(req: NextRequest) {
@@ -44,7 +44,37 @@ export async function POST(req: NextRequest) {
   console.log(`Processing Lemon Squeezy Webhook Event: ${eventName}`);
 
   try {
-    if (eventName === 'subscription_created' || eventName === 'subscription_updated') {
+    if (eventName === 'order_created') {
+      const teamId = payload.meta?.custom_data?.team_id;
+      const variantId = String(payload.data?.attributes?.first_order_item?.variant_id);
+
+      if (!teamId) {
+        console.warn(`Webhook received for order_created but missing team_id in custom_data.`);
+        return new Response('OK', { status: 200 });
+      }
+
+      let creditsToAdd = 100000; // Default fallback to Growth Pack
+      let newTier = 'pro';
+
+      const starterVariant = process.env.LEMON_SQUEEZY_STARTER_VARIANT_ID;
+      const growthVariant = process.env.LEMON_SQUEEZY_GROWTH_VARIANT_ID;
+      const scaleVariant = process.env.LEMON_SQUEEZY_SCALE_VARIANT_ID;
+
+      if (variantId === starterVariant) {
+        creditsToAdd = 15000;
+        newTier = 'pro';
+      } else if (variantId === growthVariant) {
+        creditsToAdd = 100000;
+        newTier = 'pro';
+      } else if (variantId === scaleVariant) {
+        creditsToAdd = 500000;
+        newTier = 'team';
+      }
+
+      console.log(`Lemon Squeezy Order: Top-up for team ${teamId}, adding ${creditsToAdd} credits, setting tier ${newTier}`);
+      await addWorkspaceCredits(teamId, creditsToAdd, newTier);
+
+    } else if (eventName === 'subscription_created' || eventName === 'subscription_updated') {
       const teamId = payload.meta?.custom_data?.team_id;
       const customerId = String(payload.data?.attributes?.customer_id);
       const subscriptionId = String(payload.data?.id);
