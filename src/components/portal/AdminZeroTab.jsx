@@ -20,6 +20,7 @@ export default function AdminZeroTab({ user, supabase }) {
   const [features, setFeatures] = useState({ ast: true, prompt: true, pii: true });
   const [configSaving, setConfigSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [selectedPack, setSelectedPack] = useState('growth');
 
   // API Key States
   const [apiKeys, setApiKeys] = useState([]);
@@ -211,24 +212,35 @@ export default function AdminZeroTab({ user, supabase }) {
     navigator.clipboard.writeText(text);
   };
 
+  const packs = {
+    starter: { label: 'Starter Pack', cost: 99, credits: 15000, desc: '+15,000 query credits' },
+    growth: { label: 'Growth Pack', cost: 499, credits: 100000, desc: '+100,000 query credits' },
+    scale: { label: 'Scale Pack', cost: 1999, credits: 500000, desc: '+500,000 query credits' },
+  };
+
   const handleManualPayment = async (e) => {
     e.preventDefault();
     if (!paymentUtr) return;
     setPayLoading(true);
     setPayMessage(null);
 
-    // Mock success and apply credits
+    const selectedPackDetails = packs[selectedPack];
     setTimeout(async () => {
       try {
-        const newMax = (workspace.max_queries || 500) + 10000;
+        const newMax = (workspace.max_queries || 500) + selectedPackDetails.credits;
+        let newTier = workspace.tier || 'free';
+        if (selectedPack === 'starter' && newTier === 'free') newTier = 'pro';
+        if (selectedPack === 'growth') newTier = 'pro';
+        if (selectedPack === 'scale') newTier = 'team';
+
         const { error } = await supabase
           .from('workspaces')
-          .update({ max_queries: newMax, tier: 'startup' })
+          .update({ max_queries: newMax, tier: newTier })
           .eq('team_id', workspace.team_id);
 
         if (!error) {
-          setWorkspace(prev => ({ ...prev, max_queries: newMax, tier: 'startup' }));
-          setPayMessage({ type: 'success', text: 'UPI verified successfully. Added +10,000 query credits!' });
+          setWorkspace(prev => ({ ...prev, max_queries: newMax, tier: newTier }));
+          setPayMessage({ type: 'success', text: `UPI verified successfully. Added +${selectedPackDetails.credits.toLocaleString()} query credits!` });
           setPaymentUtr('');
         } else {
           setPayMessage({ type: 'error', text: 'Database error applying credits.' });
@@ -619,15 +631,35 @@ export default function AdminZeroTab({ user, supabase }) {
             <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono font-bold">Credits Top Up</span>
             <h2 className="text-base font-bold text-white mt-1">Buy Query Credits</h2>
             <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-              Add **+10,005 query credits** immediately to your local agent quota.
+              Instantly replenish your agent compute credit quota via high-speed UPI.
             </p>
           </div>
 
-          {/* Pricing Info */}
-          <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl text-center">
-            <span className="text-[9px] text-zinc-500 font-mono uppercase font-bold tracking-widest block mb-1">Total Cost</span>
-            <span className="text-2xl font-black text-white">₹599</span>
-            <span className="text-[10px] text-zinc-500"> INR</span>
+          {/* Package Selector Cards */}
+          <div className="space-y-2">
+            <span className="text-[9px] text-zinc-500 font-mono uppercase block font-bold tracking-widest">Select Top-Up Package</span>
+            <div className="grid grid-cols-1 gap-2">
+              {Object.entries(packs).map(([key, p]) => (
+                <div 
+                  key={key}
+                  onClick={() => setSelectedPack(key)}
+                  className={`border p-3 rounded-2xl cursor-pointer transition-all flex justify-between items-center ${
+                    selectedPack === key 
+                      ? 'bg-brand-orange/5 border-brand-orange text-white' 
+                      : 'bg-zinc-950 border-zinc-900 text-zinc-400 hover:border-zinc-800'
+                  }`}
+                >
+                  <div className="text-left font-mono">
+                    <span className="text-[9px] uppercase font-bold block text-zinc-500">{p.label}</span>
+                    <span className="text-[10.5px] text-white font-bold block mt-0.5">{p.desc}</span>
+                  </div>
+                  <div className="text-right font-mono">
+                    <span className="text-sm font-black text-white block">₹{p.cost}</span>
+                    <span className="text-[8px] text-zinc-500 block">one-time</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* UPI Address Box */}
@@ -642,8 +674,8 @@ export default function AdminZeroTab({ user, supabase }) {
                 Copy ID
               </button>
             </div>
-            <p className="text-[9px] text-zinc-500 italic leading-relaxed">
-              Open your BHIM, GPay, PhonePe, or Paytm app. Send ₹599 to the UPI ID above.
+            <p className="text-[9px] text-zinc-500 italic leading-relaxed font-mono">
+              Open your BHIM, GPay, PhonePe, or Paytm app. Send <strong className="text-white">₹{packs[selectedPack].cost}</strong> to the UPI ID above.
             </p>
           </div>
 

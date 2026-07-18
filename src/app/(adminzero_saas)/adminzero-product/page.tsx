@@ -410,40 +410,42 @@ result = response.json()`
                 <span className="text-xs text-slate-500"> / forever</span>
               </div>
               <ul className="space-y-3 text-[10px] text-slate-400 mb-6">
-                <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>Local SQLite support</span></li>
-                <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>500 free queries/mo</span></li>
+                <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>Local SQLite & Postgres support</span></li>
+                <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>10,000 free credits/mo</span></li>
               </ul>
             </div>
             <a href="/adminzero" className="w-full bg-slate-800 hover:bg-slate-700 text-white text-center font-bold py-2.5 rounded-xl text-xs transition-all cursor-pointer">Start Free</a>
           </div>
 
-          {/* Startup Growth */}
+          {/* Pro */}
           <div className="bg-slate-900 border-2 border-emerald-500 p-6 rounded-2xl flex flex-col justify-between relative shadow-xl shadow-emerald-500/10">
             <span className="absolute -top-3 right-6 bg-emerald-500 text-slate-950 font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full">MSME Favorite</span>
             <div>
-              <h3 className="font-bold text-white text-base">Startup Growth</h3>
+              <h3 className="font-bold text-white text-base">Pro Plan</h3>
               <div className="my-4">
-                <span className="text-2xl font-black text-white">₹2,999</span>
+                <span className="text-2xl font-black text-white">₹1,999</span>
                 <span className="text-xs text-slate-400"> / month</span>
               </div>
               <ul className="space-y-3 text-[10px] text-slate-350 mb-6">
-                <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>MySQL & MongoDB Gateway</span></li>
+                <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>MySQL, PostgreSQL & MongoDB</span></li>
+                <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>500,000 compute credits/mo</span></li>
                 <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>DPDP Compliance Log Export</span></li>
               </ul>
             </div>
-            <a href="/adminzero" className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-center font-bold py-2.5 rounded-xl text-xs transition-all cursor-pointer">Claim MSME Tier</a>
+            <a href="/adminzero" className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-center font-bold py-2.5 rounded-xl text-xs transition-all cursor-pointer">Claim Pro Tier</a>
           </div>
 
-          {/* Scale Team */}
+          {/* Team */}
           <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-2xl flex flex-col justify-between">
             <div>
-              <h3 className="font-bold text-white text-base">Scale Team</h3>
+              <h3 className="font-bold text-white text-base">Team Plan</h3>
               <div className="my-4">
-                <span className="text-2xl font-black text-white">₹14,999</span>
+                <span className="text-2xl font-black text-white">₹9,999</span>
                 <span className="text-xs text-slate-500"> / month</span>
               </div>
               <ul className="space-y-3 text-[10px] text-slate-400 mb-6">
                 <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>Snowflake & BigQuery Support</span></li>
+                <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>3,000,000 compute credits/mo</span></li>
                 <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>RBAC Scoped Access</span></li>
               </ul>
             </div>
@@ -460,6 +462,7 @@ result = response.json()`
               </div>
               <ul className="space-y-3 text-[10px] text-slate-400 mb-6">
                 <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>Air-Gapped Private VPC</span></li>
+                <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>Unlimited queries & credits</span></li>
                 <li className="flex items-center space-x-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0"/><span>CERT-In SLA Shielding</span></li>
               </ul>
             </div>

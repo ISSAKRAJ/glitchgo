@@ -12,7 +12,7 @@ export default function PricingPage() {
       desc: 'Perfect for local development, prototyping, and testing security safeguards.',
       f: [
         'Local DB Support',
-        '2,500 free credits / mo',
+        '10,000 free credits / mo',
         'Core AST Query Guard',
         'Community Discord Access',
         'Real-time Telemetry Dashboard'
@@ -22,36 +22,36 @@ export default function PricingPage() {
       hot: false
     },
     {
-      n: 'Startup',
-      p: '₹2,999',
+      n: 'Pro',
+      p: '₹1,999',
       pd: '/ month',
       desc: 'For growing applications requiring production-grade protection for PostgreSQL & MySQL.',
       f: [
         'Full Postgres & MySQL Support',
-        '250,000 credits / mo',
+        '500,000 credits / mo',
         'Custom AST Blocklists',
         'Standard Email Support',
         'API Key Management (Multiple Keys)',
         'PII Redaction Engine'
       ],
-      cta: 'Choose Startup',
+      cta: 'Choose Pro',
       href: '/portal',
       hot: true
     },
     {
-      n: 'Scale',
-      p: '₹14,999',
+      n: 'Team',
+      p: '₹9,999',
       pd: '/ month',
       desc: 'Designed for high-traffic platforms needing complete database protection and priority operations.',
       f: [
         'All Supported Databases',
-        '1,250,000 credits / mo',
+        '3,000,000 credits / mo',
         'Priority Slack/Email Support',
         'Advanced Prompt Guard',
         'Custom Whitelist Policies',
         'Detailed Audit Logs'
       ],
-      cta: 'Choose Scale',
+      cta: 'Choose Team',
       href: '/portal',
       hot: false
     },
