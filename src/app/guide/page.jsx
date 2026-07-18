@@ -7,6 +7,7 @@ const NAV = [
   { id: 'overview',     label: 'What is AdminZero?' },
   { id: 'howitworks',  label: 'How It Works' },
   { id: 'install', label: 'Integration' },
+  { id: 'setup',   label: 'Setup & API Keys' },
   
   { id: 'firewall',    label: 'Cloud Security Features' },
   { id: 'threats',     label: 'Threats We Block' },
@@ -300,6 +301,32 @@ export default function GuidePage() {
                   <p style={{fontSize:'12px',fontWeight:700,color:'#f97316',marginBottom:'6px'}}>Option B — Full Execution proxy</p>
                   <p style={{fontSize:'11px',color:'#d4d4d8',lineHeight:1.8}}>Connect your database connection string in the client portal (stored encrypted). The API translates, verifies, connects to your database to execute, and returns raw cleaned results to your agent.</p>
                 </div>
+              </div>
+            </div>
+
+            {/* ══════════════ SETUP & API KEYS ══════════════ */}
+            <div className={`guide-section ${active==='setup'?'visible':''}`}>
+              <span className="sec-badge">04 / Setup Guide</span>
+              <h2 className="sec-h1">Setup & <span className="grad-o">API Keys</span></h2>
+              <p className="sec-lead">Follow these four simple steps to fully configure your workspace, connect your database, and generate developer credentials.</p>
+
+              <div style={{display:'grid',gridTemplateColumns:'1fr',gap:'16px',marginBottom:'28px'}}>
+                {[
+                  {n:'1',t:'Sign In & Onboard',d:'Navigate to /portal and log in with your email. This automatically registers your unique Cloud Workspace in our backend database, giving you 500 free query credits immediately.'},
+                  {n:'2',t:'Generate API Keys',d:'Under the "Developer API Keys" panel, click "Create Secret Key". Enter a name for the key. A secret token starting with "az_sk_live_" is created. Copy this key immediately; for security, it will not be shown again.'},
+                  {n:'3',t:'Choose Database Mode',d:'Decide who runs queries: For translation-only mode, leave the Database URL input blank. For automated query execution, save your connection string (e.g. postgresql://...) in the panel. It is encrypted on our servers using AES-256.'},
+                  {n:'4',t:'Call the Gateway',d:'Authenticate your AI backend requests using the HTTP header "Authorization: Bearer az_sk_live_...". Your keys can be monitored or revoked instantly from your portal table if compromised.'}
+                ].map(({n,t,d})=>(
+                  <div key={n} className="card" style={{padding:'20px', display:'flex', gap:'16px', alignItems:'flex-start'}}>
+                    <div style={{background:'rgba(234,108,18,0.1)', border:'1px solid rgba(234,108,18,0.2)', color:'#ea6c12', borderRadius:'10px', width:'28px', height:'28px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', fontSize:'13px', flexShrink:0}}>
+                      {n}
+                    </div>
+                    <div>
+                      <div style={{fontSize:'13px',fontWeight:750,color:'#f4f4f5',marginBottom:'6px',fontFamily:"'Space Grotesk',sans-serif"}}>{t}</div>
+                      <div style={{fontSize:'11.5px',color:'#a1a1aa',lineHeight:1.7}}>{d}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
