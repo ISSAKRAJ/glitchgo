@@ -53,7 +53,8 @@ export default function PricingPage() {
       ],
       cta: 'Choose Team',
       href: '/portal',
-      hot: false
+      hot: false,
+      comingSoon: true
     },
     {
       n: 'Enterprise',
@@ -69,7 +70,8 @@ export default function PricingPage() {
       ],
       cta: 'Contact Sales',
       href: 'mailto:issakrajraj@gmail.com',
-      hot: false
+      hot: false,
+      comingSoon: true
     }
   ];
 
@@ -168,6 +170,11 @@ export default function PricingPage() {
                         Popular
                       </span>
                     )}
+                    {p.comingSoon && (
+                      <span className="text-[8px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-md uppercase font-mono font-bold tracking-wider border border-zinc-700">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-baseline gap-2 mb-3">
@@ -191,16 +198,24 @@ export default function PricingPage() {
                   </ul>
                 </div>
 
-                <a
-                  href={p.href}
-                  className={`w-full py-2.5 rounded-xl text-center text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
-                    p.hot
-                      ? 'bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg shadow-orange-950/20'
-                      : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800'
-                  }`}
-                >
-                  {p.cta}
-                </a>
+                {p.comingSoon ? (
+                  <div
+                    className="w-full py-2.5 rounded-xl text-center text-xs font-bold tracking-wider uppercase bg-zinc-900/20 text-zinc-600 border border-zinc-900/40 cursor-not-allowed font-mono"
+                  >
+                    Coming Soon
+                  </div>
+                ) : (
+                  <a
+                    href={p.href}
+                    className={`w-full py-2.5 rounded-xl text-center text-xs font-bold tracking-wider uppercase transition-all duration-300 ${
+                      p.hot
+                        ? 'bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg shadow-orange-950/20'
+                        : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800'
+                    }`}
+                  >
+                    {p.cta}
+                  </a>
+                )}
               </div>
             ))}
           </div>
