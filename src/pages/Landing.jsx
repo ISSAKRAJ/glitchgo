@@ -414,7 +414,7 @@ export default function Landing() {
         {/* Marquee */}
         <div className="mq-wrap" style={{borderTop:'1px solid rgba(255,255,255,0.035)',borderBottom:'1px solid rgba(255,255,255,0.035)',padding:'16px 0',background:'rgba(0,0,0,0.28)',backdropFilter:'blur(8px)',position:'relative',zIndex:10}}>
           <div className="mq-track">
-            {[...Array(2)].fill(['AST Query Firewall','Zero-Knowledge Vault','Sub-4ms Latency','Offline-First','AES-256 Encryption','Stacked Query Guard','Live Threat Monitor','CTE Attack Shield','Enterprise Ready']).flat().map((t,i)=>(
+            {[...Array(2)].fill(['AST Query Firewall','Zero-Knowledge Vault','Sub-4ms Latency','Cloud-Native','AES-256 Encryption','Stacked Query Guard','Live Threat Monitor','CTE Attack Shield','Enterprise Ready']).flat().map((t,i)=>(
               <div key={i} className="mq-item"><span className="mq-dot"/>{t}<span className="mq-dot"/></div>
             ))}
           </div>
@@ -426,9 +426,9 @@ export default function Landing() {
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}}>
               {[
                 {v:'< 4ms',l:'Query Interception',c:'var(--o2)'},
-                {v:'100%',l:'Local Processing',c:'#60a5fa'},
+                {v:'100%',l:'Cloud Processing',c:'#60a5fa'},
                 {v:'27/27',l:'Security Tests Passed',c:'var(--o2)'},
-                {v:'0 Leaks',l:'Cloud Data Exposure',c:'#60a5fa'},
+                {v:'Zero',l:'Data Retention / Storage',c:'#60a5fa'},
               ].map(({v,l,c})=>(
                 <div key={l} className="stat">
                   <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:'30px',fontWeight:800,color:c,letterSpacing:'-0.03em',marginBottom:'6px'}}>{v}</div>
