@@ -8,6 +8,7 @@ if (process.env.NODE_ENV !== 'production') {
 import express from 'express';
 import cors from 'cors';
 import { apiRouter } from './routes/api.js';
+import { adminzeroRouter } from './routes/adminzero.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,6 +42,7 @@ app.get('/health', (_req, res) => {
 
 // Register AdminZero semantic gateway API routes
 app.use('/api', apiRouter);
+app.use('/api/adminzero', adminzeroRouter);
 
 app.listen(PORT, () => {
   console.log(`=========================================`);
