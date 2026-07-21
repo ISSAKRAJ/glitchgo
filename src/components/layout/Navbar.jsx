@@ -300,10 +300,10 @@ export default function Navbar() {
       <div className="nav-banner" style={{position:'fixed', top:0, left:0, right:0, zIndex:60}}>
         <div className="banner-track">
           {[...Array(2)].fill([
-            { label: '🚀 AdminZero v2.4', text: 'Now live on Windows, macOS & Linux' },
-            { label: '⚡ Sub-4ms Firewall', text: 'Real-time AST query protection' },
-            { label: '🔒 Zero-Knowledge', text: 'Your credentials never leave your machine' },
-            { label: '🆓 Free to Start', text: 'No credit card required' },
+            { label: '🌐 Cloud API Live', text: 'Enterprise-grade protection' },
+            { label: '⚡ Sub-4ms AST Firewall', text: 'Real-time injection block' },
+            { label: '🇮🇳 Built for DPDP Act', text: 'India\'s first AI privacy gateway' },
+            { label: '🆓 1k Queries Free', text: 'No credit card required' },
           ]).flat().map((item, i) => (
             <div key={i} className="banner-item">
               <span className="label">{item.label}</span>

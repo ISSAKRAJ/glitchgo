@@ -367,7 +367,7 @@ export default function Landing() {
               <div style={{display:'inline-flex', alignItems:'center', gap:'9px', padding:'7px 16px', borderRadius:'100px', background:'rgba(234,108,18,0.06)', border:'1px solid rgba(234,108,18,0.14)', backdropFilter:'blur(10px)'}}>
                 <span className="pdot" style={{width:'7px',height:'7px',borderRadius:'50%',background:'var(--o)',display:'block',flexShrink:0}} />
                 <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:'9px',fontWeight:700,color:'var(--o2)',letterSpacing:'0.16em',textTransform:'uppercase'}}>
-                  AdminZero Cloud SaaS — Data Privacy for AI
+                  DPDP Act Ready — India's First AI Privacy Gateway
                 </span>
               </div>
             </div>
@@ -375,16 +375,16 @@ export default function Landing() {
             {/* Headline */}
             <h1 className="fu d2" style={{
               fontFamily:"'Space Grotesk',sans-serif",
-              fontSize:'clamp(40px,6.5vw,82px)',
-              fontWeight:800, lineHeight:1.0, letterSpacing:'-0.03em',
+              fontSize:'clamp(32px,5.5vw,72px)',
+              fontWeight:800, lineHeight:1.1, letterSpacing:'-0.03em',
               color:'#fff', margin:'0 0 22px'
             }}>
-              The Cloud API That<br />
-              <span className="grad-m">Secures Your AI Data.</span>
+              Don't Risk a ₹250Cr Fine.<br />
+              <span className="grad-m">Scrub Aadhaar & PAN Before AI Sees It.</span>
             </h1>
 
-            <p className="fu d3" style={{fontSize:'clamp(13px,1.8vw,16px)',color:'#52525b',maxWidth:'480px',margin:'0 auto 36px',lineHeight:1.8,fontWeight:400}}>
-              AdminZero is a Cloud API Gateway — instantly scrubbing PII, stopping prompt injections, and enforcing strict read-only SQL firewalls for DPDP compliance.
+            <p className="fu d3" style={{fontSize:'clamp(13px,1.8vw,15px)',color:'#71717a',maxWidth:'560px',margin:'0 auto 36px',lineHeight:1.8,fontWeight:400}}>
+              AdminZero is a Cloud API Gateway that scrubs PII, blocks prompt injections, and enforces read-only SQL firewall in &lt;4ms. One line: <code className="text-brand-orange font-mono font-bold">POST /api/v1/query</code>
             </p>
 
             <div className="fu d4" style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap',marginBottom:'52px'}}>
@@ -394,15 +394,15 @@ export default function Landing() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </a>
               <a href="/guide" className="btn-g">
-                How It Works
+                Try Live PII Demo
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </a>
             </div>
 
             {/* Trust row */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'28px',flexWrap:'wrap'}}>
-              {['DPDP & SOC2 Compliant Audit Trails','Zero-Install Cloud SaaS','Aadhaar & PAN PII Scrubbing'].map(t => (
-                <div key={t} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px',color:'#3f3f46',fontWeight:500}}>
+              {['DPDP & SOC2 Compliant Audit Trails','Sub-10ms Overhead','Aadhaar & PAN Scrubbing'].map(t => (
+                <div key={t} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px',color:'#52525b',fontWeight:500}}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--o)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   {t}
                 </div>
@@ -426,9 +426,9 @@ export default function Landing() {
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}}>
               {[
                 {v:'< 4ms',l:'Query Interception',c:'var(--o2)'},
-                {v:'100%',l:'Cloud Processing',c:'#60a5fa'},
-                {v:'27/27',l:'Security Tests Passed',c:'var(--o2)'},
-                {v:'Zero',l:'Data Retention / Storage',c:'#60a5fa'},
+                {v:'27/27',l:'OWASP LLM01 Tests Blocked',c:'#60a5fa'},
+                {v:'Aadhaar/PAN',l:'India-First PII Detection',c:'var(--o2)'},
+                {v:'SOC2 Ready',l:'Tamper-Evident Audit Logs',c:'#60a5fa'},
               ].map(({v,l,c})=>(
                 <div key={l} className="stat">
                   <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:'30px',fontWeight:800,color:c,letterSpacing:'-0.03em',marginBottom:'6px'}}>{v}</div>
@@ -445,18 +445,18 @@ export default function Landing() {
         <section className="sec" style={{padding:'88px 0'}}>
           <div className="inner">
             <div style={{textAlign:'center',marginBottom:'56px'}}>
-              <div style={{display:'flex',justifyContent:'center',marginBottom:'14px'}}><span className="sec-label">// How It Works</span></div>
-              <h2 className="h2">Setup in <span className="grad-o">Under 2 Minutes</span></h2>
-              <p style={{fontSize:'13px',color:'#3f3f46',marginTop:'12px',maxWidth:'340px',margin:'12px auto 0',lineHeight:1.8}}>No installation required. Just point your AI application to our secure Cloud API.</p>
+              <div style={{display:'flex',justifyContent:'center',marginBottom:'14px'}}><span className="sec-label">// Gateway Security</span></div>
+              <h2 className="h2">Two Threats, One Gateway — <span className="grad-o">Prompt Injections + DPDP Violations</span></h2>
+              <p style={{fontSize:'13px',color:'#52525b',marginTop:'12px',maxWidth:'460px',margin:'12px auto 0',lineHeight:1.8}}>No installation required. Just point your AI application to our secure Cloud API.</p>
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',maxWidth:'840px',margin:'0 auto'}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',maxWidth:'840px',margin:'0 auto 40px'}}>
               {[
-                {n:'01',t:'Get Your License Key',d:'Sign up and instantly generate your secure API key from the developer portal.',
+                {n:'01',t:'Get API Key Free',d:'Sign up at glitchgo.tech/portal, instant az_live_xxx key. Free 1k queries.',
                   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>},
-                {n:'02',t:'Route AI Traffic',d:'Change your AI requests to hit /api/v1/query. AdminZero proxies and secures the request.',
+                {n:'02',t:'Route 1 Line',d:'Change your AI call to POST https://api.glitchgo.tech/api/v1/query',
                   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>},
-                {n:'03',t:'Instant Protection',d:'PII is scrubbed, prompt injections are blocked, and safe SQL is executed automatically.',
+                {n:'03',t:'Instant DPDP Protection',d:'PII scrubbed, injections blocked, safe JSON + audit trail returned.',
                   icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>},
               ].map(({n,t,d,icon})=>(
                 <div key={n} className="glass" style={{padding:'26px'}}>
@@ -465,9 +465,24 @@ export default function Landing() {
                     <div className="ib ib-o" style={{width:'34px',height:'34px'}}>{icon}</div>
                   </div>
                   <h3 style={{fontSize:'13px',fontWeight:700,color:'#f4f4f5',marginBottom:'9px',fontFamily:"'Space Grotesk',sans-serif"}}>{t}</h3>
-                  <p style={{fontSize:'11px',color:'#3f3f46',lineHeight:1.8}}>{d}</p>
+                  <p style={{fontSize:'11px',color:'#a1a1aa',lineHeight:1.8}}>{d}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Architecture flow */}
+            <div style={{textAlign:'center',maxWidth:'840px',margin:'0 auto'}}>
+              <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'10px',flexWrap:'wrap',padding:'12px 24px',borderRadius:'16px',background:'rgba(255,255,255,0.01)',border:'1px solid rgba(255,255,255,0.035)',fontSize:'10px',fontFamily:"'JetBrains Mono',monospace",color:'#71717a'}}>
+                <span className="text-white">Your App</span>
+                <span>➔</span>
+                <span className="text-zinc-300">Optional WASM Sidecar <span style={{color:'#52525b'}}>(PII scrubbed in your VPC)</span></span>
+                <span>➔</span>
+                <span className="text-brand-orange font-bold">AdminZero Edge <span style={{color:'#ea6c12'}}>(Prompt Firewall + AST Guard)</span></span>
+                <span>➔</span>
+                <span className="text-zinc-300">Your DB</span>
+                <span>➔</span>
+                <span className="text-emerald-400 font-bold">Safe JSON + Audit Trail</span>
+              </div>
             </div>
           </div>
         </section>
@@ -481,23 +496,23 @@ export default function Landing() {
           <div className="inner">
             <div style={{textAlign:'center',marginBottom:'56px'}}>
               <div style={{display:'flex',justifyContent:'center',marginBottom:'14px'}}><span className="sec-label sec-label-b">// Security Engine</span></div>
-              <h2 className="h2">Enterprise Security.<br /><span className="grad-b">Zero Cloud Risk.</span></h2>
+              <h2 className="h2">Enterprise Security.<br /><span className="grad-b">DPDP Compliance Ready.</span></h2>
             </div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}}>
               {[
-                {t:'Automatic PII Scrubber',d:"Strips Emails, Phone Numbers, Aadhaar, PAN, and Credit Cards before data hits the LLM.",ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,b:false},
+                {t:'Automatic PII Scrubber',d:"Strips Emails, Phones, Aadhaar, PAN, Credit Cards before LLM.",ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,b:false},
                 {t:'Prompt Injection Firewall',d:'Detects role hijacks and instruction overrides before SQL generation.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,b:true},
-                {t:'Compliance Audit Trail',d:'Full tamper-evident logging of every query and PII event for DPDP and SOC2.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,b:false},
-                {t:'Vector DB Protection',d:'Intercepts and secures semantic search queries for Pinecone and ChromaDB.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,b:true},
-                {t:'AST SQL Guard',d:'Parses abstract syntax trees to block destructive queries (DROP, DELETE) that regex misses.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,b:false},
-                {t:'Metadata Shield',d:'Blocks queries targeting system tables — pg_tables, information_schema, sqlite_master.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,b:true},
-                {t:'AI API Gateway',d:'Centralize all AI traffic with rate limiting, token cost tracking, and SLA guarantees.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,b:false},
-                {t:'Cloud-Native Speed',d:'Edge-optimized routing ensures sub-10ms overhead on every intercepted query.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,b:true},
+                {t:'AST SQL Guard',d:'Parses Abstract Syntax Tree to block DROP, DELETE, TRUNCATE, stacked queries. Math over guesswork. <4ms.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,b:false},
+                {t:'Metadata Shield',d:'Blocks pg_tables, information_schema, sqlite_master harvesting.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,b:true},
+                {t:'Compliance Audit Trail',d:'Tamper-evident log of every query and PII event for DPDP, SOC2, GDPR.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,b:false},
+                {t:'Vector DB Protection',d:'Secures Pinecone and ChromaDB semantic search queries.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,b:true},
+                {t:'AI API Gateway',d:'Rate limiting, token cost tracking, SLA. No SDK lock-in.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,b:false},
+                {t:'Cloud-Native Speed',d:'Edge-optimized, sub-10ms overhead. AES-256-GCM encrypted.',ic:<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,b:true},
               ].map(({t,d,ic,b})=>(
                 <div key={t} className="feat">
                   <div className={`ib ${b?'ib-b':'ib-o'}`} style={{width:'38px',height:'38px',marginBottom:'16px'}}>{ic}</div>
                   <h3 style={{fontSize:'12px',fontWeight:700,color:'#f4f4f5',marginBottom:'7px',fontFamily:"'Space Grotesk',sans-serif"}}>{t}</h3>
-                  <p style={{fontSize:'10px',color:'#3f3f46',lineHeight:1.8}}>{d}</p>
+                  <p style={{fontSize:'10px',color:'#a1a1aa',lineHeight:1.8}}>{d}</p>
                 </div>
               ))}
             </div>
@@ -505,6 +520,54 @@ export default function Landing() {
         </section>
 
 
+
+        {/* ══ WHO WE BUILT FOR ══ */}
+        <section className="sec" style={{padding:'88px 0'}}>
+          <div className="inner">
+            <div style={{textAlign:'center',marginBottom:'56px'}}>
+              <div style={{display:'flex',justifyContent:'center',marginBottom:'14px'}}><span className="sec-label">// Target Audience</span></div>
+              <h2 className="h2">Who We Built <span className="grad-o">AdminZero For</span></h2>
+            </div>
+            
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'20px',maxWidth:'960px',margin:'0 auto'}}>
+              {[
+                {
+                  t: 'Fintech & Healthtech AI Startups',
+                  p: 'DPDP fines up to ₹250Cr for Aadhaar/PAN/medical leaks.',
+                  pt: "Don't risk a DPDP fine. Route your AI traffic through our gateway to automatically scrub Aadhaar, PAN, and credit cards before they ever touch the LLM.",
+                  target: 'CTOs, Founders, CISOs at Seed to Series-B'
+                },
+                {
+                  t: 'B2B SaaS Adding AI Agents',
+                  p: "Traditional firewalls can't catch prompt injections that leak other clients' data.",
+                  pt: 'Deploy your AI agents safely. Our AST query firewall intercepts every request in under 4ms, blocking destructive commands and role hijacks.',
+                  target: 'VP Engineering, Lead Backend Developers'
+                },
+                {
+                  t: 'Enterprise Dev Shops & Agencies',
+                  p: 'Building Zero-Trust + audit trail per client kills margins.',
+                  pt: 'Offload your AI data security. Plug in our API to instantly provide enterprise clients with SOC2 and DPDP compliant audit trails.',
+                  target: 'Founders, Lead Architects at agencies'
+                }
+              ].map((icp) => (
+                <div key={icp.t} className="glass" style={{padding:'28px', display:'flex', flexDirection:'column', justifyContent:'space-between'}}>
+                  <div>
+                    <h3 style={{fontSize:'13px',fontWeight:800,color:'#fff',marginBottom:'12px',fontFamily:"'Space Grotesk',sans-serif"}}>{icp.t}</h3>
+                    <div style={{fontSize:'10px',color:'#ef4444',fontFamily:"'JetBrains Mono',monospace",marginBottom:'14px',lineHeight:1.6}}>
+                      ⚠️ Pain: {icp.p}
+                    </div>
+                    <p style={{fontSize:'11px',color:'#a1a1aa',lineHeight:1.8,marginBottom:'20px'}}>{icp.pt}</p>
+                  </div>
+                  <div style={{borderTop:'1px solid rgba(255,255,255,0.035)',paddingTop:'14px',fontSize:'10px',color:'#71717a'}}>
+                    🎯 Target: <strong>{icp.target}</strong>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="div-line" />
 
         {/* ══ REVIEWS ══ */}
         <section className="sec" style={{padding:'88px 0'}}>
@@ -638,6 +701,27 @@ export default function Landing() {
 
         <div className="div-line" />
 
+        {/* ══ FAQ SECTION ══ */}
+        <section className="sec" style={{padding:'88px 0'}}>
+          <div className="inner" style={{maxWidth:'680px'}}>
+            <div style={{textAlign:'center',marginBottom:'56px'}}>
+              <div style={{display:'flex',justifyContent:'center',marginBottom:'14px'}}><span className="sec-label sec-label-b">// FAQ</span></div>
+              <h2 className="h2">Frequently Asked Questions</h2>
+            </div>
+            
+            <div style={{display:'flex', flexDirection:'column', gap:'18px'}}>
+              <div className="glass" style={{padding:'24px'}}>
+                <h3 style={{fontSize:'13px',fontWeight:800,color:'#fff',marginBottom:'10px',fontFamily:"'Space Grotesk',sans-serif"}}>Q: Do you see my PII?</h3>
+                <p style={{fontSize:'11px',color:'#a1a1aa',lineHeight:1.8}}>
+                  A: Cloud API scrubs and hashes it. For Enterprise, use our VPC Sidecar — PII is scrubbed inside your VPC, we only receive redacted tokens. DB credentials are AES-256-GCM encrypted and never logged.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="div-line" />
+
         {/* ══ FINAL CTA ══ */}
         <section className="sec" style={{padding:'88px 0'}}>
           <div className="inner" style={{maxWidth:'760px'}}>
@@ -645,14 +729,14 @@ export default function Landing() {
               <div style={{position:'absolute',top:'-60px',left:'50%',transform:'translateX(-50%)',width:'360px',height:'360px',background:'radial-gradient(circle,rgba(234,108,18,0.06) 0%,transparent 70%)',pointerEvents:'none'}} />
               <div style={{position:'relative'}}>
                 <h2 className="h2" style={{marginBottom:'14px'}}>
-                  Secure Your Database.<br /><span className="grad-o">Start Free Today.</span>
+                  Ready to Make DPDP<br /><span className="grad-o">Compliance Automatic?</span>
                 </h2>
-                <p style={{fontSize:'13px',color:'#3f3f46',marginBottom:'32px',lineHeight:1.8}}>
-                  Join developers who trust AdminZero to protect their databases from AI-driven attacks. No cloud. No subscription required to start.
+                <p style={{fontSize:'13px',color:'#71717a',marginBottom:'32px',lineHeight:1.8}}>
+                  Making it impossible for AI agents to leak PII or destroy your production DB.
                 </p>
                 <a href="/signup?next=/portal" className="btn-p" style={{margin:'0 auto',display:'inline-flex'}}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Get Started Free
+                  Get Started Free — No Credit Card Required
                 </a>
               </div>
             </div>

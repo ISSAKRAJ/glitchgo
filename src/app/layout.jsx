@@ -3,11 +3,11 @@ import AiAssistant from '../components/ui/AiAssistant';
 
 export const metadata = {
   title: {
-    default: 'AdminZero — Cloud API Security Gateway',
+    default: 'AdminZero — DPDP Compliance Gateway for AI | Scrub Aadhaar & PAN in <4ms',
     template: '%s | AdminZero by GlitchGo',
   },
   description:
-    'AdminZero is a Cloud API database security gateway that intercepts and blocks dangerous SQL injections from AI agents before they reach your database. Integrates effortlessly via REST API.',
+    'Cloud API Gateway that scrubs Aadhaar, PAN, credit cards before they hit any LLM, blocks prompt injections with AST firewall, and gives you DPDP & SOC2 audit trails in <4ms.',
   keywords: [
     'AI database security',
     'SQL injection prevention',
@@ -20,6 +20,8 @@ export const metadata = {
     'Cloud API Gateway',
     'PostgreSQL security',
     'LLM database protection',
+    'DPDP Act',
+    'PII Scrubbing India',
   ],
   authors: [{ name: 'GlitchGo', url: 'https://glitchgo.tech' }],
   creator: 'GlitchGo',
@@ -31,9 +33,9 @@ export const metadata = {
     locale: 'en_IN',
     url: 'https://glitchgo.tech',
     siteName: 'AdminZero by GlitchGo',
-    title: 'AdminZero — AI Database Firewall',
+    title: 'AdminZero — DPDP Compliance Gateway for AI | Scrub Aadhaar & PAN in <4ms',
     description:
-      'Stop AI agents from destroying your database. AdminZero intercepts every SQL query in under 4ms — locally, privately, and offline.',
+      'Cloud API Gateway that scrubs Aadhaar, PAN, credit cards before they hit any LLM, blocks prompt injections with AST firewall, and gives you DPDP & SOC2 audit trails in <4ms.',
     images: [
       {
         url: '/og-image.png',
@@ -46,9 +48,9 @@ export const metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: 'AdminZero — AI Database Firewall by GlitchGo',
+    title: 'AdminZero — DPDP Compliance Gateway for AI | Scrub Aadhaar & PAN in <4ms',
     description:
-      'The firewall that thinks before your AI does. Block SQL injections locally in under 4ms.',
+      'Cloud API Gateway that scrubs Aadhaar, PAN, credit cards before they hit any LLM, blocks prompt injections with AST firewall, and gives you DPDP & SOC2 audit trails in <4ms.',
     images: ['/og-image.png'],
     creator: '@glitchgotech',
   },
