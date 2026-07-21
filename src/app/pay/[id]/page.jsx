@@ -159,15 +159,18 @@ export default function PayPage() {
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUrl)}`;
 
   const isPaid = ticket.status === "Paid" || ticket.status === "Completed" || !!ticket.delivery_link;
+  const isCreditTopup = ticket.problem?.startsWith('[CREDIT_TOPUP]');
+  const backUrl = isCreditTopup ? '/portal' : '/status';
+  const backLabel = isCreditTopup ? 'Back to Developer Portal' : 'Back to Ticket Tracker';
 
   return (
     <div className="min-h-screen bg-dark-bg pt-20 pb-20 px-6 relative">
       <div className="max-w-4xl mx-auto">
         <button 
-          onClick={() => window.location.href = "/status"}
+          onClick={() => window.location.href = backUrl}
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8 text-sm"
         >
-          <ArrowLeft size={14} /> Back to Ticket Tracker
+          <ArrowLeft size={14} /> {backLabel}
         </button>
 
         {/* Ticket Header Card */}
@@ -177,13 +180,13 @@ export default function PayPage() {
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 relative z-10">
             <div>
               <div className="text-xs text-brand-orange font-mono uppercase tracking-wider mb-2">
-                Ticket Reference: #{ticket.id.slice(0, 8)}
+                {isCreditTopup ? "Order Reference" : "Ticket Reference"}: #{ticket.id.slice(0, 8)}
               </div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-2 leading-tight">
-                {ticket.problem}
+                {isCreditTopup ? "GlitchGo Compute Credits Top-Up" : ticket.problem}
               </h1>
-              <p className="text-sm text-gray-400 flex items-center gap-1.5">
-                <Clock size={14} /> Requested on {new Date(ticket.created_at).toLocaleDateString()}
+              <p className="text-sm text-gray-400 flex items-center gap-1.5 font-mono">
+                <Clock size={14} /> {isCreditTopup ? "Order Created on" : "Requested on"} {new Date(ticket.created_at).toLocaleDateString()}
               </p>
             </div>
 
@@ -226,48 +229,66 @@ export default function PayPage() {
         ) : isPaid ? (
           /* Case 2: Paid or Completed (Show downloads / delivery) */
           <div className="space-y-6">
-            <div className="glass p-8 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 text-center flex flex-col items-center py-12">
-              <CheckCircle2 className="text-emerald-500 mb-4" size={56} />
-              <h2 className="text-2xl font-extrabold text-white mb-2">Payment Confirmed</h2>
-              <p className="text-gray-300 max-w-md mb-4 text-sm">
-                Your payment reference has been verified successfully. Your ticket status is now updated.
-              </p>
-              {ticket.payment_link && (
-                <span className="bg-dark-bg/60 border border-white/10 px-3.5 py-1.5 rounded-lg text-xs font-mono text-gray-400 mb-2">
-                  UTR: {ticket.payment_link}
-                </span>
-              )}
-            </div>
-
-            {ticket.delivery_link ? (
-              <div className="glass p-8 rounded-3xl border border-brand-blue/20 bg-brand-blue/5 text-center flex flex-col items-center py-12">
-                <Zap className="text-brand-blue mb-4 animate-bounce" size={48} />
-                <h3 className="text-2xl font-bold text-white mb-2">Your Delivery is Ready!</h3>
-                <p className="text-gray-400 max-w-md mb-6 text-sm">
-                  The debugged files/resumed project is complete. Please download the final bundle below.
+            {isCreditTopup ? (
+              <div className="glass p-8 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 text-center flex flex-col items-center py-12">
+                <CheckCircle2 className="text-emerald-500 mb-4" size={56} />
+                <h2 className="text-2xl font-extrabold text-white mb-2">Credits Successfully Credited!</h2>
+                <p className="text-gray-300 max-w-md mb-6 text-sm">
+                  Your payment reference has been verified successfully. We have added the query credits directly to your active license key: <strong className="text-white font-mono">{ticket.referral_code}</strong>.
                 </p>
-                <a 
-                  href={ticket.delivery_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-brand-blue hover:bg-blue-600 text-white font-bold py-3.5 px-8 rounded-xl flex items-center gap-2 shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all mb-4"
+                <button 
+                  onClick={() => window.location.href = "/portal"}
+                  className="bg-brand-orange hover:bg-opacity-90 text-black font-extrabold px-6 py-2.5 rounded-xl transition-all cursor-pointer text-xs font-mono border-none"
                 >
-                  <Download size={18} /> Download Code Assets
-                </a>
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 max-w-lg text-left text-xs text-red-400 font-mono mt-4">
-                  <strong>⚠️ RETENTION WARNING:</strong> For security and confidentiality, we do not store customer code permanently. 
-                  These delivery files are scheduled for automatic server deletion in 7 days. Download your backups immediately.
-                </div>
+                  Back to Portal Dashboard
+                </button>
               </div>
             ) : (
-              <div className="glass p-8 rounded-3xl border border-white/5 text-center flex flex-col items-center py-12 text-gray-400">
-                <Clock className="mb-4 text-brand-orange animate-spin" size={40} />
-                <h3 className="text-xl font-bold text-white mb-2">Engineers Coding</h3>
-                <p className="text-sm max-w-md leading-relaxed">
-                  We have verified your deposit/payment! Our debuggers are working on rescuing your codebase now. 
-                  Once done, the download link will appear right here on this page. Thank you for your patience!
-                </p>
-              </div>
+              <>
+                <div className="glass p-8 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 text-center flex flex-col items-center py-12">
+                  <CheckCircle2 className="text-emerald-500 mb-4" size={56} />
+                  <h2 className="text-2xl font-extrabold text-white mb-2">Payment Confirmed</h2>
+                  <p className="text-gray-300 max-w-md mb-4 text-sm">
+                    Your payment reference has been verified successfully. Your ticket status is now updated.
+                  </p>
+                  {ticket.payment_link && (
+                    <span className="bg-dark-bg/60 border border-white/10 px-3.5 py-1.5 rounded-lg text-xs font-mono text-gray-400 mb-2">
+                      UTR: {ticket.payment_link}
+                    </span>
+                  )}
+                </div>
+
+                {ticket.delivery_link ? (
+                  <div className="glass p-8 rounded-3xl border border-brand-blue/20 bg-brand-blue/5 text-center flex flex-col items-center py-12">
+                    <Zap className="text-brand-blue mb-4 animate-bounce" size={48} />
+                    <h3 className="text-2xl font-bold text-white mb-2">Your Delivery is Ready!</h3>
+                    <p className="text-gray-400 max-w-md mb-6 text-sm">
+                      The debugged files/resumed project is complete. Please download the final bundle below.
+                    </p>
+                    <a 
+                      href={ticket.delivery_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-brand-blue hover:bg-blue-600 text-white font-bold py-3.5 px-8 rounded-xl flex items-center gap-2 shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all mb-4"
+                    >
+                      <Download size={18} /> Download Code Assets
+                    </a>
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 max-w-lg text-left text-xs text-red-400 font-mono mt-4">
+                      <strong>⚠️ RETENTION WARNING:</strong> For security and confidentiality, we do not store customer code permanently. 
+                      These delivery files are scheduled for automatic server deletion in 7 days. Download your backups immediately.
+                    </div>
+                  </div>
+                ) : (
+                  <div className="glass p-8 rounded-3xl border border-white/5 text-center flex flex-col items-center py-12 text-gray-400">
+                    <Clock className="mb-4 text-brand-orange animate-spin" size={40} />
+                    <h3 className="text-xl font-bold text-white mb-2">Engineers Coding</h3>
+                    <p className="text-sm max-w-md leading-relaxed">
+                      We have verified your deposit/payment! Our debuggers are working on rescuing your codebase now. 
+                      Once done, the download link will appear right here on this page. Thank you for your patience!
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         ) : (
@@ -276,19 +297,32 @@ export default function PayPage() {
             {/* Left: UPI Scan Info */}
             <div className="lg:col-span-3 glass p-6 md:p-8 rounded-3xl border border-white/5 flex flex-col items-center justify-between min-h-[450px]">
               <div className="text-center w-full">
-                <h2 className="text-xl font-bold text-white mb-2">Scan to Pay via UPI</h2>
+                <h2 className="text-xl font-bold text-white mb-2">
+                  {isCreditTopup ? "Scan to Top-Up Credits" : "Scan to Pay via UPI"}
+                </h2>
                 <p className="text-gray-400 text-xs mb-6 max-w-xs mx-auto">
-                  Scan this QR code with any UPI application (GPay, PhonePe, Paytm, BHIM) to pay instantly.
+                  {isCreditTopup 
+                    ? "Scan this QR code with GPay, PhonePe, Paytm, or BHIM to pay instantly. Your credits will be added once verified." 
+                    : "Scan this QR code with any UPI application (GPay, PhonePe, Paytm, BHIM) to pay instantly."}
                 </p>
               </div>
 
-              {/* Dynamic QR Code */}
-              <div className="bg-white p-3.5 rounded-2xl shadow-xl flex items-center justify-center mb-6">
+              {/* QR Code Container */}
+              <div className="bg-white p-3.5 rounded-2xl shadow-xl flex flex-col items-center justify-center mb-6">
                 <img 
-                  src={qrCodeUrl} 
+                  src={isCreditTopup ? "/images/owner_qr.png" : qrCodeUrl} 
+                  onError={(e) => {
+                    // Fallback to dynamic QR Code if the static image is missing
+                    e.currentTarget.src = qrCodeUrl;
+                  }}
                   alt="UPI QR Code" 
                   className="w-[200px] h-[200px] object-contain"
                 />
+                {isCreditTopup && (
+                  <span className="text-[9px] text-zinc-500 font-mono mt-1 text-center block">
+                    (Prefilled amount fallback active)
+                  </span>
+                )}
               </div>
 
               <div className="text-center w-full bg-white/5 border border-white/5 p-4 rounded-2xl">
@@ -305,7 +339,9 @@ export default function PayPage() {
               <div>
                 <h2 className="text-xl font-bold text-white mb-1">Verify Payment</h2>
                 <p className="text-gray-400 text-xs mb-6">
-                  Submit proof to unlock code assets and start ticket execution.
+                  {isCreditTopup 
+                    ? "Submit proof to instantly credit query allowance to your active license key."
+                    : "Submit proof to unlock code assets and start ticket execution."}
                 </p>
 
                 {/* Mode Selector */}

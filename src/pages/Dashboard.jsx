@@ -68,6 +68,48 @@ export default function Dashboard() {
   // Status Update
   const handleStatusChange = async (id, newStatus) => {
     try {
+      // Safety Check: Avoid double-crediting
+      const lead = leads.find(l => l.id === id);
+      if (lead && lead.problem && lead.problem.startsWith('[CREDIT_TOPUP]') && 
+          (newStatus === 'Paid' || newStatus === 'Completed') && 
+          lead.status !== 'Paid' && lead.status !== 'Completed') {
+        const teamId = lead.referral_code;
+        if (teamId) {
+          // Parse package key from problem: "[CREDIT_TOPUP] Growth Pack (growth)"
+          const match = lead.problem.match(/\(([^)]+)\)$/);
+          const packKey = match ? match[1] : 'growth';
+
+          let creditsToAdd = 100000;
+          let newTier = 'pro';
+          if (packKey === 'starter') {
+            creditsToAdd = 15000;
+            newTier = 'pro';
+          } else if (packKey === 'growth') {
+            creditsToAdd = 100000;
+            newTier = 'pro';
+          } else if (packKey === 'scale') {
+            creditsToAdd = 500000;
+            newTier = 'team';
+          }
+
+          // Fetch current workspace limits
+          const { data: wsData, error: wsFetchError } = await supabase
+            .from('workspaces')
+            .select('max_queries, tier')
+            .eq('team_id', teamId)
+            .single();
+
+          if (!wsFetchError && wsData) {
+            const newMax = (wsData.max_queries || 500) + creditsToAdd;
+            await supabase
+              .from('workspaces')
+              .update({ max_queries: newMax, tier: newTier })
+              .eq('team_id', teamId);
+            console.log(`Successfully credited ${creditsToAdd} queries to workspace ${teamId}`);
+          }
+        }
+      }
+
       const { error } = await supabase
         .from('client_requests')
         .update({ status: newStatus })

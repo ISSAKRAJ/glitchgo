@@ -221,26 +221,33 @@ export default function AdminZeroTab({ user, supabase }) {
     setPayLoading(true);
     setPayMessage(null);
     try {
-      const res = await fetch('/api/instamojo/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          team_id: workspace.team_id,
-          pack: selectedPack,
-          email: user?.email
-        })
-      });
+      const packDetails = packs[selectedPack];
+      const purchasePayload = {
+        name: user?.email || 'Developer',
+        contact: user?.email || 'N/A',
+        problem: `[CREDIT_TOPUP] ${packDetails.label} (${selectedPack})`,
+        deadline: 'Instant Topup',
+        budget: `₹${packDetails.cost}`,
+        quoted_price: `₹${packDetails.cost}`,
+        referral_code: workspace.team_id,
+        status: 'Received'
+      };
 
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      const { data, error } = await supabase
+        .from('client_requests')
+        .insert([purchasePayload])
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      if (data && data.id) {
+        window.location.href = `/pay/${data.id}`;
       } else {
-        setPayMessage({ type: 'error', text: data.error || 'Failed to generate checkout link.' });
-        setPayLoading(false);
+        throw new Error('No checkout ID returned from system.');
       }
     } catch (err) {
-      console.error('Instamojo Checkout redirect error:', err);
-      setPayMessage({ type: 'error', text: 'Network error generating checkout link.' });
+      console.error('Local Checkout redirect error:', err);
+      setPayMessage({ type: 'error', text: err.message || 'Error generating checkout page.' });
       setPayLoading(false);
     }
   };
