@@ -331,6 +331,11 @@ export default function PayPage() {
                 <div className="text-[10px] text-gray-500 font-mono break-all select-all">
                   UPI ID: {targetUpiId}
                 </div>
+                {isCreditTopup && (
+                  <p className="text-[9px] text-zinc-500 leading-normal mt-2.5 max-w-[260px] mx-auto font-sans">
+                    💡 <strong>Note:</strong> During our public beta, payments are processed directly to our founder's verified UPI account. You may see their personal name upon scanning.
+                  </p>
+                )}
               </div>
             </div>
 
