@@ -687,7 +687,7 @@ export default function AdminZeroTab({ user, supabase }) {
               )}
             </button>
             <p className="text-[9.5px] text-zinc-500 text-center leading-relaxed font-mono mt-3">
-              Payments are processed securely via Instamojo gateway. Credits are applied automatically to your license within seconds of checkout success.
+              You will be redirected to our secure custom UPI QR checkout page to complete your top-up.
             </p>
           </div>
         </div>

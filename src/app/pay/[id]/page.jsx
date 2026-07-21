@@ -333,7 +333,7 @@ export default function PayPage() {
                 </div>
                 {isCreditTopup && (
                   <p className="text-[9px] text-zinc-500 leading-normal mt-2.5 max-w-[260px] mx-auto font-sans">
-                    💡 <strong>Note:</strong> During our public beta, payments are processed directly to our founder's verified UPI account. You may see their personal name upon scanning.
+                    💡 <strong>Note:</strong> During our public beta, payments are processed directly to our founder's verified UPI account. You will see the name <strong className="text-white">"Issak Raj"</strong> upon scanning.
                   </p>
                 )}
               </div>
