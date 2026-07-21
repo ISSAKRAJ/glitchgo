@@ -221,21 +221,13 @@ export default function AdminZeroTab({ user, supabase }) {
     setPayLoading(true);
     setPayMessage(null);
     try {
-      let priceId = '';
-      if (selectedPack === 'starter') {
-        priceId = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_STARTER_VARIANT_ID || 'starter_placeholder';
-      } else if (selectedPack === 'growth') {
-        priceId = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_GROWTH_VARIANT_ID || 'growth_placeholder';
-      } else if (selectedPack === 'scale') {
-        priceId = process.env.NEXT_PUBLIC_LEMON_SQUEEZY_SCALE_VARIANT_ID || 'scale_placeholder';
-      }
-
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch('/api/instamojo/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           team_id: workspace.team_id,
-          price_id: priceId
+          pack: selectedPack,
+          email: user?.email
         })
       });
 
@@ -247,7 +239,7 @@ export default function AdminZeroTab({ user, supabase }) {
         setPayLoading(false);
       }
     } catch (err) {
-      console.error('Checkout redirect error:', err);
+      console.error('Instamojo Checkout redirect error:', err);
       setPayMessage({ type: 'error', text: 'Network error generating checkout link.' });
       setPayLoading(false);
     }
@@ -688,7 +680,7 @@ export default function AdminZeroTab({ user, supabase }) {
               )}
             </button>
             <p className="text-[9.5px] text-zinc-500 text-center leading-relaxed font-mono mt-3">
-              Payments are processed securely via Lemon Squeezy gateway. Credits are applied automatically to your license within seconds of checkout success.
+              Payments are processed securely via Instamojo gateway. Credits are applied automatically to your license within seconds of checkout success.
             </p>
           </div>
         </div>
