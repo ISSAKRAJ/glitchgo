@@ -303,7 +303,7 @@ export default function Navbar() {
             { label: '🌐 Cloud API Live', text: 'Enterprise-grade protection' },
             { label: '⚡ Sub-4ms AST Firewall', text: 'Real-time injection block' },
             { label: '🇮🇳 Built for DPDP Act', text: 'India\'s first AI privacy gateway' },
-            { label: '🆓 1k Queries Free', text: 'No credit card required' },
+            { label: '🆓 10k Queries Free', text: 'No credit card required' },
           ]).flat().map((item, i) => (
             <div key={i} className="banner-item">
               <span className="label">{item.label}</span>
