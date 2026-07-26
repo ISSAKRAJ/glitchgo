@@ -8,6 +8,8 @@ import {
 import { scrubPII } from '../lib/pii-scrubber.js';
 import { scanPrompt } from '../lib/prompt-firewall.js';
 import { validateQuery, validateQueryMySQL } from '../lib/ast-firewall.js';
+import { normalizeAndValidateInput } from '../lib/guards/input-normalizer.js';
+import { checkBehavioralBan, recordThreat } from '../lib/guards/behavioral.js';
 import { GoogleGenAI } from '@google/genai';
 import pg from 'pg';
 import mysql from 'mysql2/promise';
@@ -162,6 +164,22 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     }
     res.set('X-RateLimit-Remaining', String(rateCheck.remaining));
 
+    // ── 1a. Behavioral Ban Pre-Check (L10) ───────────────────────────────
+    const banStatus = await checkBehavioralBan(workspaceId);
+    if (banStatus.blocked) {
+      logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'BEHAVIORAL_HARD_BAN' });
+      return res.status(403).json({ error: banStatus.reason, code: 'BEHAVIORAL_HARD_BAN' });
+    }
+
+    // ── 1b. Input Normalization (L0, L2, L12) ────────────────────────────
+    const normResult = normalizeAndValidateInput(prompt);
+    if (!normResult.safe) {
+      recordThreat(workspaceId); // Track malicious evasion attempt
+      logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'INPUT_OBFUSCATION' });
+      return res.status(400).json({ error: normResult.reason, code: 'INPUT_OBFUSCATION_BLOCKED' });
+    }
+    const cleanPrompt = normResult.normalized;
+
     // ── 2. Workspace Validation + Credit Check ───────────────────────────
     const workspace = await getWorkspace(workspaceId);
     if (!workspace) {
@@ -189,8 +207,9 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
 
     // ── 3. Prompt Injection Firewall ─────────────────────────────────────
     if (usePromptFirewall) {
-      const promptScan = scanPrompt(prompt);
+      const promptScan = scanPrompt(cleanPrompt);
       if (!promptScan.safe) {
+        recordThreat(workspaceId); // Track prompt injection attempt
         const topThreat = promptScan.threats[0];
         logAuditEvent({
           ...auditEvent,
@@ -208,11 +227,11 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     }
 
     // ── 4. PII Scrubber ──────────────────────────────────────────────────
-    let sanitizedPrompt = prompt;
+    let sanitizedPrompt = cleanPrompt;
     let piiScrubbed = false;
     let piiTypesFound: string[] = [];
     if (usePiiScrubber) {
-      const piiResult = scrubPII(prompt);
+      const piiResult = scrubPII(cleanPrompt);
       sanitizedPrompt = piiResult.sanitized;
       piiScrubbed = piiResult.count > 0;
       piiTypesFound = piiResult.detectedTypes;
@@ -269,6 +288,7 @@ Rules:
           validateQueryMySQL(generatedSQL, resolvedBlockedTables);
         }
       } catch (firewallErr: any) {
+        recordThreat(workspaceId); // Track AST violation
         logAuditEvent({
           ...auditEvent,
           status: 'blocked',

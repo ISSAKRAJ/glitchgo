@@ -43,9 +43,21 @@ export async function validateQuery(
 
   const normalizedForbidden = forbiddenTables.map(t => t.toLowerCase());
 
+  let nodeCount = 0;
+  const MAX_NODES = 40;
+  const MAX_DEPTH = 8;
+
   // Recursive AST scanner checking all child nodes for unauthorized types
-  function checkNode(node: any): void {
+  function checkNode(node: any, depth: number = 0): void {
     if (!node || typeof node !== 'object') return;
+
+    nodeCount++;
+    if (nodeCount > MAX_NODES) {
+      throw new Error(`[AdminZero L4 Guard] THREAT BLOCKED: Query complexity exceeded (Node limit: ${MAX_NODES}).`);
+    }
+    if (depth > MAX_DEPTH) {
+      throw new Error(`[AdminZero L4 Guard] THREAT BLOCKED: Query recursion depth exceeded (Depth limit: ${MAX_DEPTH}).`);
+    }
 
     // Check node statement type
     if (node.type) {
@@ -114,10 +126,10 @@ export async function validateQuery(
         const child = node[key];
         if (Array.isArray(child)) {
           for (const item of child) {
-            checkNode(item);
+            checkNode(item, depth + 1);
           }
         } else if (typeof child === 'object' && child !== null) {
-          checkNode(child);
+          checkNode(child, depth + 1);
         }
       }
     }
@@ -136,7 +148,7 @@ export async function validateQuery(
         );
       }
     }
-    checkNode(stmt);
+    checkNode(stmt, 0);
   }
 
   return {

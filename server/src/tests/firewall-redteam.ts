@@ -1,4 +1,5 @@
 import { validateQuery } from '../lib/ast-firewall.js';
+import { normalizeAndValidateInput } from '../lib/guards/input-normalizer.js';
 
 interface TestResult {
   vectorName: string;
@@ -28,6 +29,22 @@ const tests = [
     name: "Vector D: Complex Legitimate Query",
     payload: "SELECT region, COUNT(id) as total_sales, AVG(amount) as avg_deal FROM sales_2026 WHERE date >= '2026-01-01' GROUP BY region ORDER BY total_sales DESC LIMIT 50;",
     expectedBlocked: false
+  },
+  {
+    name: "Vector E: L4 Complexity Depth Exploit",
+    payload: "SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM (SELECT * FROM users as t1) as t2) as t3) as t4) as t5) as t6) as t7) as t8) as t9;",
+    expectedBlocked: true
+  },
+  {
+    name: "Vector F: L2 Heavy Hex Encoding",
+    payload: "SELECT * FROM users WHERE name = 0x41 AND email = 0x42 AND id = 0x43 AND role = 0x44",
+    expectedBlocked: true
+  },
+  {
+    name: "Vector G: L12 Homoglyph Attack",
+    // "DRОP TАBLE" using Cyrillic 'О' and 'А'
+    payload: "DRОP TАBLE users;",
+    expectedBlocked: true
   }
 ];
 
@@ -44,7 +61,17 @@ async function runSuite() {
     let message = "Allowed";
 
     try {
-      const result = await validateQuery(test.payload);
+      let testPayload = test.payload;
+      
+      // Pass through L0/L2/L12 Normalizer first
+      const normResult = normalizeAndValidateInput(testPayload);
+      if (!normResult.safe) {
+        throw new Error(`[AdminZero Input Guard] ${normResult.reason}`);
+      }
+      testPayload = normResult.normalized;
+
+      // Pass through AST Firewall
+      const result = await validateQuery(testPayload);
       message = `safe: ${result.safe}`;
     } catch (err: any) {
       actualBlocked = true;
