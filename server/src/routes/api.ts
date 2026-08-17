@@ -82,6 +82,128 @@ async function authenticateSuperAdmin(req: Request): Promise<boolean> {
   }
 }
 
+// --- DEMO RATE LIMITER ---
+const demoRateLimitMap = new Map<string, { count: number; windowStart: number }>();
+const DEMO_RATE_LIMIT = 5;
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of demoRateLimitMap.entries()) {
+    if (now - entry.windowStart > 60_000) demoRateLimitMap.delete(key);
+  }
+}, 60000).unref();
+
+function checkDemoRateLimit(ip: string) {
+  const now = Date.now();
+  const window = 60_000;
+  const entry = demoRateLimitMap.get(ip);
+  if (!entry || now - entry.windowStart > window) {
+    demoRateLimitMap.set(ip, { count: 1, windowStart: now });
+    return true;
+  }
+  if (entry.count >= DEMO_RATE_LIMIT) return false;
+  entry.count += 1;
+  return true;
+}
+
+/**
+ * POST /v1/demo/query
+ * Public Sandbox Endpoint for GlitchGo Landing Page
+ */
+apiRouter.post('/v1/demo/query', async (req: Request, res: Response) => {
+  const startTime = Date.now();
+  try {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const clientIp = Array.isArray(ip) ? ip[0] : ip;
+
+    if (!checkDemoRateLimit(clientIp)) {
+      return res.status(429).json({ error: 'Demo rate limit exceeded. Max 5 requests per minute.', code: 'RATE_LIMITED' });
+    }
+
+    const { prompt, features = {} } = req.body;
+    const usePromptFirewall = features.use_prompt_firewall !== false;
+    const usePiiScrubber = features.use_pii_scrubber !== false;
+    const useAstFirewall = features.use_ast_firewall !== false;
+
+    if (!prompt) return res.status(400).json({ error: 'Missing prompt.' });
+
+    const banStatus = await checkBehavioralBan(`demo_${clientIp}`);
+    if (banStatus.blocked) {
+      return res.status(403).json({ error: banStatus.reason, code: 'BEHAVIORAL_HARD_BAN' });
+    }
+
+    const normResult = normalizeAndValidateInput(prompt);
+    if (!normResult.safe) {
+      recordThreat(`demo_${clientIp}`);
+      return res.status(400).json({ error: normResult.reason, code: 'INPUT_OBFUSCATION_BLOCKED' });
+    }
+    const cleanPrompt = normResult.normalized;
+
+    if (usePromptFirewall) {
+      const promptScan = scanPrompt(cleanPrompt);
+      if (!promptScan.safe) {
+        recordThreat(`demo_${clientIp}`);
+        return res.status(403).json({
+          error: '[AdminZero Firewall] THREAT BLOCKED: Prompt injection attempt detected.',
+          code: 'PROMPT_INJECTION',
+          threatType: promptScan.threats[0].type,
+          severity: promptScan.threats[0].severity
+        });
+      }
+    }
+
+    let sanitizedPrompt = cleanPrompt;
+    let piiScrubbed = false;
+    let piiTypesFound: string[] = [];
+    if (usePiiScrubber) {
+      const piiResult = scrubPII(cleanPrompt);
+      sanitizedPrompt = piiResult.sanitized;
+      piiScrubbed = piiResult.count > 0;
+      piiTypesFound = piiResult.detectedTypes;
+    }
+
+    let generatedSQL = sanitizedPrompt;
+    if (useAstFirewall) {
+      const geminiKey = process.env.GEMINI_API_KEY;
+      if (geminiKey) {
+        try {
+          const ai = new GoogleGenAI({ apiKey: geminiKey });
+          const systemInstruction = `You are a secure postgres SQL compiler. Convert the user's natural language question into a safe, read-only SQL SELECT query. Rules:\n- Output ONLY the raw SQL. No markdown.\n- Only SELECT statements.`;
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: sanitizedPrompt,
+            config: { systemInstruction }
+          });
+          generatedSQL = (response.text || '').trim().replace(/^```sql\s*/i, '').replace(/```$/, '').trim();
+        } catch (e: any) {
+           console.error('Gemini Demo Error:', e.message);
+        }
+      }
+      
+      try {
+        validateQuery(generatedSQL, []);
+      } catch (firewallErr: any) {
+        recordThreat(`demo_${clientIp}`);
+        return res.status(403).json({ error: firewallErr.message, code: 'AST_FIREWALL_BLOCKED', sql: generatedSQL });
+      }
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      sql: generatedSQL,
+      data: [{ message: 'WAF Passed! (Execution skipped in Demo Mode)' }],
+      meta: {
+        executionMs: Date.now() - startTime,
+        piiScrubbed,
+        piiTypesFound
+      }
+    });
+
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Internal demo server error.' });
+  }
+});
+
 /**
  * POST /v1/query
  * AdminZero Cloud API Gateway for Render

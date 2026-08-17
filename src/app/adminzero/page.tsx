@@ -34,90 +34,55 @@ export default function DemoPlayground() {
     setFeatures(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const executeDemo = (e?: React.FormEvent) => {
+  const executeDemo = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!prompt) return;
 
     setIsExecuting(true);
     
-    setTimeout(() => {
-      let cost = 1;
-      if (features.ast) cost += 2;
-      if (features.prompt) cost += 1;
-      if (features.pii) cost += 1;
+    let cost = 1;
+    if (features.ast) cost += 2;
+    if (features.prompt) cost += 1;
+    if (features.pii) cost += 1;
 
+    try {
+      const res = await fetch('/api/v1/demo/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          features: {
+            use_ast_firewall: features.ast,
+            use_prompt_firewall: features.prompt,
+            use_pii_scrubber: features.pii
+          }
+        })
+      });
+
+      const data = await res.json();
+      
       let result: any = {
         prompt,
         cost,
-        status: 'success',
-        sql: '',
-        message: '',
-        data: []
+        status: res.status === 200 ? 'success' : 'blocked',
+        sql: data.sql || '',
+        message: data.error || (data.data && data.data[0] ? data.data[0].message : 'Query processed.'),
+        data: data.data || []
       };
 
-      const pLower = prompt.toLowerCase();
-
-      // Evaluate based on triggers and features
-      if (pLower.includes('ignore previous') || pLower.includes('dump the schema')) {
-        if (features.prompt) {
-          result.status = 'blocked';
-          result.message = '[Prompt Firewall] THREAT BLOCKED: Role hijack instruction detected before SQL generation.';
-        } else {
-          result.status = 'success';
-          result.sql = 'SELECT * FROM information_schema.tables;';
-          result.data = [{ table_catalog: 'glitchgo_db', table_schema: 'public', table_name: 'users' }];
-          result.message = 'Query executed successfully. (WARNING: Prompt Firewall was OFF)';
-        }
-      } 
-      else if (pLower.includes('drop table') || pLower.includes('delete')) {
-        if (features.ast) {
-          result.status = 'blocked';
-          result.message = '[AST Guard] THREAT BLOCKED: Destructive DML (DROP/DELETE) node detected in syntax tree.';
-        } else {
-          result.status = 'success';
-          result.sql = 'DELETE FROM users WHERE id = 1; DROP TABLE users;';
-          result.data = [{ rows_affected: 999 }];
-          result.message = 'Query executed successfully. (WARNING: AST Guard was OFF. Data destroyed.)';
-        }
-      }
-      else if (pLower.includes('information_schema')) {
-        if (features.ast) {
-          result.status = 'blocked';
-          result.message = '[AST Guard] THREAT BLOCKED: Metadata/System table snooping detected.';
-        } else {
-          result.status = 'success';
-          result.sql = 'SELECT * FROM information_schema.tables;';
-          result.data = [{ table_name: 'users' }, { table_name: 'secrets' }];
-          result.message = 'Query executed successfully. (WARNING: AST Guard was OFF)';
-        }
-      }
-      else if (pLower.includes('email') || pLower.includes('phone')) {
-        result.status = 'success';
-        result.sql = 'SELECT id, email, phone FROM admins;';
-        if (features.pii) {
-          result.data = [
-            { id: 1, email: '[REDACTED]', phone: '[REDACTED]' },
-            { id: 2, email: '[REDACTED]', phone: '[REDACTED]' }
-          ];
-          result.message = 'Query executed successfully. PII Scrubber REDACTED sensitive fields.';
-        } else {
-          result.data = [
-            { id: 1, email: 'admin1@glitchgo.com', phone: '+1-555-0101' },
-            { id: 2, email: 'admin2@glitchgo.com', phone: '+1-555-0102' }
-          ];
-          result.message = 'Query executed successfully. (WARNING: PII was exposed)';
-        }
-      }
-      else {
-        result.status = 'success';
-        result.sql = "SELECT * FROM users WHERE status = 'active' LIMIT 5;";
-        result.data = [{ id: 101, username: 'safe_user', status: 'active' }];
-        result.message = 'Query executed successfully.';
-      }
-
       setHistory(prev => [result, ...prev]);
+    } catch (err: any) {
+      setHistory(prev => [{
+        prompt,
+        cost,
+        status: 'blocked',
+        sql: '',
+        message: 'Network Error connecting to Sandbox API: ' + err.message,
+        data: []
+      }, ...prev]);
+    } finally {
       setIsExecuting(false);
-    }, 800);
+    }
   };
 
   return (
