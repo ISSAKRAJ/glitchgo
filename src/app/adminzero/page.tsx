@@ -8,7 +8,8 @@ import {
   Server,
   Zap,
   Info,
-  Play
+  Play,
+  Database
 } from 'lucide-react';
 
 export default function DemoPlayground() {
@@ -18,6 +19,11 @@ export default function DemoPlayground() {
     pii: true
   });
   
+  const [dbMode, setDbMode] = useState('demo');
+  const [apiKey, setApiKey] = useState('');
+  const [dbUrl, setDbUrl] = useState('');
+  const [dbDialect, setDbDialect] = useState('postgres');
+
   const [prompt, setPrompt] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
@@ -46,17 +52,36 @@ export default function DemoPlayground() {
     if (features.pii) cost += 1;
 
     try {
-      const res = await fetch('/api/v1/demo/query', {
+      const payload: any = {
+        prompt,
+        demo_mode: dbMode === 'demo',
+        features: {
+          use_ast_firewall: features.ast,
+          use_prompt_firewall: features.prompt,
+          use_pii_scrubber: features.pii
+        }
+      };
+
+      if (dbMode === 'custom') {
+        payload.db_url = dbUrl;
+        payload.db_dialect = dbDialect;
+        if (!apiKey) {
+          setHistory(prev => [{
+            prompt, cost: 0, status: 'blocked', sql: '',
+            message: 'Please provide your AdminZero API Key to test a custom database.', data: []
+          }, ...prev]);
+          setIsExecuting(false);
+          return;
+        }
+      }
+
+      const res = await fetch('/api/v1/query', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          features: {
-            use_ast_firewall: features.ast,
-            use_prompt_firewall: features.prompt,
-            use_pii_scrubber: features.pii
-          }
-        })
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(dbMode === 'custom' ? { 'Authorization': `Bearer ${apiKey}` } : {})
+        },
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -143,6 +168,64 @@ export default function DemoPlayground() {
           {/* LEFT: CONTROLS */}
           <div className="lg:col-span-1 space-y-6">
             
+            {/* NEW: CONNECTION MODE */}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+              <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                <Database className="w-4 h-4 text-orange-400" />
+                Connection Mode
+              </h2>
+              <div className="flex gap-2 mb-4 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                <button 
+                  onClick={() => setDbMode('demo')}
+                  className={`flex-1 text-xs py-1.5 rounded-md font-bold transition-all ${dbMode === 'demo' ? 'bg-orange-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'}`}
+                >
+                  AdminZero DB
+                </button>
+                <button 
+                  onClick={() => setDbMode('custom')}
+                  className={`flex-1 text-xs py-1.5 rounded-md font-bold transition-all ${dbMode === 'custom' ? 'bg-orange-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Bring Your Own
+                </button>
+              </div>
+
+              {dbMode === 'custom' && (
+                <div className="space-y-3 animate-in fade-in zoom-in duration-200">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">API Key</label>
+                    <input 
+                      type="password" 
+                      placeholder="az_sk_..." 
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-mono"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Database URL</label>
+                    <input 
+                      type="text" 
+                      placeholder="postgresql://..." 
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-mono"
+                      value={dbUrl}
+                      onChange={(e) => setDbUrl(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Dialect</label>
+                    <select 
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                      value={dbDialect}
+                      onChange={(e) => setDbDialect(e.target.value)}
+                    >
+                      <option value="postgres">PostgreSQL</option>
+                      <option value="mysql">MySQL</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
               <h2 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-orange-400" />
