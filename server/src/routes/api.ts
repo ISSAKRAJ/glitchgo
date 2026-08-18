@@ -13,7 +13,6 @@ import { checkBehavioralBan, recordThreat } from '../lib/guards/behavioral.js';
 import { GoogleGenAI } from '@google/genai';
 import pg from 'pg';
 import mysql from 'mysql2/promise';
-import { createClient } from '@libsql/client';
 
 export const apiRouter = Router();
 
@@ -221,8 +220,7 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
       db_dialect = 'postgres',
       blocked_tables = [],
       mode = 'sql',
-      features = {},
-      demo_mode = false
+      features = {}
     } = req.body;
     
     const usePromptFirewall = features.use_prompt_firewall !== false;
@@ -241,21 +239,17 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
       apiKey = String(license_key).trim();
     }
 
+    if (!apiKey) {
+      return res.status(401).json({ error: 'Missing authentication credentials. Provide Bearer Token in Authorization header or license_key in body.' });
+    }
+    if (!prompt) {
+      return res.status(400).json({ error: 'Missing prompt in request body.' });
+    }
+
     let workspaceId = '';
     let apiKeyRecord: any = null;
 
-    if (demo_mode) {
-      workspaceId = `demo_user_${req.ip}`;
-    } else {
-      if (!apiKey) {
-        return res.status(401).json({ error: 'Missing authentication credentials. Provide Bearer Token in Authorization header or license_key in body.' });
-      }
-      if (!prompt) {
-        return res.status(400).json({ error: 'Missing prompt in request body.' });
-      }
-    }
-
-    if (!demo_mode && apiKey.startsWith('az_sk_live_')) {
+    if (apiKey.startsWith('az_sk_live_')) {
       const { data, error: keyErr } = await supabase
         .from('api_keys')
         .select('*')
@@ -274,7 +268,7 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
       
       workspaceId = data.workspace_id;
       apiKeyRecord = data;
-    } else if (!demo_mode) {
+    } else {
       // Backward compatibility: Treat directly as license key/team_id
       workspaceId = apiKey;
     }
@@ -309,34 +303,28 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     const cleanPrompt = normResult.normalized;
 
     // ── 2. Workspace Validation + Credit Check ───────────────────────────
-    let workspace: any = null;
-    let creditsUsed = 0;
-    let creditsMax = 1000;
-    
-    if (!demo_mode) {
-      workspace = await getWorkspace(workspaceId);
-      if (!workspace) {
-        logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'INVALID_LICENSE' });
-        return res.status(401).json({ error: 'Invalid or unregistered workspace.', code: 'INVALID_LICENSE' });
-      }
+    const workspace = await getWorkspace(workspaceId);
+    if (!workspace) {
+      logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'INVALID_LICENSE' });
+      return res.status(401).json({ error: 'Invalid or unregistered workspace.', code: 'INVALID_LICENSE' });
+    }
 
-      // Update last_used_at in the background (non-blocking)
-      if (apiKeyRecord) {
-        supabase
-          .from('api_keys')
-          .update({ last_used_at: new Date().toISOString() })
-          .eq('id', apiKeyRecord.id)
-          .then(({ error }) => {
-            if (error) console.error('Error updating last_used_at for api_key:', error);
-          });
-      }
+    // Update last_used_at in the background (non-blocking)
+    if (apiKeyRecord) {
+      supabase
+        .from('api_keys')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('id', apiKeyRecord.id)
+        .then(({ error }) => {
+          if (error) console.error('Error updating last_used_at for api_key:', error);
+        });
+    }
 
-      creditsUsed = workspace.query_count || 0;
-      creditsMax = workspace.max_queries || 500;
-      if (creditsUsed + queryCost > creditsMax) {
-        logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'QUOTA_EXCEEDED' });
-        return res.status(402).json({ error: `Insufficient compute credits. Request requires ${queryCost} credits, but only ${creditsMax - creditsUsed} remaining.`, code: 'QUOTA_EXCEEDED' });
-      }
+    const creditsUsed = workspace.query_count || 0;
+    const creditsMax = workspace.max_queries || 500;
+    if (creditsUsed + queryCost > creditsMax) {
+      logAuditEvent({ ...auditEvent, status: 'blocked', threatType: 'QUOTA_EXCEEDED' });
+      return res.status(402).json({ error: `Insufficient compute credits. Request requires ${queryCost} credits, but only ${creditsMax - creditsUsed} remaining.`, code: 'QUOTA_EXCEEDED' });
     }
 
     // ── 3. Prompt Injection Firewall ─────────────────────────────────────
@@ -374,13 +362,13 @@ apiRouter.post('/v1/query', async (req: Request, res: Response) => {
     }
 
     // ── 5. Resolve DB connection ─────────────────────────────────────────
-    const resolvedDbUrl = demo_mode ? 'sqlite::memory:' : (db_url || workspace?.db_url);
-    const resolvedDialect = demo_mode ? 'sqlite' : (db_dialect || workspace?.db_dialect || 'postgres');
-    const resolvedBlockedTables = demo_mode ? [] : (blocked_tables.length > 0
+    const resolvedDbUrl = db_url || workspace.db_url;
+    const resolvedDialect = db_dialect || workspace.db_dialect || 'postgres';
+    const resolvedBlockedTables = blocked_tables.length > 0
       ? blocked_tables
-      : (workspace?.blocked_tables || '').split(',').map((t: string) => t.trim()).filter(Boolean));
+      : (workspace.blocked_tables || '').split(',').map((t: string) => t.trim()).filter(Boolean);
 
-    if (!demo_mode && !resolvedDbUrl) {
+    if (!resolvedDbUrl) {
       return res.status(400).json({ error: 'No database URL configured.', code: 'NO_DB_URL' });
     }
 
@@ -437,24 +425,7 @@ Rules:
     // ── 8. Database Execution ────────────────────────────────────────────
     let queryResult: any = [];
     try {
-      if (demo_mode) {
-        // Safe isolated in-memory SQLite sandbox
-        const memDb = createClient({ url: 'file::memory:?cache=shared' });
-        
-        // Seed mock data
-        await memDb.execute(`CREATE TABLE IF NOT EXISTS enterprise_users (id INTEGER PRIMARY KEY, name TEXT, email TEXT, phone TEXT, role TEXT, active BOOLEAN)`);
-        await memDb.execute(`INSERT INTO enterprise_users (name, email, phone, role, active) VALUES 
-          ('John Doe', 'john.doe@enterprise.com', '+1-555-0198', 'admin', 1),
-          ('Jane Smith', 'jane.smith@enterprise.com', '+1-555-0199', 'admin', 1),
-          ('Bob Wilson', 'bwilson@corp.com', '+1-555-0200', 'user', 1)`);
-          
-        try {
-          const res = await memDb.execute(generatedSQL);
-          queryResult = res.rows;
-        } catch (e: any) {
-          queryResult = [{ error: e.message }];
-        }
-      } else if (resolvedDialect === 'postgres') {
+      if (resolvedDialect === 'postgres') {
         const { Client } = pg;
         const client = new Client({
           connectionString: resolvedDbUrl,
@@ -483,7 +454,9 @@ Rules:
 
     const executionMs = Date.now() - startTime;
 
-    // ── 9. Post-Execution Telemetry ──────────────────────────────────────
+    // ── 9. Deduct Credit + Log Success ──────────────────────────────────
+    adminUpdateWorkspace(license_key, { query_count: creditsUsed + queryCost });
+
     logAuditEvent({
       ...auditEvent,
       status: 'success',
@@ -491,9 +464,6 @@ Rules:
       rowsReturned: Array.isArray(queryResult) ? queryResult.length : 1
     });
 
-    if (!demo_mode) {
-      adminUpdateWorkspace(license_key, { query_count: creditsUsed + queryCost });
-    }
     res.set('X-AdminZero-Credits-Remaining', String(creditsMax - creditsUsed - queryCost));
     res.set('X-AdminZero-PII-Scrubbed', String(piiScrubbed));
 

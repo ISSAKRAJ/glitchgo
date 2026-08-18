@@ -75,13 +75,13 @@ export default function DemoPlayground() {
         }
       }
 
-      const res = await fetch('/api/v1/query', {
+      const res = await fetch('/api/sandbox/query', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          ...(dbMode === 'custom' ? { 'Authorization': `Bearer ${apiKey}` } : {})
+          // Note: API Key is now sent in the body payload because the proxy handles it
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, apiKey })
       });
 
       const data = await res.json();
