@@ -72,7 +72,9 @@ export async function POST(req: Request) {
     if (geminiKey) {
       try {
         const ai = new GoogleGenAI({ apiKey: geminiKey });
-        const systemInstruction = `You are a secure SQLite compiler. Convert the natural language question into a safe, read-only SQL SELECT query. Only return raw SQL.`;
+        const systemInstruction = `You are a secure SQLite compiler. Convert the natural language question into a safe, read-only SQL SELECT query. Only return raw SQL.
+The database has the following schema:
+CREATE TABLE enterprise_users (id INTEGER PRIMARY KEY, name TEXT, email TEXT, phone TEXT, role TEXT, active BOOLEAN);`;
         
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
